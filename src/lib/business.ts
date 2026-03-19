@@ -10,5 +10,6 @@ export const business = {
     "116 W State Ave, Pharr, TX 78577"
   )}&output=embed`,
   mapUrl: `https://www.google.com/maps?q=${encodeURIComponent("116 W State Ave, Pharr, TX 78577")}&output=search`,
+  homeV2VideoPath: "/videos/home-v2.mp4",
 } as const;
 
