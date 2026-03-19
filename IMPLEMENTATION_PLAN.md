@@ -57,6 +57,10 @@
 - Issue `#17`: **Fix map destination accuracy**
   - Centralized directions URLs using business name + full address for better destination matching.
   - Updated both home variants to use centralized Google/Apple directions URLs.
+- Issue `#19`: **Refresh metadata and social preview tags**
+  - Updated site title/description metadata to current `Cigar Society` branding.
+  - Added Open Graph and Twitter card tags for social link previews.
+  - Removed outdated schema email and aligned structured data business name.
 
 ---
 
