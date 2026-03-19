@@ -61,6 +61,9 @@
   - Updated site title/description metadata to current `Cigar Society` branding.
   - Added Open Graph and Twitter card tags for social link previews.
   - Removed outdated schema email and aligned structured data business name.
+- Issue `#20`: **Replace old favicon with Cigar Society icon**
+  - Replaced legacy favicon assets with Cigar Society-branded icon files.
+  - Added standard favicon and Apple touch icon tags in `index.html`.
 
 ---
 
