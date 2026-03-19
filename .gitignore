@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Cursor MCP config (keep token-bearing local config out of commits)
+.cursor/mcp.json

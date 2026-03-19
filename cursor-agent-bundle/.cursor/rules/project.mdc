@@ -1,0 +1,35 @@
+---
+description: Reusable project rules for Cursor + GitHub MCP workflows
+alwaysApply: true
+---
+
+## Project Overview
+This repo is managed with an issue-first workflow.
+The agent should ask the user for missing business/project details when placeholders remain.
+
+## GitHub Workflow (User-Managed Merges + Manual Issue Closing)
+- Always read `GITHUB_ISSUES_GUIDE.md` before making any code changes.
+- Every task requires a GitHub Issue. Ask for the Issue ID; if it doesn't exist, ask permission to create it.
+- Branching:
+  - Preferred: one branch per issue.
+  - If you are using a fixed existing branch (per user instruction), do not create new branches; commit on the current branch.
+- Commits:
+  - All commit messages must reference the issue ID.
+  - Format: `[#ISSUE_ID] Commit message`
+- PR + Issue closing:
+  - PR creation/merge and issue closing are handled manually by you (the user).
+
+## Code Style
+- TypeScript strict mode — avoid `any` unless unavoidable
+- Functional components only
+- Use `@/` aliases for internal imports
+- Prefer `const` over `let`
+
+## UI / Styling
+- Tailwind first
+- Use shadcn/ui primitives from `src/components/ui` (do not edit primitives directly)
+
+## MCP Security Rules
+- Never place token values into `.cursor/mcp.json`
+- Tokens belong only in `.env.local` (local-only; never commit)
+

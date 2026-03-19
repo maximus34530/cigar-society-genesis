@@ -41,21 +41,23 @@ Before writing any code or planning detailed implementation:
 
 ## 2. Execution (During Work)
 
-- **Branching**: Create a specific branch for every issue.
+- **Branching**: Preferred is one branch per issue.
   - Naming: `feat/issue-ID-short-description` or `fix/issue-ID-short-description`
   - Examples: `feat/3-real-business-content`, `fix/7-maps-embed`
+- If you are using a fixed existing branch (e.g. `March-19, 2026`) instead, do not create new branches; just ensure commits still reference the issue ID.
 - **Commits**: All commit messages must reference the issue ID.
   - Format: `[#ISSUE_ID] Commit message`
   - Example: `[#3] Add real phone number, hours, and address`
-- **Pull Requests**: Open a PR to `main` when work is complete. Reference the issue in the PR body with `Closes #ISSUE_ID`.
+- **Pull Requests**: PR creation/merge is handled manually by you.
+  - The agent will not open PRs or merge into `main` unless you explicitly instruct otherwise.
 
 ---
 
 ## 3. Completion (End of Task)
 
 1. **Verification**: Ensure all Acceptance Criteria are checked off.
-2. **PR Merge**: Merge PR into `main` — issue closes automatically via `Closes #ID`.
-3. **Comment** *(optional)*: Add a summary comment for complex tasks before closing.
+2. **Issue Status**: Leave the GitHub issue open unless you explicitly ask me to close it.
+3. **User Handoff**: Provide a concise summary of what was changed and how it satisfies the acceptance criteria, so you can review, PR, merge, and close manually.
 
 ---
 
@@ -87,7 +89,7 @@ Before writing any code or planning detailed implementation:
 *When you (the AI Agent) read this file, you must:*
 1. Acknowledge that you will track your work via GitHub Issues.
 2. Ask the user for the specific Issue ID if you cannot find one, or ask for permission to create it.
-3. Create a branch named per the convention above before making changes.
+3. Create a branch named per the convention above before making changes, unless you are using a fixed existing branch (your instruction). In that case, commit on the current branch.
 4. Reference the issue in every commit message.
-5. Update issue status (add comment, check off criteria) as you progress.
-6. Open a PR to `main` when work is complete, referencing the issue.
+5. Update issue status (add comment, check off criteria) only if you explicitly ask me to.
+6. Do not open PRs or merge into `main` automatically.

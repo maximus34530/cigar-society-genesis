@@ -13,8 +13,10 @@ Stack: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase �
 - Always read `GITHUB_ISSUES_GUIDE.md` before making any code changes.
 - Every task requires a GitHub Issue. Ask for the issue ID or create one before starting.
 - Branch naming: `feat/issue-ID-short-description` or `fix/issue-ID-short-description`
+- If you are using a fixed existing branch (e.g. `March-19, 2026`) instead, do not create new branches; commit to the current branch while still using the issue ID in commit messages.
 - Commit format: `[#ISSUE_ID] Commit message`
-- All changes merge to `main` via Pull Request with `Closes #ID` in the body.
+- PR creation/merge and issue closing are handled manually by you.
+- The agent will not open PRs or merge into `main` automatically.
 
 ## Code Style
 - TypeScript strict mode — no `any` types unless absolutely unavoidable
