@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
+import { business } from "@/lib/business";
 
 const Footer = () => {
   return (
@@ -8,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Brand */}
           <div>
-            <h3 className="font-heading text-2xl text-primary mb-4">Cigar Society US</h3>
+            <h3 className="font-heading text-2xl text-primary mb-4">{business.name}</h3>
             <p className="text-muted-foreground font-body leading-relaxed">
               A premium cigar lounge experience in the heart of the Rio Grande Valley.
             </p>
@@ -38,7 +39,7 @@ const Footer = () => {
           <div>
             <h4 className="font-heading text-lg text-foreground mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {["About", "Cigars", "Membership", "Events", "Gallery", "Contact"].map((item) => (
+              {["About", "Cigars", "Events", "Gallery", "Contact"].map((item) => (
                 <li key={item}>
                   <Link
                     to={`/${item.toLowerCase()}`}
@@ -57,22 +58,20 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                116 W State Ave, Pharr, TX 78577
+                {business.address}
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
-                <a href="tel:+19562231303" className="hover:text-primary transition-colors">(956) 223-1303</a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-primary shrink-0" />
-                <a href="mailto:info@cigarsocietyus.com" className="hover:text-primary transition-colors">info@cigarsocietyus.com</a>
+                <a href={`tel:${business.phoneE164}`} className="hover:text-primary transition-colors">
+                  {business.phoneDisplay}
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-16 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Cigar Society US. All rights reserved. Must be 21+ to enter.
+          © {new Date().getFullYear()} {business.name}. All rights reserved. Must be 21+ to enter.
         </div>
       </div>
     </footer>

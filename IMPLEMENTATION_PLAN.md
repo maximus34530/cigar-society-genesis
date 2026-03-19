@@ -12,15 +12,16 @@
 ## Workflow Rules
 
 - Every task has a GitHub Issue before any code is written
-- Branch naming: `feat/issue-ID-short-description`
+- Preferred branch naming: `feat/issue-ID-short-description`
+- If working on fixed branch `March-19,-2026`, do not create new branches
 - Commit format: `[#ID] message`
-- All merges to `main` via Pull Request
+- PR/merge to `main` is handled manually by you
 - Reference `GITHUB_ISSUES_GUIDE.md` for full protocol
 
 ---
 
 ## Phase 1 — Foundation & Content Polish
-*Goal: Replace all placeholder content with real business data and polish the design to match the Cigar Society brand.*
+*Goal: Replace placeholder content with real business data, align the design to the Cigar Society brand (brown/gold), and remove membership-page scope until later.*
 
 | # | Issue | Label | Priority |
 |---|---|---|---|
@@ -33,12 +34,29 @@
 | 7 | Polish Navbar — logo, links, mobile menu | `design` | 🟠 High |
 | 8 | Build out About page with real story and ownership | `content` | 🟡 Medium |
 | 9 | Build out Cigars catalog page | `content` | 🟡 Medium |
-| 10 | Build out Membership page — tiers and benefits | `enhancement` | 🟡 Medium |
+| 10 | Build out Membership page — removed (not needed) | `enhancement` | 🟡 Medium (Cancelled) |
 | 11 | Build out Events page | `content` | 🟡 Medium |
 | 12 | Build out Gallery page with real photos | `content` | 🟡 Medium |
 | 13 | Build out Contact page with hours and map | `content` | 🟡 Medium |
 
 **Phase 1 Definition of Done**: The site is fully populated with real content, looks on-brand, and is presentable to the business owner.
+
+**Phase 1 Progress (completed):** Issues `#1–#13` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, membership UI removal, navbar improvements, gallery lightbox, About/Cigars/Events/Contact content updates, and image asset verification). Membership page implementation was removed from scope until later.
+
+### Phase 1 Additional Work (completed)
+- Issue `#14`: **Add Home v2 with video hero**
+  - Added Home v2 page/route at `/home-v2` that replaces the hero image with video.
+  - Updated player to support a non-mp4 source file (`.MOV`) via direct video `src`.
+  - Hero video is now autoplay, muted, looped, with poster fallback and reduced-motion image fallback.
+- Issue `#15`: **Promote Home v2 as primary homepage**
+  - Route `/` now renders Home v2 as the default homepage experience.
+  - Prior image-based homepage is preserved as backup route at `/home-v1`.
+- Issue `#16`: **Map directions from hero CTA**
+  - Updated the "Visit the Lounge" hero CTA to open map directions to the lounge address.
+  - Uses Apple Maps on Apple devices and Google Maps on other devices.
+- Issue `#17`: **Fix map destination accuracy**
+  - Centralized directions URLs using business name + full address for better destination matching.
+  - Updated both home variants to use centralized Google/Apple directions URLs.
 
 ---
 
@@ -54,7 +72,7 @@
 | 18 | Gallery table — dynamic photo gallery management | `backend` | 🟡 Medium |
 | 19 | Admin dashboard scaffold (manage events, gallery, inquiries) | `enhancement` | 🟢 Low |
 
-**Phase 2 Definition of Done**: Forms submit real data to Supabase; at least contact and membership are live.
+**Phase 2 Definition of Done**: Forms submit real data to Supabase; at least contact submissions are live.
 
 ---
 

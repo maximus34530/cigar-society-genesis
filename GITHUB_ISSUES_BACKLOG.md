@@ -138,17 +138,15 @@ Notes:
 **Technical Notes**
 - Keep data static for Phase 1; make it easy to swap to Supabase later.
 
-### Issue 10 — [Feature] Build Membership page — tiers and benefits
+### Issue 10 — [Cancelled] Membership page — removed (not needed)
 **Milestone**: Phase 1: Foundation & Content Polish  
 **Labels**: `enhancement`  
-**Objective**: Create a membership page that communicates value clearly.
+**Objective**: Remove membership-page work from scope.
 **Acceptance Criteria**
-- [ ] Membership tiers/benefits are displayed (even if initially using static placeholder tiers provided by owners)
-- [ ] “La Sociedad” branding is applied consistently
-- [ ] CTAs route correctly to the membership CTA flow (or contact page if no signup backend)
-- [ ] Page layout is polished and readable
+- [ ] No new GitHub issue is created for membership-page implementation
+- [ ] No membership page review/approval step is required for launch readiness
 **Technical Notes**
-- If you don’t have real tier pricing yet, avoid inventing prices; use “Coming soon” or “Contact us”.
+- If membership features are later desired, re-add them with fresh acceptance criteria.
 
 ### Issue 11 — [Content] Build Events page
 **Milestone**: Phase 1: Foundation & Content Polish  
@@ -318,7 +316,7 @@ Notes:
 **Labels**: `content`, `urgent`  
 **Objective**: Get approval and make final text/image adjustments before launch.
 **Acceptance Criteria**
-- [ ] Owner reviews all pages: Home, About, Cigars, Membership, Events, Gallery, Contact
+- [ ] Owner reviews all pages: Home, About, Cigars, Events, Gallery, Contact
 - [ ] Contact details, hours, and addresses are confirmed
 - [ ] Final “go live” checklist is completed
 **Technical Notes**

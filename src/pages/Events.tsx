@@ -1,13 +1,16 @@
 import Layout from "@/components/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import eventImg from "@/assets/event.jpg";
+import { business } from "@/lib/business";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const events = [
   { title: "Friday Night Cigar Tasting", date: "Every Friday · 7:00 PM", description: "Sample hand-selected premium cigars from top brands. Our certified tobacconist guides you through flavor profiles and pairings.", image: eventImg },
   { title: "Big Game Watch Party", date: "Game Nights · Doors at 6:00 PM", description: "Enjoy the game with fellow aficionados. Premium cigars, big screens, and great company in a luxury setting.", image: eventImg },
-  { title: "Cigar & Whiskey Pairing Social", date: "Last Saturday of the Month", description: "An exclusive evening pairing world-class cigars with fine whiskeys. Limited seating, members get priority.", image: eventImg },
+  { title: "Cigar & Whiskey Pairing Social", date: "Last Saturday of the Month", description: "An exclusive evening pairing world-class cigars with fine whiskeys. Limited seating—contact us to reserve.", image: eventImg },
   { title: "New Release Showcase", date: "Monthly · Check Social Media", description: "Be among the first to experience new and limited-edition cigar releases before they hit the shelves.", image: eventImg },
-  { title: "Members-Only Mixer", date: "Quarterly", description: "An intimate gathering exclusively for La Sociedad members. Network, enjoy rare cigars, and celebrate the community.", image: eventImg },
+  { title: "Community Social Mixer", date: "Quarterly", description: "A relaxed social evening for cigar lovers. Network, enjoy a curated selection, and celebrate the community.", image: eventImg },
 ];
 
 const Events = () => (
@@ -22,8 +25,8 @@ const Events = () => (
     </section>
 
     <section className="section-padding">
-      <div className="container mx-auto">
-        <SectionHeading title="Upcoming Events" subtitle="Join us for exclusive cigar nights, tastings, and social gatherings at Cigar Society US." />
+        <div className="container mx-auto">
+        <SectionHeading title="Upcoming Events" subtitle={`Join us for exclusive cigar nights, tastings, and social gatherings at ${business.name}.`} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {events.map((event) => (
             <div key={event.title} className="bg-card rounded-lg border border-border overflow-hidden shadow-card hover:border-primary/30 transition-colors group">
@@ -37,6 +40,11 @@ const Events = () => (
               </div>
             </div>
           ))}
+        </div>
+        <div className="text-center mt-10">
+          <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+            <Link to="/contact">Contact Us to Reserve or Ask Questions</Link>
+          </Button>
         </div>
       </div>
     </section>

@@ -2,12 +2,13 @@ import Layout from "@/components/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import loungeImg from "@/assets/lounge-seating.jpg";
 import humidorImg from "@/assets/humidor.jpg";
+import { business } from "@/lib/business";
 
 const About = () => (
   <Layout>
     {/* Hero */}
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      <img src={loungeImg} alt="Cigar Society US lounge" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={loungeImg} alt={`${business.name} lounge`} className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-background/75" />
       <div className="relative z-10 text-center px-4 animate-fade-in">
         <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground">Our Story</h1>
@@ -21,7 +22,7 @@ const About = () => (
           <div>
             <h2 className="font-heading text-3xl font-semibold text-foreground mb-6">A Home for Cigar Enthusiasts</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Cigar Society US was born from a passion for premium tobacco and the belief that every great cigar
+              {business.name} was born from a passion for premium tobacco and the belief that every great cigar
               deserves to be enjoyed in the right setting. Located in the heart of Pharr, Texas, our lounge
               provides a refined yet relaxed environment where enthusiasts come together.
             </p>
@@ -45,7 +46,7 @@ const About = () => (
         <div className="bg-card border border-border rounded-lg p-10 shadow-card">
           <h3 className="font-heading text-2xl text-primary mb-4">Certified Cigar Sommelier Tobacconist</h3>
           <p className="text-muted-foreground leading-relaxed">
-            Cigar Society US is led by certified cigar professionals trained through Tobacconist University.
+            {business.name} is led by certified cigar professionals trained through Tobacconist University.
             Our expertise ensures that every recommendation, pairing, and experience is backed by deep
             knowledge and genuine passion for the craft.
           </p>

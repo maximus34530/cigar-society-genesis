@@ -4,9 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
+import HomeV2 from "./pages/HomeV2";
 import About from "./pages/About";
 import Cigars from "./pages/Cigars";
-import Membership from "./pages/Membership";
 import Events from "./pages/Events";
 import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
@@ -21,10 +21,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<HomeV2 />} />
+          <Route path="/home-v1" element={<Index />} />
+          <Route path="/home-v2" element={<HomeV2 />} />
           <Route path="/about" element={<About />} />
           <Route path="/cigars" element={<Cigars />} />
-          <Route path="/membership" element={<Membership />} />
           <Route path="/events" element={<Events />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
