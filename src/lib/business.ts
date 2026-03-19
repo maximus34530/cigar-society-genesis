@@ -1,0 +1,9 @@
+export const business = {
+  name: "Cigar Society, LLC",
+  address: "116 W State Ave, Pharr, TX 78577",
+  phoneDisplay: "(956) 223-1303",
+  phoneE164: "+19562231303",
+  // Known from your Google listing screenshot; keep day-by-day hours out until you provide the full schedule.
+  hoursText: "Open • Closes 11 PM",
+} as const;
+

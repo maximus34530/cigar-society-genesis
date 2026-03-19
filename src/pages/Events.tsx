@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import eventImg from "@/assets/event.jpg";
+import { business } from "@/lib/business";
 
 const events = [
   { title: "Friday Night Cigar Tasting", date: "Every Friday · 7:00 PM", description: "Sample hand-selected premium cigars from top brands. Our certified tobacconist guides you through flavor profiles and pairings.", image: eventImg },
@@ -22,8 +23,8 @@ const Events = () => (
     </section>
 
     <section className="section-padding">
-      <div className="container mx-auto">
-        <SectionHeading title="Upcoming Events" subtitle="Join us for exclusive cigar nights, tastings, and social gatherings at Cigar Society US." />
+        <div className="container mx-auto">
+        <SectionHeading title="Upcoming Events" subtitle={`Join us for exclusive cigar nights, tastings, and social gatherings at ${business.name}.`} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {events.map((event) => (
             <div key={event.title} className="bg-card rounded-lg border border-border overflow-hidden shadow-card hover:border-primary/30 transition-colors group">

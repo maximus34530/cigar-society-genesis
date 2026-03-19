@@ -4,8 +4,9 @@ import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { MapPin, Phone, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { business } from "@/lib/business";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -54,22 +55,18 @@ const Contact = () => {
                 <ul className="space-y-4 text-muted-foreground text-sm">
                   <li className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                    <span>116 W State Ave, Pharr, TX 78577</span>
+                    <span>{business.address}</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-primary shrink-0" />
-                    <a href="tel:+19562231303" className="hover:text-primary transition-colors">(956) 223-1303</a>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-primary shrink-0" />
-                    <a href="mailto:info@cigarsocietyus.com" className="hover:text-primary transition-colors">info@cigarsocietyus.com</a>
+                    <a href={`tel:${business.phoneE164}`} className="hover:text-primary transition-colors">
+                      {business.phoneDisplay}
+                    </a>
                   </li>
                   <li className="flex items-start gap-3">
                     <Clock className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                     <div>
-                      <p>Mon–Thu: 12:00 PM – 10:00 PM</p>
-                      <p>Fri–Sat: 12:00 PM – 12:00 AM</p>
-                      <p>Sun: 12:00 PM – 8:00 PM</p>
+                      <p>{business.hoursText}</p>
                     </div>
                   </li>
                 </ul>
@@ -77,7 +74,7 @@ const Contact = () => {
 
               <div className="rounded-lg overflow-hidden border border-border shadow-card">
                 <iframe
-                  title="Cigar Society US location"
+                  title={`${business.name} location`}
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3588.123!2d-98.185!3d26.195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjbCsDExJzQyLjAiTiA5OMKwMTEnMDYuMCJX!5e0!3m2!1sen!2sus!4v1234567890"
                   width="100%"
                   height="250"

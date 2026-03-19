@@ -6,6 +6,7 @@ import { Star, Lock, Calendar, Gift, Armchair, Crown } from "lucide-react";
 import heroImg from "@/assets/hero-lounge.jpg";
 import cigarsImg from "@/assets/cigars-featured.jpg";
 import eventImg from "@/assets/event.jpg";
+import { business } from "@/lib/business";
 
 const featuredCigars = [
   { name: "Arturo Fuente Opus X", wrapper: "Rosado", strength: "Full", description: "A legendary Dominican puro with rich, complex flavors of cedar, leather, and spice." },
@@ -38,7 +39,7 @@ const Index = () => {
         </div>
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in">
           <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold mb-6 text-foreground">
-            Welcome to <span className="text-gold-gradient">Cigar Society US</span>
+            Welcome to <span className="text-gold-gradient">{business.name}</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-body mb-10 max-w-2xl mx-auto leading-relaxed">
             A premium cigar lounge experience in the Rio Grande Valley.
@@ -59,7 +60,7 @@ const Index = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <SectionHeading title="The Experience" />
           <p className="text-muted-foreground text-lg leading-relaxed font-body">
-            Cigar Society US is a premium cigar lounge located in Pharr, Texas, built for cigar enthusiasts
+            {business.name} is a premium cigar lounge located in Pharr, Texas, built for cigar enthusiasts
             who appreciate craftsmanship, community, and a relaxing atmosphere. Step inside and discover
             a curated selection of the world's finest cigars in an elegant setting designed for conversation,
             celebration, and unwinding.
@@ -155,10 +156,10 @@ const Index = () => {
       {/* Map / Location */}
       <section className="section-padding bg-muted">
         <div className="container mx-auto">
-          <SectionHeading title="Find Us" subtitle="116 W State Ave, Pharr, TX 78577" />
+          <SectionHeading title="Find Us" subtitle={business.address} />
           <div className="rounded-lg overflow-hidden border border-border shadow-card max-w-4xl mx-auto">
             <iframe
-              title="Cigar Society US location"
+              title={`${business.name} location`}
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3588.123!2d-98.185!3d26.195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjbCsDExJzQyLjAiTiA5OMKwMTEnMDYuMCJX!5e0!3m2!1sen!2sus!4v1234567890"
               width="100%"
               height="400"

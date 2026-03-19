@@ -7,6 +7,7 @@ import exteriorImg from "@/assets/exterior.jpg";
 import eventImg from "@/assets/event.jpg";
 import cigarCloseup from "@/assets/cigar-closeup.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
+import { business } from "@/lib/business";
 
 const images = [
   { src: heroImg, alt: "Premium cigar lounge interior" },
@@ -23,7 +24,7 @@ const Gallery = () => (
   <Layout>
     <section className="section-padding">
       <div className="container mx-auto">
-        <SectionHeading title="Gallery" subtitle="Step inside the Cigar Society US experience." />
+        <SectionHeading title="Gallery" subtitle={`Step inside the ${business.name} experience.`} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {images.map((img, i) => (
             <div
