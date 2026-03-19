@@ -5,5 +5,8 @@ export const business = {
   phoneE164: "+19562231303",
   // Known from your Google listing screenshot; keep day-by-day hours out until you provide the full schedule.
   hoursText: "Open • Closes 11 PM",
+  mapEmbedSrc: `https://www.google.com/maps?q=${encodeURIComponent(
+    "116 W State Ave, Pharr, TX 78577"
+  )}&output=embed`,
 } as const;
 
