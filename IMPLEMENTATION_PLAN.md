@@ -33,7 +33,7 @@
 | 7 | Polish Navbar — logo, links, mobile menu | `design` | 🟠 High |
 | 8 | Build out About page with real story and ownership | `content` | 🟡 Medium |
 | 9 | Build out Cigars catalog page | `content` | 🟡 Medium |
-| 10 | Build out Membership page — tiers and benefits | `enhancement` | 🟡 Medium |
+| 10 | Build out Membership page — removed (not needed) | `enhancement` | 🟡 Medium (Cancelled) |
 | 11 | Build out Events page | `content` | 🟡 Medium |
 | 12 | Build out Gallery page with real photos | `content` | 🟡 Medium |
 | 13 | Build out Contact page with hours and map | `content` | 🟡 Medium |
@@ -54,7 +54,7 @@
 | 18 | Gallery table — dynamic photo gallery management | `backend` | 🟡 Medium |
 | 19 | Admin dashboard scaffold (manage events, gallery, inquiries) | `enhancement` | 🟢 Low |
 
-**Phase 2 Definition of Done**: Forms submit real data to Supabase; at least contact and membership are live.
+**Phase 2 Definition of Done**: Forms submit real data to Supabase; at least contact submissions are live.
 
 ---
 
