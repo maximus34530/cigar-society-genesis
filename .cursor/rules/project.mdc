@@ -1,0 +1,70 @@
+---
+description: Core project rules for Cigar Society website. Apply to all files.
+alwaysApply: true
+---
+
+# Cigar Society — Project Rules
+
+## Project Overview
+Premium cigar lounge website for **Cigar Society, LLC** in Pharr, TX.
+Stack: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase · React Router v6
+
+## GitHub Workflow (MANDATORY)
+- Always read `GITHUB_ISSUES_GUIDE.md` before making any code changes.
+- Every task requires a GitHub Issue. Ask for the issue ID or create one before starting.
+- Branch naming: `feat/issue-ID-short-description` or `fix/issue-ID-short-description`
+- If you are using a fixed existing branch (e.g. `March-19, 2026`) instead, do not create new branches; commit to the current branch while still using the issue ID in commit messages.
+- Commit format: `[#ISSUE_ID] Commit message`
+- PR creation/merge and issue closing are handled manually by you.
+- The agent will not open PRs or merge into `main` automatically.
+
+## Code Style
+- TypeScript strict mode — no `any` types unless absolutely unavoidable
+- Functional components only — no class components
+- Use named exports for components (not default exports on inline functions)
+- File naming: `PascalCase.tsx` for components, `camelCase.ts` for utilities/hooks
+- Use `@/` path aliases (e.g. `@/components/`, `@/lib/`)
+- Prefer `const` over `let`; avoid `var`
+
+## UI / Styling
+- Use shadcn/ui components from `@/components/ui/` — do not reinvent primitives
+- Tailwind for all styling — no inline `style` props except for dynamic values
+- Use CSS custom properties defined in `index.css` for brand colors (do not hardcode hex values)
+- Responsive-first: mobile → tablet → desktop
+- Animations: use `tailwindcss-animate` classes; keep them subtle
+- Do not edit files inside `src/components/ui/` directly — they are shadcn primitives
+
+## Business Data (use these exact values)
+- **Name**: Cigar Society, LLC
+- **Address**: 116 W State Ave, Pharr, TX 78577
+- **Phone**: (956) 223-1303
+- **Rating**: 5.0 ★ — 27 Google Reviews
+- **Sub-brand**: "La Sociedad" (membership program)
+- **Offerings**: Cigars, bourbon, beer, mixed drinks
+- **Location**: Rio Grande Valley, Texas
+
+## Supabase (Back Burner)
+- Supabase MCP and backend integration are optional for now.
+- If/when you enable Supabase later, use it for schema changes and migrations, and never write raw SQL directly.
+- All Supabase client calls go in `src/lib/supabase.ts`
+- Use TanStack Query for all async data fetching
+- Use React Hook Form + Zod for all forms
+- Never expose service role keys client-side
+
+## File Structure
+```
+src/
+  pages/       # One file per route (Index, About, Cigars, etc.)
+  components/  # Shared components (Navbar, Footer, etc.)
+    ui/        # shadcn primitives — DO NOT EDIT
+  hooks/       # Custom hooks (use- prefix)
+  lib/         # supabase.ts, utils.ts, helpers
+  assets/      # Static images
+```
+
+## Do Not
+- Do not push directly to `main`
+- Do not use `console.log` in production code
+- Do not hardcode placeholder text — if real content isn't available, use a clearly marked `// TODO:` comment
+- Do not create new dependencies without checking if something in `package.json` already solves the problem
+- Do not add comments that just describe what the code does — only explain *why* when non-obvious
