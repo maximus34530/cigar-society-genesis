@@ -23,6 +23,8 @@ const events = [
 
 const HomeV2 = () => {
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [videoIndex, setVideoIndex] = useState(0);
+  const videos = business.homeV2VideoPaths;
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -47,16 +49,20 @@ const HomeV2 = () => {
             />
           ) : (
             <video
+              key={videos[videoIndex]}
               className="w-full h-full object-cover"
               autoPlay
               muted
-              loop
               playsInline
               preload="metadata"
               poster={heroImg}
               aria-label="Cigar Society lounge cinematic background"
+              onEnded={() => {
+                if (videos.length <= 1) return;
+                setVideoIndex((current) => (current + 1) % videos.length);
+              }}
             >
-              <source src={business.homeV2VideoPath} type="video/mp4" />
+              <source src={videos[videoIndex]} type="video/mp4" />
             </video>
           )}
           <div className="absolute inset-0 bg-background/65" />

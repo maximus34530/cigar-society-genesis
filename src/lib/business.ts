@@ -10,6 +10,11 @@ export const business = {
     "116 W State Ave, Pharr, TX 78577"
   )}&output=embed`,
   mapUrl: `https://www.google.com/maps?q=${encodeURIComponent("116 W State Ave, Pharr, TX 78577")}&output=search`,
-  homeV2VideoPath: "/videos/home-v2.mp4",
+  homeV2VideoPaths: [
+    "/videos/cigar-in-ashtray.mp4",
+    "/videos/cigar-in-hand.mp4",
+    "/videos/over-the-shoulder-shot.mp4",
+    "/videos/whiskey-being-poured.mp4",
+  ],
 } as const;
 
