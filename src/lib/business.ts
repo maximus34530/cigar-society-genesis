@@ -9,5 +9,6 @@ export const business = {
   mapEmbedSrc: `https://www.google.com/maps?q=${encodeURIComponent(
     "116 W State Ave, Pharr, TX 78577"
   )}&output=embed`,
+  mapUrl: `https://www.google.com/maps?q=${encodeURIComponent("116 W State Ave, Pharr, TX 78577")}&output=search`,
 } as const;
 

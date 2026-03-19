@@ -37,7 +37,16 @@ const Contact = () => {
               </div>
               <div>
                 <label htmlFor="phone" className="text-sm font-body text-muted-foreground mb-1 block">Phone</label>
-                <Input id="phone" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-card border-border" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  required
+                  className="bg-card border-border"
+                />
               </div>
               <div>
                 <label htmlFor="message" className="text-sm font-body text-muted-foreground mb-1 block">Message</label>
@@ -52,6 +61,26 @@ const Contact = () => {
             <div className="space-y-8">
               <div>
                 <h3 className="font-heading text-xl text-foreground mb-4">Visit Our Lounge</h3>
+                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <a href={`tel:${business.phoneE164}`}>Call Now</a>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <a href={business.mapUrl} target="_blank" rel="noreferrer">
+                      Get Directions
+                    </a>
+                  </Button>
+                </div>
                 <ul className="space-y-4 text-muted-foreground text-sm">
                   <li className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
