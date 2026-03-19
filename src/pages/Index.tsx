@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { Star, Lock, Calendar, Gift, Armchair, Crown } from "lucide-react";
+import { Star } from "lucide-react";
 import heroImg from "@/assets/hero-lounge.jpg";
 import cigarsImg from "@/assets/cigars-featured.jpg";
 import eventImg from "@/assets/event.jpg";
@@ -12,14 +12,6 @@ const featuredCigars = [
   { name: "Arturo Fuente Opus X", wrapper: "Rosado", strength: "Full", description: "A legendary Dominican puro with rich, complex flavors of cedar, leather, and spice." },
   { name: "Padrón 1964 Anniversary", wrapper: "Maduro", strength: "Medium-Full", description: "Smooth and creamy with notes of cocoa, coffee, and earth. A timeless classic." },
   { name: "Oliva Serie V Melanio", wrapper: "Ecuadorian Sumatra", strength: "Full", description: "Bold and refined with dark chocolate, espresso, and a peppery finish." },
-];
-
-const memberBenefits = [
-  { icon: Lock, label: "Private Locker Storage" },
-  { icon: Calendar, label: "Exclusive Events" },
-  { icon: Gift, label: "Member Cigar Drops" },
-  { icon: Armchair, label: "Priority Seating" },
-  { icon: Crown, label: "Lounge Discounts" },
 ];
 
 const events = [
@@ -47,9 +39,6 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
               <Link to="/contact">Visit the Lounge</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="border-primary text-primary font-body tracking-wider uppercase text-sm px-8 py-6 hover:bg-primary hover:text-primary-foreground transition-colors">
-              <Link to="/membership">Join La Sociedad</Link>
             </Button>
           </div>
         </div>
@@ -94,26 +83,6 @@ const Index = () => {
               <Link to="/cigars">View All Cigars</Link>
             </Button>
           </div>
-        </div>
-      </section>
-
-      {/* Membership */}
-      <section className="section-padding relative overflow-hidden">
-        <div className="container mx-auto text-center">
-          <SectionHeading title="La Sociedad Membership" subtitle="Exclusive membership for cigar enthusiasts offering premium lounge perks." />
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 max-w-3xl mx-auto mb-12">
-            {memberBenefits.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Icon className="w-6 h-6 text-primary" />
-                </div>
-                <span className="text-xs font-body text-muted-foreground text-center">{label}</span>
-              </div>
-            ))}
-          </div>
-          <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90">
-            <Link to="/membership">Join Membership</Link>
-          </Button>
         </div>
       </section>
 
