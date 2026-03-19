@@ -12,9 +12,10 @@
 ## Workflow Rules
 
 - Every task has a GitHub Issue before any code is written
-- Branch naming: `feat/issue-ID-short-description`
+- Preferred branch naming: `feat/issue-ID-short-description`
+- If working on fixed branch `March-19,-2026`, do not create new branches
 - Commit format: `[#ID] message`
-- All merges to `main` via Pull Request
+- PR/merge to `main` is handled manually by you
 - Reference `GITHUB_ISSUES_GUIDE.md` for full protocol
 
 ---
@@ -42,10 +43,11 @@
 
 **Phase 1 Progress (completed):** Issues `#1–#13` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, membership UI removal, navbar improvements, gallery lightbox, About/Cigars/Events/Contact content updates, and image asset verification). Membership page implementation was removed from scope until later.
 
-### Phase 1 Additional Work (pending client video)
-- Issue `#14`: **Add Home v2 with VEO 3 video hero**
-  - Create a new Home v2 page/route (`/v2`) that replaces the hero image with the externally-generated video.
-  - Video should autoplay, loop, muted; include a poster/fallback; respect reduced-motion preferences.
+### Phase 1 Additional Work (completed)
+- Issue `#14`: **Add Home v2 with video hero**
+  - Added Home v2 page/route at `/home-v2` that replaces the hero image with video.
+  - Updated player to support a non-mp4 source file (`.MOV`) via direct video `src`.
+  - Hero video is now autoplay, muted, looped, with poster fallback and reduced-motion image fallback.
 
 ---
 

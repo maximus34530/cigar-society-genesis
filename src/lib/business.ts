@@ -11,10 +11,7 @@ export const business = {
   )}&output=embed`,
   mapUrl: `https://www.google.com/maps?q=${encodeURIComponent("116 W State Ave, Pharr, TX 78577")}&output=search`,
   homeV2VideoPaths: [
-    "/videos/cigar-in-ashtray.mp4",
-    "/videos/cigar-in-hand.mp4",
-    "/videos/over-the-shoulder-shot.mp4",
-    "/videos/whiskey-being-poured.mp4",
+    "/videos/copy_99474A51-7078-450C-937E-34DEB928683E.MOV",
   ],
 } as const;
 
