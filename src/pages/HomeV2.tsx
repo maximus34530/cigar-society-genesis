@@ -26,8 +26,8 @@ const HomeV2 = () => {
   const homeV2VideoPath = business.homeV2VideoPaths[0] ?? "";
   const directionsUrl =
     typeof navigator !== "undefined" && /iPad|iPhone|iPod|Macintosh|MacIntel/i.test(navigator.userAgent)
-      ? `https://maps.apple.com/?daddr=${encodeURIComponent(business.address)}`
-      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(business.address)}`;
+      ? business.appleDirectionsUrl
+      : business.googleDirectionsUrl;
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;

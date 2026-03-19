@@ -54,6 +54,9 @@
 - Issue `#16`: **Map directions from hero CTA**
   - Updated the "Visit the Lounge" hero CTA to open map directions to the lounge address.
   - Uses Apple Maps on Apple devices and Google Maps on other devices.
+- Issue `#17`: **Fix map destination accuracy**
+  - Centralized directions URLs using business name + full address for better destination matching.
+  - Updated both home variants to use centralized Google/Apple directions URLs.
 
 ---
 
