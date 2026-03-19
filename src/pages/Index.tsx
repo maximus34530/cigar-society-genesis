@@ -31,7 +31,7 @@ const Index = () => {
         </div>
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in">
           <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold mb-6 text-foreground">
-            Welcome to <span className="text-gold-gradient">{business.name}</span>
+            Welcome to <span className="text-gold-gradient">{business.shortName}</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-body mb-10 max-w-2xl mx-auto leading-relaxed">
             A premium cigar lounge experience in the Rio Grande Valley.
@@ -116,9 +116,9 @@ const Index = () => {
             ))}
           </div>
           <blockquote className="font-heading text-2xl md:text-3xl text-foreground italic mb-4">
-            "Rated 5 stars by cigar enthusiasts in the Rio Grande Valley"
+            "Great vibe great choice of cigars great service will be coming back !!!"
           </blockquote>
-          <p className="text-muted-foreground text-sm">— Google Reviews</p>
+          <p className="text-muted-foreground text-sm">— Google Reviews (5.0 • 27)</p>
         </div>
       </section>
 

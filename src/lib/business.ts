@@ -1,5 +1,6 @@
 export const business = {
   name: "Cigar Society, LLC",
+  shortName: "Cigar Society",
   address: "116 W State Ave, Pharr, TX 78577",
   phoneDisplay: "(956) 223-1303",
   phoneE164: "+19562231303",
