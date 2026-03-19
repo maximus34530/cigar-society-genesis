@@ -48,6 +48,9 @@
   - Added Home v2 page/route at `/home-v2` that replaces the hero image with video.
   - Updated player to support a non-mp4 source file (`.MOV`) via direct video `src`.
   - Hero video is now autoplay, muted, looped, with poster fallback and reduced-motion image fallback.
+- Issue `#15`: **Promote Home v2 as primary homepage**
+  - Route `/` now renders Home v2 as the default homepage experience.
+  - Prior image-based homepage is preserved as backup route at `/home-v1`.
 
 ---
 
