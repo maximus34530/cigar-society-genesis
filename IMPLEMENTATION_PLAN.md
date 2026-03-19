@@ -40,7 +40,12 @@
 
 **Phase 1 Definition of Done**: The site is fully populated with real content, looks on-brand, and is presentable to the business owner.
 
-**Phase 1 Progress (completed so far):** Issues `#1–#6` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, and membership UI removal).
+**Phase 1 Progress (completed):** Issues `#1–#13` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, membership UI removal, navbar improvements, gallery lightbox, About/Cigars/Events/Contact content updates, and image asset verification). Membership page implementation was removed from scope until later.
+
+### Phase 1 Additional Work (pending client video)
+- Issue `#14`: **Add Home v2 with VEO 3 video hero**
+  - Create a new Home v2 page/route (`/v2`) that replaces the hero image with the externally-generated video.
+  - Video should autoplay, loop, muted; include a poster/fallback; respect reduced-motion preferences.
 
 ---
 
