@@ -24,6 +24,10 @@ const events = [
 const HomeV2 = () => {
   const [reduceMotion, setReduceMotion] = useState(false);
   const homeV2VideoPath = business.homeV2VideoPaths[0] ?? "";
+  const directionsUrl =
+    typeof navigator !== "undefined" && /iPad|iPhone|iPod|Macintosh|MacIntel/i.test(navigator.userAgent)
+      ? `https://maps.apple.com/?daddr=${encodeURIComponent(business.address)}`
+      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(business.address)}`;
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -71,7 +75,9 @@ const HomeV2 = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
-              <Link to="/contact">Visit the Lounge</Link>
+              <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                Visit the Lounge
+              </a>
             </Button>
           </div>
         </div>

@@ -51,6 +51,9 @@
 - Issue `#15`: **Promote Home v2 as primary homepage**
   - Route `/` now renders Home v2 as the default homepage experience.
   - Prior image-based homepage is preserved as backup route at `/home-v1`.
+- Issue `#16`: **Map directions from hero CTA**
+  - Updated the "Visit the Lounge" hero CTA to open map directions to the lounge address.
+  - Uses Apple Maps on Apple devices and Google Maps on other devices.
 
 ---
 
