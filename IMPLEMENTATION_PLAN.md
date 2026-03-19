@@ -20,7 +20,7 @@
 ---
 
 ## Phase 1 — Foundation & Content Polish
-*Goal: Replace all placeholder content with real business data and polish the design to match the Cigar Society brand.*
+*Goal: Replace placeholder content with real business data, align the design to the Cigar Society brand (brown/gold), and remove membership-page scope until later.*
 
 | # | Issue | Label | Priority |
 |---|---|---|---|
@@ -39,6 +39,8 @@
 | 13 | Build out Contact page with hours and map | `content` | 🟡 Medium |
 
 **Phase 1 Definition of Done**: The site is fully populated with real content, looks on-brand, and is presentable to the business owner.
+
+**Phase 1 Progress (completed so far):** Issues `#1–#6` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, and membership UI removal).
 
 ---
 
