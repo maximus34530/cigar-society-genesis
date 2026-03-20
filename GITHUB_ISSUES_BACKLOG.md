@@ -20,18 +20,39 @@ Notes:
 - Where the plan used `chore`, map it to `documentation` (deployment/config/ops work).
 - Where the plan used “Phase 2 Supabase integration”, keep those issues labeled `backend` but mark them as **Back Burner**.
 
-## Milestones
+## Phase 1 — Foundation & Content Polish (COMPLETED)
 
-1. **Phase 1: Foundation & Content Polish**
-   - Issues: 1–13
-2. **Phase 2 (Back Burner): Supabase Backend Integration**
-   - Issues: 14–19
-3. **Phase 3: Launch Prep**
-   - Issues: 20–25
+Issues: 1–13  
+Status: ✅ Complete
+
+---
+
+## Phase 1.5 — Post-Polish Enhancements (COMPLETED)
+
+Issues:
+
+* Home v2 (video hero)
+* Homepage promotion
+* Hero CTA directions
+* Map accuracy fix
+* Metadata refresh
+* Favicon update
+
+Status: ✅ Complete
+
+---
+
+## Phase 2 — Supabase Backend Integration (BACK BURNER — DO NOT START)
+
+Issues: 14–19
+
+## Phase 3 — Launch Prep
+
+Issues: 20–26
 
 --- 
 
-## Issues (1–25)
+## Issues (1–26)
 
 ### Issue 1 — [Docs] Set up GitHub labels, milestones, and Cursor rules
 **Milestone**: Phase 1: Foundation & Content Polish  
@@ -185,15 +206,16 @@ Notes:
 
 --- 
 
-### Issue 14 — [Backend] Supabase schema design — contact, membership, events
+### Issue 14 — [Backend] Supabase schema design — contact and events
 **Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
 **Labels**: `backend`  
 **Objective**: Define tables and constraints so the backend integration is predictable later.
 **Acceptance Criteria**
-- [ ] Table list includes: `contact_submissions`, `membership_leads`, and `events`
+- [ ] Table list includes: `contact_submissions` and `events`
 - [ ] Basic indexes exist for lookup by created time and/or email (as appropriate)
 - [ ] Row-level security strategy is documented (what is public vs private)
 **Technical Notes**
+- `membership_leads` (or similar) is **future work** only if a membership system is explicitly scoped — not part of current product scope.
 - Start only when you explicitly re-enable Supabase integration.
 
 ### Issue 15 — [Backend] Contact form → saves submissions to Supabase
@@ -208,9 +230,10 @@ Notes:
 - Ensure the client uses anon key and RLS policies allow inserts.
 
 ### Issue 16 — [Backend] Membership waitlist / signup → saves to Supabase
+**Status: Deferred — Not in current product scope**  
 **Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
 **Labels**: `backend`  
-**Objective**: Persist membership interest.
+**Objective**: Persist membership interest (only if membership is explicitly re-scoped later).
 **Acceptance Criteria**
 - [ ] Membership form writes to the correct Supabase table
 - [ ] Duplicate emails are handled (either allowed, deduped, or rejected—document choice)
@@ -321,4 +344,15 @@ Notes:
 - [ ] Final “go live” checklist is completed
 **Technical Notes**
 - Track feedback with GitHub Issues so changes are auditable.
+
+### Issue 26 — [Enhancement] Analytics tracking setup
+**Milestone**: Phase 3: Launch Prep  
+**Labels**: `enhancement`  
+**Objective**: Track user behavior and key actions.
+**Acceptance Criteria**
+- [ ] Page views are tracked
+- [ ] CTA clicks (directions/contact) are tracked
+- [ ] Lightweight analytics solution implemented (Google Analytics or Plausible)
+**Technical Notes**
+- Prefer minimal script weight and privacy-conscious defaults where possible.
 

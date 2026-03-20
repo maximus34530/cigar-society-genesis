@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { business } from "@/lib/business";
+import { trackEvent } from "@/lib/analytics";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -14,12 +16,18 @@ const Contact = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    trackEvent("Contact Form Submit", { location: "contact-page" });
     toast({ title: "Message sent!", description: "We'll get back to you soon." });
     setForm({ name: "", email: "", phone: "", message: "" });
   };
 
   return (
     <Layout>
+      <Seo
+        title="Contact — Hours, Map & Message"
+        description="Contact Cigar Society in Pharr, TX — phone, directions, hours, and a message form. Visit our Rio Grande Valley cigar lounge."
+        path="/contact"
+      />
       <section className="section-padding">
         <div className="container mx-auto">
           <SectionHeading title="Contact Us" subtitle="We'd love to hear from you. Visit us or send a message below." />
@@ -68,7 +76,12 @@ const Contact = () => {
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
-                    <a href={`tel:${business.phoneE164}`}>Call Now</a>
+                    <a
+                      href={`tel:${business.phoneE164}`}
+                      onClick={() => trackEvent("Phone Click", { location: "contact-cta" })}
+                    >
+                      Call Now
+                    </a>
                   </Button>
                   <Button
                     asChild
@@ -76,7 +89,12 @@ const Contact = () => {
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
-                    <a href={business.mapUrl} target="_blank" rel="noreferrer">
+                    <a
+                      href={business.mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackEvent("Directions", { location: "contact-cta" })}
+                    >
                       Get Directions
                     </a>
                   </Button>
@@ -88,7 +106,11 @@ const Contact = () => {
                   </li>
                   <li className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-primary shrink-0" />
-                    <a href={`tel:${business.phoneE164}`} className="hover:text-primary transition-colors">
+                    <a
+                      href={`tel:${business.phoneE164}`}
+                      className="hover:text-primary transition-colors"
+                      onClick={() => trackEvent("Phone Click", { location: "contact-info" })}
+                    >
                       {business.phoneDisplay}
                     </a>
                   </li>
@@ -107,7 +129,7 @@ const Contact = () => {
                   src={business.mapEmbedSrc}
                   width="100%"
                   height="250"
-                  style={{ border: 0 }}
+                  className="w-full border-0"
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"

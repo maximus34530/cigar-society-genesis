@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import loungeImg from "@/assets/lounge-seating.jpg";
 import humidorImg from "@/assets/humidor.jpg";
@@ -6,12 +7,19 @@ import { business } from "@/lib/business";
 
 const About = () => (
   <Layout>
+    <Seo
+      title="About Us — Our Story & Lounge"
+      description="Learn about Cigar Society in Pharr, TX — premium cigars, a walk-in humidor, and a welcoming lounge experience in the Rio Grande Valley."
+      path="/about"
+    />
     {/* Hero */}
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
       <img src={loungeImg} alt={`${business.name} lounge`} className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-background/75" />
+      <div className="absolute inset-0 hero-overlay" />
       <div className="relative z-10 text-center px-4 animate-fade-in">
-        <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground">Our Story</h1>
+        <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground tracking-tight text-balance drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)]">
+          Our Story
+        </h1>
         <div className="gold-divider mt-6" />
       </div>
     </section>
@@ -35,15 +43,15 @@ const About = () => (
               staff is here to guide you to the perfect smoke.
             </p>
           </div>
-          <img src={humidorImg} alt="Walk-in humidor" className="rounded-lg shadow-card w-full" loading="lazy" />
+          <img src={humidorImg} alt="Walk-in humidor" className="rounded-xl shadow-card ring-1 ring-border/40 w-full" loading="lazy" />
         </div>
       </div>
     </section>
 
-    <section className="section-padding bg-muted">
+    <section className="section-padding bg-muted/80 border-y border-border/40">
       <div className="container mx-auto text-center max-w-3xl">
         <SectionHeading title="Certified Expertise" subtitle="Our team is committed to the highest standards in tobacco knowledge." />
-        <div className="bg-card border border-border rounded-lg p-10 shadow-card">
+        <div className="bg-card border border-border/70 rounded-xl p-10 shadow-card">
           <h3 className="font-heading text-2xl text-primary mb-4">Certified Cigar Sommelier Tobacconist</h3>
           <p className="text-muted-foreground leading-relaxed">
             {business.name} is led by certified cigar professionals trained through Tobacconist University.

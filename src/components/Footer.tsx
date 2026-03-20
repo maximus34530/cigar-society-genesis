@@ -4,7 +4,7 @@ import { business } from "@/lib/business";
 
 const Footer = () => {
   return (
-    <footer className="bg-muted border-t border-border">
+    <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)]">
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Brand */}

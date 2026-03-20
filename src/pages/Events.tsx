@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import eventImg from "@/assets/event.jpg";
 import { business } from "@/lib/business";
@@ -15,6 +16,11 @@ const events = [
 
 const Events = () => (
   <Layout>
+    <Seo
+      title="Events — Tastings, Watch Parties & Socials"
+      description="Cigar tastings, watch parties, and community events at Cigar Society in Pharr, TX. Join us in the Rio Grande Valley."
+      path="/events"
+    />
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
       <img src={eventImg} alt="Cigar Society events" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-background/75" />

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
@@ -7,6 +8,10 @@ import heroImg from "@/assets/hero-lounge.jpg";
 import cigarsImg from "@/assets/cigars-featured.jpg";
 import eventImg from "@/assets/event.jpg";
 import { business } from "@/lib/business";
+import { trackEvent } from "@/lib/analytics";
+
+const HOME_DESCRIPTION =
+  "Cigar Society is a premium cigar lounge in Pharr, Texas. Enjoy hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
 const featuredCigars = [
   { name: "Arturo Fuente Opus X", wrapper: "Rosado", strength: "Full", description: "A legendary Dominican puro with rich, complex flavors of cedar, leather, and spice." },
@@ -28,6 +33,12 @@ const Index = () => {
 
   return (
     <Layout>
+      <Seo
+        title="Cigar Society — Premium Cigar Lounge in Pharr, TX"
+        description={HOME_DESCRIPTION}
+        path="/home-v1"
+        noIndex
+      />
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
@@ -43,7 +54,12 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
-              <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent("Directions", { location: "home-v1-hero" })}
+              >
                 Visit the Lounge
               </a>
             </Button>
@@ -139,7 +155,7 @@ const Index = () => {
               src={business.mapEmbedSrc}
               width="100%"
               height="400"
-              style={{ border: 0 }}
+              className="w-full border-0"
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

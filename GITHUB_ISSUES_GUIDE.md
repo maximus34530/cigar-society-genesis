@@ -33,6 +33,12 @@ Before writing any code or planning detailed implementation:
 - [ ] Criterion 1
 - [ ] Criterion 2
 
+## Definition of Done
+
+* [ ] Feature works in production build
+* [ ] No console errors
+* [ ] Mobile and desktop verified
+
 ## Technical Notes
 - [Optional: Brief note on implementation strategy]
 ```
@@ -55,7 +61,7 @@ Before writing any code or planning detailed implementation:
 
 ## 3. Completion (End of Task)
 
-1. **Verification**: Ensure all Acceptance Criteria are checked off.
+1. **Verification**: Ensure all Acceptance Criteria **and** the **Definition of Done** checklist in the issue body are satisfied.
 2. **Issue Status**: Leave the GitHub issue open unless you explicitly ask me to close it.
 3. **User Handoff**: Provide a concise summary of what was changed and how it satisfies the acceptance criteria, so you can review, PR, merge, and close manually.
 

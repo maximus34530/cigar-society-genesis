@@ -3,7 +3,7 @@
 **Business**: Cigar Society, LLC  
 **Address**: 116 W State Ave, Pharr, TX 78577  
 **Phone**: (956) 223-1303  
-**Stack**: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase  
+**Stack**: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · (Supabase — Phase 2 only)  
 **Collaborators**: Ethan (Cursor) · Partner (Antigravity)  
 **Repo**: `cigar-society-genesis`
 
@@ -20,8 +20,8 @@
 
 ---
 
-## Phase 1 — Foundation & Content Polish
-*Goal: Replace placeholder content with real business data, align the design to the Cigar Society brand (brown/gold), and remove membership-page scope until later.*
+## Phase 1 — Foundation & Content Polish (COMPLETED)
+*Goal: Replace placeholder content with real business data and align the design to the Cigar Society brand (brown/gold).*
 
 | # | Issue | Label | Priority |
 |---|---|---|---|
@@ -41,40 +41,27 @@
 
 **Phase 1 Definition of Done**: The site is fully populated with real content, looks on-brand, and is presentable to the business owner.
 
-**Phase 1 Progress (completed):** Issues `#1–#13` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, membership UI removal, navbar improvements, gallery lightbox, About/Cigars/Events/Contact content updates, and image asset verification). Membership page implementation was removed from scope until later.
+**Phase 1 Progress (completed):** Issues `#1–#13` are complete (workflow setup, business identity/contact updates, map embed, gold palette alignment, landing page polish, navbar improvements, gallery lightbox, About/Cigars/Events/Contact content updates, and image asset verification). Membership page is not in launch scope (see Issue 10).
 
-### Phase 1 Additional Work (completed)
-- Issue `#14`: **Add Home v2 with video hero**
-  - Added Home v2 page/route at `/home-v2` that replaces the hero image with video.
-  - Updated player to support a non-mp4 source file (`.MOV`) via direct video `src`.
-  - Hero video is now autoplay, muted, looped, with poster fallback and reduced-motion image fallback.
-- Issue `#15`: **Promote Home v2 as primary homepage**
-  - Route `/` now renders Home v2 as the default homepage experience.
-  - Prior image-based homepage is preserved as backup route at `/home-v1`.
-- Issue `#16`: **Map directions from hero CTA**
-  - Updated the "Visit the Lounge" hero CTA to open map directions to the lounge address.
-  - Uses Apple Maps on Apple devices and Google Maps on other devices.
-- Issue `#17`: **Fix map destination accuracy**
-  - Centralized directions URLs using business name + full address for better destination matching.
-  - Updated both home variants to use centralized Google/Apple directions URLs.
-- Issue `#19`: **Refresh metadata and social preview tags**
-  - Updated site title/description metadata to current `Cigar Society` branding.
-  - Added Open Graph and Twitter card tags for social link previews.
-  - Removed outdated schema email and aligned structured data business name.
-- Issue `#20`: **Replace old favicon with Cigar Society icon**
-  - Replaced legacy favicon assets with Cigar Society-branded icon files.
-  - Added standard favicon and Apple touch icon tags in `index.html`.
+### Phase 1.5 — Post-Polish Enhancements (COMPLETED)
+
+* Home v2 (video hero)
+* Homepage promotion
+* Hero CTA directions
+* Map accuracy fix
+* Metadata refresh
+* Favicon update
 
 ---
 
-## Phase 2 — Supabase Backend Integration
-*Goal: Add dynamic, database-backed features using the already-connected Supabase MCP.*
+## Phase 2 — Supabase Backend Integration (BACK BURNER — DO NOT START)
+*Goal: Add dynamic, database-backed features when Phase 2 is explicitly started.*
 
 | # | Issue | Label | Priority |
 |---|---|---|---|
-| 14 | Supabase schema design — tables for contact, membership, events | `backend` | 🔴 Urgent (phase start) |
+| 14 | Supabase schema design — contact and events | `backend` | 🔴 Urgent (phase start) |
 | 15 | Contact form → saves submissions to Supabase | `backend` | 🟠 High |
-| 16 | Membership waitlist / signup → saves to Supabase | `backend` | 🟠 High |
+| 16 | Membership waitlist / signup → saves to Supabase | `backend` | Deferred — Not in current product scope |
 | 17 | Events table — dynamic events on Events page | `backend` | 🟡 Medium |
 | 18 | Gallery table — dynamic photo gallery management | `backend` | 🟡 Medium |
 | 19 | Admin dashboard scaffold (manage events, gallery, inquiries) | `enhancement` | 🟢 Low |
@@ -86,16 +73,50 @@
 ## Phase 3 — Launch Prep
 *Goal: Harden the site for public launch.*
 
+**Status (codebase):** Implementation complete except **Issue 25** (owner sign-off — use `LAUNCH_CHECKLIST.md`) and **live deploy** (connect repo in Vercel — Issue 20 operational step).
+
+**Execution order**
+
+1. Configure Vercel deployment with env vars (Issue 20)
+2. Mobile responsiveness QA pass (Issue 24)
+3. SEO — meta tags, Open Graph, sitemap (Issue 21)
+4. Performance audit — image optimization, lazy loading (Issue 22)
+5. Accessibility audit (a11y) (Issue 23)
+6. Final content review with business owner (Issue 25)
+
+Issue 26 (Analytics) is part of Phase 3 backlog; schedule after deploy/QA or in parallel once baseline traffic measurement is needed.
+
 | # | Issue | Label | Priority |
 |---|---|---|---|
-| 20 | Configure Vercel deployment with env vars | `chore` | 🔴 Urgent (phase start) |
+| 20 | Configure Vercel deployment with env vars | `documentation` | 🔴 Urgent (phase start) |
+| 24 | Mobile responsiveness QA pass | `bug` | 🟠 High |
 | 21 | SEO — meta tags, Open Graph, sitemap | `enhancement` | 🟠 High |
 | 22 | Performance audit — image optimization, lazy loading | `enhancement` | 🟡 Medium |
 | 23 | Accessibility audit (a11y) | `enhancement` | 🟡 Medium |
-| 24 | Mobile responsiveness QA pass | `bug` | 🟠 High |
 | 25 | Final content review with business owner | `content` | 🟠 High |
+| 26 | Analytics tracking setup | `enhancement` | 🟡 Medium |
 
 **Phase 3 Definition of Done**: Site is live on a custom domain, fast, SEO-ready, and approved by the business owner.
+
+## Non-Goals (Current Phase)
+
+* No authentication
+* No payment processing
+* No membership system
+* No admin dashboard
+* No Supabase integration (until Phase 2 is explicitly started)
+
+**Delivered in repo**
+
+| Issue | What was implemented |
+|-------|------------------------|
+| 20 | `vercel.json` SPA rewrites; `README.md` deploy + env instructions |
+| 21 | Per-route `Seo` + `react-helmet-async`; `public/sitemap.xml`; `robots.txt` sitemap line; `public/og-preview.jpg` |
+| 22 | Route-level code splitting (`lazy` + `Suspense`); lazy images where applicable |
+| 23 | Skip link + `#main-content`; 404 uses `Layout`; gallery keyboard space handling |
+| 24 | *(Manual QA)* — verify breakpoints on real devices after deploy |
+| 25 | `LAUNCH_CHECKLIST.md` — owner completes |
+| 26 | `AnalyticsScripts` + `trackEvent` for Plausible/GA env vars; CTA events on home + contact |
 
 ---
 
@@ -107,7 +128,7 @@ Address:        116 W State Ave, Pharr, TX 78577
 Phone:          (956) 223-1303
 Rating:         5.0 ★ (27 Google Reviews)
 Hours:          Closes 11 PM (full hours TBD)
-Branding:       Brown/gold, "La Sociedad" membership sub-brand
+Branding:       Brown/gold; "La Sociedad" sub-brand (no membership system at launch)
 Offerings:      Cigars, bourbon, beer, mixed drinks
 Lounge:         Dark interior, TVs, lounge seating
 ```
@@ -125,7 +146,8 @@ Lounge:         Dark interior, TVs, lounge seating
 |---|---|---|
 | Frontend | React + Vite + TS + Tailwind | Already scaffolded |
 | UI Components | shadcn/ui | Already installed |
-| Backend | Supabase | MCP already connected |
+| Backend (launch) | None — static site | Supabase deferred to Phase 2 |
+| Backend (future) | Supabase | When Phase 2 starts |
 | Deployment | Vercel | Best DX for Vite/React |
 | State/Data | TanStack Query | Already in package.json |
 | Forms | React Hook Form + Zod | Already in package.json |
@@ -162,3 +184,72 @@ npm run dev
 # Before starting any work — create/find a GitHub Issue first
 # Branch naming: feat/issue-ID-short-description
 ```
+
+---
+
+## Future Roadmap (Post-Launch Expansion)
+
+Recent client requests include additional functionality beyond the current launch scope.  
+These features are acknowledged and planned, but will be implemented **only after Phase 3 (Launch Prep) is complete and approved**.
+
+---
+
+### Phase 4 — Commerce System
+
+**Objective**: Enable direct revenue through online cigar sales.
+
+**Scope**:
+- Marketplace (product listing + Stripe checkout)
+- Inventory system (basic cigar management)
+- Admin panel (add/edit/remove cigars)
+
+**Notes**:
+- Use Stripe for all payments (no custom payment logic)
+- Admin panel will be simple (table-based UI, not complex dashboard)
+- Focus on functionality over design polish
+
+---
+
+### Phase 5 — Membership & Community
+
+**Objective**: Introduce recurring revenue and customer retention.
+
+**Scope**:
+- Monthly membership (Stripe subscriptions)
+- Member perks (discounts, exclusive access, etc.)
+
+**Notes**:
+- Requires authentication system
+- Will only begin after marketplace is stable
+
+---
+
+### Phase 6 — Events & Ticketing
+
+**Objective**: Monetize and manage in-person events.
+
+**Scope**:
+- Event listings (dynamic)
+- Ticket purchasing system
+
+**Notes**:
+- Can leverage Stripe for payments
+- May integrate with existing event tools if needed (avoid overbuilding)
+
+---
+
+## Constraints
+
+- These phases are **NOT included in the current build scope**
+- Current scope remains:
+  → Static site + content + polish + deployment
+- No backend, payments, or auth will be implemented until Phase 4 begins
+
+---
+
+## Strategic Approach
+
+- Phase 1–3: Launch fast, build trust, establish presence
+- Phase 4+: Introduce revenue systems incrementally
+- Avoid building all systems at once to reduce risk and complexity
+

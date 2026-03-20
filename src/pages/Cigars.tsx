@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import cigarsImg from "@/assets/cigars-featured.jpg";
 import cigarCloseup from "@/assets/cigar-closeup.jpg";
@@ -29,6 +30,11 @@ const categories = [
 
 const Cigars = () => (
   <Layout>
+    <Seo
+      title="Premium Cigars — Catalog & Selection"
+      description="Browse mild, medium, and full-body cigars at Cigar Society in Pharr, TX — curated selections from the world's finest makers."
+      path="/cigars"
+    />
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
       <img src={cigarCloseup} alt="Premium cigars" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-background/75" />

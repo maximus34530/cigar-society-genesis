@@ -8,7 +8,7 @@ const SectionHeading = ({
   className?: string;
 }) => (
   <div className={`text-center mb-16 ${className}`}>
-    <h2 className="font-heading text-3xl md:text-5xl font-semibold text-foreground mb-4">
+    <h2 className="font-heading text-3xl md:text-5xl font-semibold text-foreground mb-5 tracking-tight text-balance">
       {title}
     </h2>
     <div className="gold-divider mb-6" />

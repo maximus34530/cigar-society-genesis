@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import heroImg from "@/assets/hero-lounge.jpg";
 import cigarsImg from "@/assets/cigars-featured.jpg";
@@ -34,6 +35,11 @@ const Gallery = () => {
 
   return (
     <Layout>
+      <Seo
+        title="Gallery — Lounge & Humidor"
+        description="Photos of the Cigar Society lounge, walk-in humidor, and events in Pharr, TX."
+        path="/gallery"
+      />
       <section className="section-padding">
         <div className="container mx-auto">
           <SectionHeading title="Gallery" subtitle={`Step inside the ${business.name} experience.`} />
@@ -46,7 +52,10 @@ const Gallery = () => {
                 aria-label={`Open photo: ${img.alt}`}
                 onClick={() => openImage(img)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") openImage(img);
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openImage(img);
+                  }
                 }}
                 className="relative overflow-hidden rounded-lg group cursor-pointer aspect-[4/3]"
               >
