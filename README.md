@@ -40,9 +40,9 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 - `SYSTEM_OVERVIEW.md` — Architecture summary
 - `LAUNCH_CHECKLIST.md` — Owner sign-off (Issue 25)
 
-## Analytics (Issue 26)
+## Analytics
 
-When `VITE_PLAUSIBLE_DOMAIN` or `VITE_GA_MEASUREMENT_ID` is set, the app loads the corresponding script on startup. Custom events (directions, phone, contact form) use `src/lib/analytics.ts`.
+Set **`VITE_PLAUSIBLE_DOMAIN`** (site hostname, e.g. `cigarsocietyus.com`) and/or **`VITE_GA_MEASUREMENT_ID`** (GA4 `G-…` ID) in Vercel or `.env.local`. When set, `src/components/AnalyticsScripts.tsx` injects the matching script on load. CTAs call `trackEvent()` in `src/lib/analytics.ts` (home/contact hero directions, phone and map on contact, phone and social links in the footer). Plausible receives the human-readable event name; GA4 receives a slug derived from that name plus the same string props (`location`, `platform`, etc.). Register custom dimensions in GA4 if you want to report those params in explorations.
 
 ## SEO
 
