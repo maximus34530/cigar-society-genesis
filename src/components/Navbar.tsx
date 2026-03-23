@@ -56,8 +56,9 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
+          type="button"
           onClick={() => setOpen(!open)}
-          className="lg:hidden text-foreground p-2"
+          className="lg:hidden text-foreground min-h-[44px] min-w-[44px] inline-flex items-center justify-center touch-manipulation rounded-md"
           aria-label="Toggle menu"
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -81,7 +82,7 @@ const Navbar = () => {
                 <Link
                   to={link.path}
                   onClick={() => setOpen(false)}
-                  className={`block px-6 py-3 text-sm tracking-widest uppercase transition-colors hover:text-primary hover:bg-muted ${
+                  className={`flex min-h-[44px] items-center px-6 py-3 text-sm tracking-widest uppercase transition-colors touch-manipulation hover:text-primary hover:bg-muted ${
                     location.pathname === link.path ? "text-primary" : "text-foreground/70"
                   }`}
                 >

@@ -5,7 +5,7 @@ import { trackEvent } from "@/lib/analytics";
 
 const Footer = () => {
   return (
-    <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)]">
+    <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Brand */}
@@ -14,12 +14,12 @@ const Footer = () => {
             <p className="text-muted-foreground font-body leading-relaxed">
               A premium cigar lounge experience in the heart of the Rio Grande Valley.
             </p>
-            <div className="flex gap-4 mt-6">
+            <div className="flex gap-2 mt-6">
               <a
                 href="https://www.facebook.com/cigarsocietyus"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-muted-foreground hover:text-primary transition-colors touch-manipulation rounded-md"
                 aria-label="Facebook"
                 onClick={() => trackEvent("Social Click", { location: "footer", platform: "facebook" })}
               >
@@ -29,7 +29,7 @@ const Footer = () => {
                 href="https://tiktok.com/@cigarsocietytx"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-muted-foreground hover:text-primary transition-colors touch-manipulation rounded-md"
                 aria-label="TikTok"
                 onClick={() => trackEvent("Social Click", { location: "footer", platform: "tiktok" })}
               >
@@ -67,7 +67,7 @@ const Footer = () => {
                 <Phone className="w-4 h-4 text-primary shrink-0" />
                 <a
                   href={`tel:${business.phoneE164}`}
-                  className="hover:text-primary transition-colors"
+                  className="inline-flex min-h-[44px] items-center hover:text-primary transition-colors touch-manipulation"
                   onClick={() => trackEvent("Phone Click", { location: "footer" })}
                 >
                   {business.phoneDisplay}
