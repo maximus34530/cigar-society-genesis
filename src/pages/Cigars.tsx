@@ -36,7 +36,14 @@ const Cigars = () => (
       path="/cigars"
     />
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      <img src={cigarCloseup} alt="Premium cigars" className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={cigarCloseup}
+        alt="Premium cigars"
+        className="absolute inset-0 w-full h-full object-cover"
+        decoding="async"
+        fetchPriority="high"
+        loading="eager"
+      />
       <div className="absolute inset-0 bg-background/75" />
       <div className="relative z-10 text-center px-4 animate-fade-in">
         <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground">Our Cigars</h1>
@@ -51,7 +58,7 @@ const Cigars = () => (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {cat.cigars.map((cigar) => (
               <div key={cigar.name} className="bg-card rounded-lg border border-border overflow-hidden shadow-card hover:border-primary/30 transition-colors">
-                <img src={cigarsImg} alt={cigar.name} className="w-full h-48 object-cover" loading="lazy" />
+                <img src={cigarsImg} alt={cigar.name} className="w-full h-48 object-cover" decoding="async" loading="lazy" />
                 <div className="p-6">
                   <h3 className="font-heading text-xl font-semibold text-foreground mb-1">{cigar.name}</h3>
                   <div className="flex flex-wrap gap-2 mb-3 text-xs font-body tracking-wider uppercase text-primary">

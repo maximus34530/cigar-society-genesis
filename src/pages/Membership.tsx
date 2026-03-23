@@ -17,7 +17,14 @@ const benefits = [
 const Membership = () => (
   <Layout>
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      <img src={heroImg} alt="Cigar Society lounge interior" className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={heroImg}
+        alt="Cigar Society lounge interior"
+        className="absolute inset-0 w-full h-full object-cover"
+        decoding="async"
+        fetchPriority="high"
+        loading="eager"
+      />
       <div className="absolute inset-0 bg-background/80" />
       <div className="relative z-10 text-center px-4 animate-fade-in">
         <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground">La Sociedad</h1>

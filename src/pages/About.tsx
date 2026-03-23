@@ -14,7 +14,14 @@ const About = () => (
     />
     {/* Hero */}
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      <img src={loungeImg} alt={`${business.name} lounge`} className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={loungeImg}
+        alt={`${business.name} lounge`}
+        className="absolute inset-0 w-full h-full object-cover"
+        decoding="async"
+        fetchPriority="high"
+        loading="eager"
+      />
       <div className="absolute inset-0 hero-overlay" />
       <div className="relative z-10 text-center px-4 animate-fade-in">
         <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground tracking-tight text-balance drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)]">
@@ -43,7 +50,13 @@ const About = () => (
               staff is here to guide you to the perfect smoke.
             </p>
           </div>
-          <img src={humidorImg} alt="Walk-in humidor" className="rounded-xl shadow-card ring-1 ring-border/40 w-full" loading="lazy" />
+          <img
+            src={humidorImg}
+            alt="Walk-in humidor"
+            className="rounded-xl shadow-card ring-1 ring-border/40 w-full"
+            decoding="async"
+            loading="lazy"
+          />
         </div>
       </div>
     </section>

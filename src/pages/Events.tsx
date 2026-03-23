@@ -22,7 +22,14 @@ const Events = () => (
       path="/events"
     />
     <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      <img src={eventImg} alt="Cigar Society events" className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={eventImg}
+        alt="Cigar Society events"
+        className="absolute inset-0 w-full h-full object-cover"
+        decoding="async"
+        fetchPriority="high"
+        loading="eager"
+      />
       <div className="absolute inset-0 bg-background/75" />
       <div className="relative z-10 text-center px-4 animate-fade-in">
         <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground">Events</h1>
@@ -37,7 +44,13 @@ const Events = () => (
           {events.map((event) => (
             <div key={event.title} className="bg-card rounded-lg border border-border overflow-hidden shadow-card hover:border-primary/30 transition-colors group">
               <div className="overflow-hidden">
-                <img src={event.image} alt={event.title} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+                  decoding="async"
+                  loading="lazy"
+                />
               </div>
               <div className="p-6">
                 <span className="text-xs font-body tracking-wider uppercase text-primary">{event.date}</span>

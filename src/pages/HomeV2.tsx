@@ -62,6 +62,8 @@ const HomeV2 = () => {
               src={heroImg}
               alt="Premium cigar lounge interior"
               className="w-full h-full object-cover"
+              decoding="async"
+              fetchPriority="high"
               loading="eager"
             />
           ) : (
@@ -72,7 +74,7 @@ const HomeV2 = () => {
               loop
               muted
               playsInline
-              preload="auto"
+              preload="metadata"
               poster={heroImg}
               aria-label="Cigar Society lounge cinematic background"
             />
@@ -132,6 +134,7 @@ const HomeV2 = () => {
                   src={cigarsImg}
                   alt={cigar.name}
                   className="w-full h-48 object-cover rounded-lg mb-6 ring-1 ring-border/50 transition-transform duration-500 group-hover:scale-[1.02]"
+                  decoding="async"
                   loading="lazy"
                 />
                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2">{cigar.name}</h3>
@@ -163,7 +166,13 @@ const HomeV2 = () => {
                 className="bg-card rounded-xl border border-border/70 overflow-hidden shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card-hover group"
               >
                 <div className="overflow-hidden">
-                  <img src={event.image} alt={event.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                    decoding="async"
+                    loading="lazy"
+                  />
                 </div>
                 <div className="p-6">
                   <span className="text-xs font-body tracking-wider uppercase text-primary">{event.date}</span>

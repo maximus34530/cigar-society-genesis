@@ -63,7 +63,9 @@ const Gallery = () => {
                   src={img.src}
                   alt={img.alt}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  loading="lazy"
+                  decoding="async"
+                  fetchPriority={i < 2 ? "high" : "low"}
+                  loading={i < 2 ? "eager" : "lazy"}
                 />
                 <div className="absolute inset-0 bg-background/0 group-hover:bg-background/40 transition-colors duration-300 flex items-end">
                   <span className="text-foreground font-body text-sm p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -79,7 +81,13 @@ const Gallery = () => {
           <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background">
             {selected ? (
               <div>
-                <img src={selected.src} alt={selected.alt} className="w-full h-auto max-h-[70vh] object-contain" />
+                <img
+                  src={selected.src}
+                  alt={selected.alt}
+                  className="w-full h-auto max-h-[70vh] object-contain"
+                  decoding="async"
+                  fetchPriority="high"
+                />
                 <div className="p-4">
                   <p className="text-muted-foreground text-sm">{selected.alt}</p>
                 </div>
