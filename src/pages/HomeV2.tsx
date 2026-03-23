@@ -47,10 +47,6 @@ const HOME_DESCRIPTION =
 const HomeV2 = () => {
   const [reduceMotion, setReduceMotion] = useState(false);
   const homeV2VideoPath = business.homeV2VideoPaths[0] ?? "";
-  const directionsUrl =
-    typeof navigator !== "undefined" && /iPad|iPhone|iPod|Macintosh|MacIntel/i.test(navigator.userAgent)
-      ? business.appleDirectionsUrl
-      : business.googleDirectionsUrl;
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -105,10 +101,8 @@ const HomeV2 = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
             <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
               <a
-                href={directionsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent("Directions", { location: "home-hero" })}
+                href="#find-us"
+                onClick={() => trackEvent("Find Us Scroll", { location: "home-hero" })}
               >
                 Visit the Lounge
               </a>
@@ -227,7 +221,10 @@ const HomeV2 = () => {
         </div>
       </section>
 
-      <section className="section-padding bg-muted/80 border-t border-border/40">
+      <section
+        id="find-us"
+        className="section-padding bg-muted/80 border-t border-border/40 scroll-mt-24"
+      >
         <div className="container mx-auto">
           <SectionHeading title="Find us" subtitle={business.address} />
           <div className="rounded-xl overflow-hidden border border-border/70 shadow-card max-w-4xl mx-auto ring-1 ring-border/30">
