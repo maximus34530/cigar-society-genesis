@@ -8,7 +8,6 @@ const Footer = () => {
     <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* Brand */}
           <div>
             <h3 className="font-heading text-2xl text-primary mb-4">{business.name}</h3>
             <p className="text-muted-foreground font-body leading-relaxed">
@@ -38,24 +37,45 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h4 className="font-heading text-lg text-foreground mb-4">Quick Links</h4>
+            <h4 className="font-heading text-lg text-foreground mb-4">Explore</h4>
             <ul className="space-y-2">
-              {["About", "Cigars", "Events", "Gallery", "Contact"].map((item) => (
-                <li key={item}>
-                  <Link
-                    to={`/${item.toLowerCase()}`}
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link to="/" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link to="/gallery" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Gallery
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Contact
+                </Link>
+              </li>
+            </ul>
+            <h4 className="font-heading text-sm text-foreground/90 mt-8 mb-3 uppercase tracking-wider">Legal</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Privacy Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <h4 className="font-heading text-lg text-foreground mb-4">Visit Us</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
@@ -78,7 +98,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-16 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {business.name}. All rights reserved. Must be 21+ to enter.
+          <p>© {new Date().getFullYear()} {business.name}. All rights reserved. Must be 21+ to enter.</p>
         </div>
       </div>
     </footer>

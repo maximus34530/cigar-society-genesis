@@ -16,7 +16,7 @@ const images = [
   { src: heroImg, alt: "Premium cigar lounge interior" },
   { src: humidorImg, alt: "Walk-in humidor" },
   { src: cigarsImg, alt: "Featured cigar selection" },
-  { src: eventImg, alt: "Cigar tasting event" },
+  { src: eventImg, alt: "Lounge seating and social space" },
   { src: exteriorImg, alt: "Lounge exterior" },
   { src: cigarCloseup, alt: "Cigar and cutter close-up" },
   { src: loungeSeating, alt: "Leather lounge seating area" },
@@ -37,7 +37,7 @@ const Gallery = () => {
     <Layout>
       <Seo
         title="Gallery — Lounge & Humidor"
-        description="Photos of the Cigar Society lounge, walk-in humidor, and events in Pharr, TX."
+        description="Photos of the Cigar Society lounge, walk-in humidor, and interior in Pharr, TX."
         path="/gallery"
       />
       <section className="section-padding">

@@ -7,8 +7,6 @@ import { business } from "@/lib/business";
 const navLinks = [
   { label: "Home", path: "/" },
   { label: "About", path: "/about" },
-  { label: "Cigars", path: "/cigars" },
-  { label: "Events", path: "/events" },
   { label: "Gallery", path: "/gallery" },
   { label: "Contact", path: "/contact" },
 ];
@@ -17,7 +15,6 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  // If route changes, ensure the mobile menu doesn't remain open.
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
@@ -38,7 +35,6 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop */}
         <ul className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <li key={link.path}>
@@ -54,7 +50,6 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Mobile toggle */}
         <button
           type="button"
           onClick={() => setOpen(!open)}
@@ -67,7 +62,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div
           id="mobile-menu"

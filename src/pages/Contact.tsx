@@ -17,7 +17,10 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     trackEvent("Contact Form Submit", { location: "contact-page" });
-    toast({ title: "Message sent!", description: "We'll get back to you soon." });
+    toast({
+      title: "Thanks for reaching out",
+      description: `This site does not send messages to our team yet. For same-day help, call ${business.phoneDisplay}.`,
+    });
     setForm({ name: "", email: "", phone: "", message: "" });
   };
 
@@ -30,11 +33,14 @@ const Contact = () => {
       />
       <section className="section-padding">
         <div className="container mx-auto">
-          <SectionHeading title="Contact Us" subtitle="We'd love to hear from you. Visit us or send a message below." />
+          <SectionHeading title="Contact Us" subtitle="Call or visit us in Pharr—or leave a note while we finish online messaging." />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              <p className="text-sm text-muted-foreground font-body leading-relaxed border border-border/60 rounded-lg p-4 bg-card/50">
+                The form below does not send messages to our team yet. For reservations or questions, please call{" "}
+                {business.phoneDisplay} or stop by during business hours.
+              </p>
               <div>
                 <label htmlFor="name" className="text-sm font-body text-muted-foreground mb-1 block">Name</label>
                 <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-card border-border" />

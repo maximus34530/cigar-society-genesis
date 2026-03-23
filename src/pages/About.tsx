@@ -9,7 +9,7 @@ const About = () => (
   <Layout>
     <Seo
       title="About Us — Our Story & Lounge"
-      description="Learn about Cigar Society in Pharr, TX — premium cigars, a walk-in humidor, and a welcoming lounge experience in the Rio Grande Valley."
+      description="Discover Cigar Society in Pharr, TX: a premium cigar lounge, walk-in humidor, and welcoming community for the Rio Grande Valley."
       path="/about"
     />
     {/* Hero */}
@@ -37,17 +37,18 @@ const About = () => (
           <div>
             <h2 className="font-heading text-3xl font-semibold text-foreground mb-6">A Home for Cigar Enthusiasts</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              {business.name} was born from a passion for premium tobacco and the belief that every great cigar
-              deserves to be enjoyed in the right setting. Located in the heart of Pharr, Texas, our lounge
-              provides a refined yet relaxed environment where enthusiasts come together.
+              {business.name} was founded on a simple idea: a great cigar deserves a worthy setting. In Pharr, Texas,
+              we built a lounge where the Rio Grande Valley&apos;s aficionados—and newcomers alike—can slow down, connect,
+              and enjoy premium tobacco with the same care that goes into every blend we carry.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              From our carefully maintained walk-in humidor stocked with the world's finest cigars to our
-              comfortable leather seating and ambient lighting, every detail has been designed to elevate your experience.
+              Our walk-in humidor, comfortable leather seating, and warm lighting are all part of one experience: an
+              elevated but approachable space to celebrate milestones, close deals, or unwind after the day—with bourbon,
+              beer, and mixed drinks available to complement your evening.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Whether you're a seasoned aficionado or just beginning your cigar journey, our knowledgeable
-              staff is here to guide you to the perfect smoke.
+              Whether you already know your favorite vitola or you&apos;re exploring for the first time, our team is here
+              to guide you with genuine hospitality and deep product knowledge.
             </p>
           </div>
           <img
