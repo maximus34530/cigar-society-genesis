@@ -89,10 +89,12 @@ const Terms = () => (
           </p>
         </div>
         <div>
-          <h2 className="font-heading text-2xl text-foreground mb-3">8. Governing law</h2>
+          <h2 className="font-heading text-2xl text-foreground mb-3">8. Governing law and venue</h2>
           <p>
-            These Terms are governed by the laws of the State of Texas, without regard to conflict-of-law principles.
-            Any dispute shall be brought in courts located in Hidalgo County, Texas, unless otherwise required by law.
+            These Terms are governed by the <strong className="text-foreground">laws of the State of Texas</strong>,
+            without regard to conflict-of-law principles. Except where federal law requires otherwise, you agree that
+            exclusive venue for any dispute arising from these Terms or your visit to our lounge shall be in the state
+            or federal courts located in <strong className="text-foreground">Hidalgo County, Texas</strong>.
           </p>
         </div>
         <div>
@@ -106,8 +108,9 @@ const Terms = () => (
           <h2 className="font-heading text-2xl text-foreground mb-3">10. Contact</h2>
           <p>
             Questions about these Terms:{" "}
-            <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>{" "}
-            · {business.address}
+            <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>
+            <br />
+            <span className="text-foreground">116 W State Ave, Pharr, TX 78577</span>
           </p>
         </div>
       </div>

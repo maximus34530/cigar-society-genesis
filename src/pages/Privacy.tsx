@@ -102,8 +102,9 @@ const Privacy = () => (
         <div>
           <h2 className="font-heading text-2xl text-foreground mb-3">9. Texas notice</h2>
           <p>
-            Where applicable, Texas consumers may have rights under state privacy law. To exercise rights or ask
-            questions, contact us using the information below.
+            Where applicable, Texas consumers may have rights under state privacy law. This policy is provided by a
+            business operating in <strong className="text-foreground">Pharr, Hidalgo County, Texas</strong>. To exercise
+            rights or ask questions, contact us using the information below.
           </p>
         </div>
         <div>
@@ -116,7 +117,10 @@ const Privacy = () => (
         <div>
           <h2 className="font-heading text-2xl text-foreground mb-3">11. Contact</h2>
           <p>
-            {business.name} · {business.address} ·{" "}
+            {business.name}
+            <br />
+            116 W State Ave, Pharr, TX 78577
+            <br />
             <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>
           </p>
         </div>
