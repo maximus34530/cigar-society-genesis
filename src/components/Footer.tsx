@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
 
@@ -9,7 +10,12 @@ const Footer = () => {
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
-            <h3 className="font-heading text-2xl text-primary mb-4">{business.name}</h3>
+            <h3 className="font-heading text-2xl mb-4">
+              <Link to="/" className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors">
+                <BrandLogo variant="footer" />
+                <span>{business.name}</span>
+              </Link>
+            </h3>
             <p className="text-muted-foreground font-body leading-relaxed">
               A premium cigar lounge experience in the heart of the Rio Grande Valley.
             </p>
@@ -48,6 +54,11 @@ const Footer = () => {
               <li>
                 <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   About
+                </Link>
+              </li>
+              <li>
+                <Link to="/cigars" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Cigars
                 </Link>
               </li>
               <li>

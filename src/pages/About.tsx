@@ -37,18 +37,17 @@ const About = () => (
           <div>
             <h2 className="font-heading text-3xl font-semibold text-foreground mb-6">A Home for Cigar Enthusiasts</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              {business.name} was founded on a simple idea: a great cigar deserves a worthy setting. In Pharr, Texas,
-              we built a lounge where the Rio Grande Valley&apos;s aficionados—and newcomers alike—can slow down, connect,
-              and enjoy premium tobacco with the same care that goes into every blend we carry.
+              {business.name} is led by <span className="text-foreground font-medium">{`{OWNER_NAME}`}</span>.{" "}
+              {`{FOUNDING_STORY}`}
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               Our walk-in humidor, comfortable leather seating, and warm lighting are all part of one experience: an
-              elevated but approachable space to celebrate milestones, close deals, or unwind after the day—with bourbon,
-              beer, and mixed drinks available to complement your evening.
+              elevated but approachable space to celebrate milestones, close deals, or unwind after the day—with
+              bourbon, beer, and mixed drinks available to complement your evening.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Whether you already know your favorite vitola or you&apos;re exploring for the first time, our team is here
-              to guide you with genuine hospitality and deep product knowledge.
+              Whether you already know your favorite vitola or you&apos;re exploring for the first time, our team is
+              here to guide you with genuine hospitality and deep product knowledge.
             </p>
           </div>
           <img
@@ -64,13 +63,25 @@ const About = () => (
 
     <section className="section-padding bg-muted/80 border-y border-border/40">
       <div className="container mx-auto text-center max-w-3xl">
-        <SectionHeading title="Certified Expertise" subtitle="Our team is committed to the highest standards in tobacco knowledge." />
-        <div className="bg-card border border-border/70 rounded-xl p-10 shadow-card">
-          <h3 className="font-heading text-2xl text-primary mb-4">Certified Cigar Sommelier Tobacconist</h3>
-          <p className="text-muted-foreground leading-relaxed">
-            {business.name} is led by certified cigar professionals trained through Tobacconist University.
-            Our expertise ensures that every recommendation, pairing, and experience is backed by deep
-            knowledge and genuine passion for the craft.
+        <SectionHeading
+          title="Certified expertise"
+          subtitle="Professional training and a commitment to responsible hospitality."
+        />
+        <div className="bg-card border border-border/70 rounded-xl p-10 shadow-card text-left space-y-6">
+          <div>
+            <h3 className="font-heading text-2xl text-primary mb-3">CCST School credentials</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Cigar Society is a <strong className="text-foreground">CCST Certified Cigar Sommelier</strong> and{" "}
+              <strong className="text-foreground">Certified Retail Tobacconist</strong> through CCST School. Our
+              recommendations and pairings are grounded in formal training and respect for the craft.
+            </p>
+          </div>
+          <blockquote className="border-l-2 border-primary/60 pl-6 py-1 text-muted-foreground italic leading-relaxed">
+            {`{OWNER_QUOTE}`}
+          </blockquote>
+          <p className="text-sm text-muted-foreground text-center">
+            Guests must be <strong className="text-foreground">21+</strong> to enter and enjoy tobacco on site. We are
+            located at <strong className="text-foreground">116 W State Ave, Pharr, Texas 78577</strong>.
           </p>
         </div>
       </div>

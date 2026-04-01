@@ -7,6 +7,7 @@ import { PageLoadingFallback } from "./components/PageLoadingFallback";
 
 const HomeV2 = lazy(() => import("./pages/HomeV2"));
 const About = lazy(() => import("./pages/About"));
+const Cigars = lazy(() => import("./pages/Cigars"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<HomeV2 />} />
           <Route path="/about" element={<About />} />
+          <Route path="/cigars" element={<Cigars />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />

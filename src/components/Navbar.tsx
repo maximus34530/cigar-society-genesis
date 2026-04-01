@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import logo from "@/assets/logo.png";
+import { BrandLogo } from "@/components/BrandLogo";
 import { business } from "@/lib/business";
 
 const navLinks = [
   { label: "Home", path: "/" },
   { label: "About", path: "/about" },
+  { label: "Cigars", path: "/cigars" },
   { label: "Gallery", path: "/gallery" },
   { label: "Contact", path: "/contact" },
 ];
@@ -23,13 +24,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/80 shadow-nav">
       <div className="container mx-auto flex items-center justify-between h-20 px-4">
         <Link to="/" className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt={business.shortName}
-            className="h-14 w-auto"
-            decoding="async"
-            fetchPriority="high"
-          />
+          <BrandLogo />
           <span className="font-heading text-xl font-semibold text-primary hidden sm:block">
             {business.shortName}
           </span>
