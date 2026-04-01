@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Lato:wght@300;400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 5%;
+    --foreground: 40 20% 90%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 40 20% 90%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 40 20% 90%;
+
+    --primary: 43 74% 49%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 25 30% 14%;
+    --secondary-foreground: 40 20% 90%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 40 10% 55%;
+
+    --accent: 43 74% 49%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 40 10% 18%;
+    --input: 40 10% 18%;
+    --ring: 43 74% 49%;
+
+    --radius: 0.5rem;
+
+    --gold: 43 74% 49%;
+    --gold-light: 43 80% 62%;
+    --tobacco: 25 40% 20%;
+    --tobacco-light: 25 30% 30%;
+    --charcoal: 0 0% 10%;
+    --charcoal-light: 0 0% 15%;
+
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', -apple-system, sans-serif;
+
+    --gradient-gold: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 5%), hsl(0 0% 8%));
+    --shadow-gold: 0 4px 30px -8px hsl(var(--gold) / 0.25);
+    --shadow-card: 0 8px 32px -8px hsl(0 0% 0% / 0.45);
+    --shadow-card-hover: 0 20px 40px -12px hsl(0 0% 0% / 0.55);
+    --shadow-nav: 0 1px 0 hsl(40 10% 18% / 0.5), 0 12px 40px -16px hsl(0 0% 0% / 0.4);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .text-gold-gradient {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gold-gradient {
+    background: var(--gradient-gold);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .shadow-nav {
+    box-shadow: var(--shadow-nav);
+  }
+
+  .section-padding {
+    @apply py-20 md:py-28 px-4 md:px-8;
+  }
+
+  .gold-divider {
+    @apply w-24 h-px mx-auto rounded-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--gold) / 0.35) 15%,
+      hsl(var(--gold-light)) 50%,
+      hsl(var(--gold) / 0.35) 85%,
+      transparent
+    );
+  }
+
+  .hero-overlay {
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 100%, hsl(0 0% 0% / 0.55) 0%, transparent 55%),
+      linear-gradient(
+        to bottom,
+        hsl(var(--background) / 0.35) 0%,
+        hsl(var(--background) / 0.5) 40%,
+        hsl(var(--background) / 0.72) 100%
+      );
+  }
+}

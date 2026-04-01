@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cigars } from "@/data/cigars";
-import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 
 const STRENGTH_ORDER = ["Mild", "Mild to Medium", "Medium", "Medium to Full", "Full"] as const;
@@ -98,9 +97,9 @@ const Cigars = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="mb-4 font-heading text-4xl font-bold text-foreground md:text-5xl">Humidor Selection</h1>
           <p className="mx-auto max-w-2xl font-body leading-relaxed text-muted-foreground">
-            A snapshot of our Toast POS cigar inventory. Availability changes daily—ask our team for what&apos;s fresh in
-            the humidor. Tobacco sales are for guests 21+ for on-site enjoyment at {business.shortName} only; we do not
-            ship or sell online at this time.
+            A carefully curated selection of premium cigars — from mild and approachable to bold and full-bodied. Every
+            stick in our humidor is hand-selected by our certified tobacconist. Come in, explore the selection, and let us
+            help you find your perfect smoke. Must be 21+ to purchase.
           </p>
         </div>
       </section>

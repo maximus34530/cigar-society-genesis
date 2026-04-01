@@ -116,7 +116,14 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                <span>{business.hoursText}</span>
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  {business.hoursSchedule.map((row) => (
+                    <div key={row.day} className="flex justify-between gap-3 text-left">
+                      <span className="text-foreground/90">{row.day}</span>
+                      <span className="shrink-0 tabular-nums">{row.hours}</span>
+                    </div>
+                  ))}
+                </div>
               </li>
             </ul>
           </div>
