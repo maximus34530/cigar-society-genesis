@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
-import heroImg from "@/assets/hero-lounge.jpg";
 import featuredFigurado from "@/assets/featured-figurado-style.jpg";
 import featuredMaduro from "@/assets/featured-maduro-style.jpg";
 import featuredOpus from "@/assets/featured-opus-style.jpg";
@@ -68,49 +66,25 @@ const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
 const HomeV2 = () => {
-  const [reduceMotion, setReduceMotion] = useState(false);
   const homeV2VideoPath = business.homeV2VideoPaths[0] ?? "";
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mediaQuery.matches);
-    const handler = (event: MediaQueryListEvent) => setReduceMotion(event.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
 
   return (
     <Layout>
       <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          {reduceMotion ? (
-            <img
-              src={heroImg}
-              alt="Premium cigar lounge interior"
-              className="w-full h-full object-cover"
-              decoding="async"
-              fetchPriority="high"
-              loading="eager"
-            />
-          ) : (
-            <video
-              src={homeV2VideoPath}
-              className="w-full h-full object-cover"
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              poster={heroImg}
-              aria-label="Cigar Society lounge cinematic background"
-            />
-          )}
-          <div className="absolute inset-0 hero-overlay" />
-        </div>
+      <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-label="Cigar Society lounge cinematic background"
+        >
+          <source src={homeV2VideoPath} type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 hero-overlay" />
 
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in">
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center animate-fade-in">
           <p className="text-sm md:text-base text-primary/95 font-body tracking-[0.2em] uppercase mb-4">
             Pharr, Texas · {business.phoneDisplay}
           </p>
