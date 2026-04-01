@@ -16,8 +16,7 @@ export function BrandLogo({ className, imgClassName, variant = "nav" }: BrandLog
         alt={business.shortName}
         className={cn(
           variant === "footer" ? "h-10 w-auto max-h-10" : "h-14 w-auto max-h-[3.5rem]",
-          "brightness-[1.06] contrast-[1.05]",
-          "drop-shadow-[0_2px_20px_rgba(0,0,0,0.75)]",
+          "drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)]",
           imgClassName
         )}
         decoding="async"
