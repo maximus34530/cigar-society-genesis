@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import { InstagramFeedEmbed } from "@/components/InstagramFeedEmbed";
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
 import heroImg from "@/assets/hero-lounge.jpg";
 import cigarsImg from "@/assets/cigars-featured.jpg";
 import humidorImg from "@/assets/humidor.jpg";
@@ -30,11 +39,25 @@ const Gallery = () => {
   type GalleryImage = (typeof images)[number];
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<GalleryImage | null>(null);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const openImage = (img: GalleryImage) => {
     setSelected(img);
     setOpen(true);
   };
+
+  useEffect(() => {
+    if (!carouselApi) {
+      return;
+    }
+    const onSelect = () => setActiveIndex(carouselApi.selectedScrollSnap());
+    onSelect();
+    carouselApi.on("select", onSelect);
+    return () => {
+      carouselApi.off("select", onSelect);
+    };
+  }, [carouselApi]);
 
   return (
     <Layout>
@@ -103,40 +126,72 @@ const Gallery = () => {
         </div>
       </section>
 
-      <section className="section-padding bg-background">
+      <section className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-t border-primary/15">
         <div className="container mx-auto max-w-6xl">
           <h2 className="font-heading text-2xl md:text-3xl text-center text-foreground mb-2">On the lounge floor</h2>
-          <p className="text-center text-muted-foreground text-sm font-body mb-12 max-w-xl mx-auto">
-            Tap any image to view larger.
+          <p className="text-center text-muted-foreground text-sm font-body mb-10 max-w-xl mx-auto">
+            Swipe on mobile or use the arrows. Tap an image to view larger.
           </p>
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-            {images.map((img, i) => (
-              <div
-                key={`${img.alt}-${i}`}
-                role="button"
-                tabIndex={0}
-                aria-label={`Open photo: ${img.alt}`}
-                onClick={() => openImage(img)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    openImage(img);
-                  }
-                }}
-                className="relative overflow-hidden rounded-lg group cursor-pointer break-inside-avoid border border-primary/15 shadow-[0_0_0_1px_hsl(var(--gold)/0.08)] hover:border-primary/35 transition-colors"
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-700"
-                  decoding="async"
-                  fetchPriority={i < 2 ? "high" : "low"}
-                  loading={i < 2 ? "eager" : "lazy"}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                  <span className="text-foreground font-body text-sm p-4">{img.alt}</span>
-                </div>
-              </div>
+          <Carousel
+            setApi={setCarouselApi}
+            opts={{ loop: true, align: "center" }}
+            className="mx-auto w-full max-w-5xl px-10 sm:px-14 md:px-16"
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {images.map((img, i) => (
+                <CarouselItem key={`${img.alt}-${i}`} className="pl-2 md:pl-4 basis-full">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open photo: ${img.alt}`}
+                    onClick={() => openImage(img)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openImage(img);
+                      }
+                    }}
+                    className="relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group"
+                  >
+                    <div className="aspect-[4/3] sm:aspect-[16/10] bg-muted">
+                      <img
+                        src={img.src}
+                        alt={img.alt}
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                        decoding="async"
+                        fetchPriority={i === 0 ? "high" : "low"}
+                        loading={i === 0 ? "eager" : "lazy"}
+                      />
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent pt-16 pb-4 px-4">
+                      <p className="text-foreground font-body text-sm text-center">{img.alt}</p>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious
+              variant="outline"
+              className="border-primary/60 text-primary hover:bg-primary/10 h-9 w-9 sm:h-10 sm:w-10 left-0 sm:left-1 md:-left-4 top-1/2 -translate-y-1/2 z-10 disabled:opacity-35"
+            />
+            <CarouselNext
+              variant="outline"
+              className="border-primary/60 text-primary hover:bg-primary/10 h-9 w-9 sm:h-10 sm:w-10 right-0 sm:right-1 md:-right-4 top-1/2 -translate-y-1/2 z-10 disabled:opacity-35"
+            />
+          </Carousel>
+          <div className="flex justify-center gap-2 mt-8" aria-label="Choose a gallery photo">
+            {images.map((_, i) => (
+              <button
+                key={`dot-${i}`}
+                type="button"
+                aria-label={`Show photo ${i + 1} of ${images.length}`}
+                aria-current={i === activeIndex ? "true" : undefined}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  i === activeIndex ? "w-8 bg-primary shadow-[0_0_12px_hsl(var(--gold)/0.35)]" : "w-2 bg-primary/35 hover:bg-primary/55",
+                )}
+                onClick={() => carouselApi?.scrollTo(i)}
+              />
             ))}
           </div>
         </div>
