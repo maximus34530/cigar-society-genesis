@@ -94,10 +94,8 @@ const HomeV2 = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
             <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
               <a
-                href={business.googleDirectionsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent("Directions", { location: "home-hero" })}
+                href="#find-us"
+                onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "find-us-map" })}
               >
                 Visit the Lounge
               </a>
