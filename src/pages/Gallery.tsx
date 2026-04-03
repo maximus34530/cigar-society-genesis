@@ -30,7 +30,7 @@ const images = [
   { src: cigarsImg, alt: "Featured cigar selection" },
   { src: eventImg, alt: "Lounge seating and social space" },
   { src: exteriorImg, alt: "Lounge exterior" },
-  { src: cigarCloseup, alt: "Cigar and cutter close-up" },
+  { src: cigarCloseup, alt: "Premium cigar detail" },
   { src: loungeSeating, alt: "Leather lounge seating area" },
   { src: heroImg, alt: "Lounge ambiance" },
 ];
