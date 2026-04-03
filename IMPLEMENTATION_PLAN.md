@@ -52,6 +52,25 @@
 * Metadata refresh
 * Favicon update
 
+### Phase 1.6 — Hero, About, navbar, and gallery (tracked)
+
+Follow-up polish tracked as discrete GitHub issues. Full acceptance criteria and definition of done live on each issue.
+
+| GitHub # | Issue | Label | Priority |
+|---|---|---|---|
+| [44](https://github.com/maximus34530/cigar-society-genesis/issues/44) | [Design] Simplify hero section — minimal layout | `design` | 🟠 High |
+| [45](https://github.com/maximus34530/cigar-society-genesis/issues/45) | [Content] Build About page with real owner info and founding story | `content` | 🟠 High |
+| [46](https://github.com/maximus34530/cigar-society-genesis/issues/46) | [Design] Hide Cigars and Contact pages from navbar | `design` | 🟠 High |
+| [47](https://github.com/maximus34530/cigar-society-genesis/issues/47) | [Design] Convert Gallery page to carousel layout | `design` | 🟡 Medium |
+
+**#44 — Hero** — Headline, single subtext (“South Texas' Finest Cigar Lounge.”), one centered “Visit the Lounge” CTA linking to Google Maps directions for 116 W State Ave, Pharr TX 78577; remove the second button; no extra paragraph blocks in the hero.
+
+**#45 — About** — Real owner names (Rick and Brandon Romo), founding story, CCST credentials, real Google reviews on-page, and `{OWNER_QUOTE}` left visible for a later fill-in.
+
+**#46 — Navbar** — Remove Cigars and Contact from the nav only; keep `Cigars` and `Contact` page files and routes intact.
+
+**#47 — Gallery** — Replace the grid with a horizontal carousel using existing images; preserve dark background and gold accents; smooth swipe on mobile.
+
 ---
 
 ## Phase 2 — Supabase Backend Integration (BACK BURNER — DO NOT START)
