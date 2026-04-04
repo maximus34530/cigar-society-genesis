@@ -9,13 +9,24 @@ declare global {
 
 const EMBED_SCRIPT_SRC = "https://www.instagram.com/embed.js";
 
+function permalinkWithDarkTheme(url: string): string {
+  try {
+    const u = new URL(url);
+    u.searchParams.set("theme", "dark");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 /**
  * Loads Instagram's embed.js and asks it to process oEmbed markup.
  * Profile URLs may not render a full grid; set VITE_INSTAGRAM_EMBED_PERMALINK to a specific post/reel URL for a guaranteed embed.
  */
 export function InstagramFeedEmbed() {
-  const permalink =
+  const rawPermalink =
     import.meta.env.VITE_INSTAGRAM_EMBED_PERMALINK ?? business.instagramUrl;
+  const permalink = permalinkWithDarkTheme(rawPermalink);
 
   useEffect(() => {
     const runProcess = () => window.instgrm?.Embeds.process();
@@ -34,15 +45,16 @@ export function InstagramFeedEmbed() {
   }, [permalink]);
 
   return (
-    <div className="flex justify-center w-full overflow-x-auto">
+    <div className="instagram-embed-shell flex w-full justify-center overflow-x-auto rounded-xl border border-primary/30 bg-background p-3 shadow-card color-scheme-dark ring-1 ring-inset ring-primary/15 sm:p-4">
       <blockquote
-        className="instagram-media"
+        className="instagram-media !m-0 !bg-transparent"
         data-instgrm-permalink={permalink}
         data-instgrm-version="14"
+        data-theme="dark"
         style={{
           background: "hsl(var(--card))",
-          border: "1px solid hsl(var(--gold) / 0.35)",
-          borderRadius: 12,
+          border: "1px solid hsl(var(--gold) / 0.28)",
+          borderRadius: 10,
           margin: 0,
           maxWidth: 540,
           minWidth: 280,
@@ -57,3 +69,4 @@ export function InstagramFeedEmbed() {
     </div>
   );
 }
+
