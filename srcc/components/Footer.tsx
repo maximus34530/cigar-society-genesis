@@ -9,20 +9,24 @@ const Footer = () => {
     <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div>
-            <h3 className="font-heading text-2xl mb-4">
+          <div className="flex flex-col items-center text-center">
+            <h3 className="mb-4 w-full font-heading">
               <Link
                 to="/"
-                className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors touch-manipulation"
+                aria-label={`${business.shortName} Lounge and Bar — home`}
+                className="group flex flex-col items-center gap-3 text-primary transition-colors touch-manipulation hover:text-primary/90"
               >
                 <BrandLogo variant="footer" />
-                <span>{business.publicVenueName}</span>
+                <span className="text-2xl font-semibold tracking-tight md:text-3xl">{business.shortName}</span>
+                <span className="font-body text-[0.7rem] font-medium uppercase tracking-[0.2em] text-primary/90 md:text-xs">
+                  Lounge and Bar
+                </span>
               </Link>
             </h3>
-            <p className="text-muted-foreground font-body leading-relaxed">
+            <p className="max-w-sm text-muted-foreground font-body leading-relaxed">
               A premium cigar lounge experience in the heart of the Rio Grande Valley.
             </p>
-            <div className="flex gap-2 mt-6">
+            <div className="mt-6 flex justify-center gap-2">
               <a
                 href="https://www.facebook.com/cigarsocietyus"
                 target="_blank"
