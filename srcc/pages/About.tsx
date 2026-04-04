@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
-import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import loungeImg from "@/assets/lounge-seating.jpg";
 import humidorImg from "@/assets/humidor.jpg";
@@ -104,25 +103,6 @@ const About = () => (
             decoding="async"
             loading="lazy"
           />
-        </div>
-      </div>
-    </section>
-
-    <section className="section-padding border-y border-border/40 bg-muted/80">
-      <div className="container mx-auto max-w-3xl">
-        <SectionHeading
-          title="Certified Expertise"
-          subtitle="Our team is committed to the highest standards in tobacco knowledge."
-        />
-        <div className="mx-auto max-w-3xl rounded-xl border border-border/70 bg-card/90 p-8 text-center shadow-card md:p-12">
-          <h3 className="!font-heading text-xl font-semibold text-primary md:text-2xl">
-            Certified Cigar Sommelier Tobacconist
-          </h3>
-          <p className="mt-6 leading-relaxed text-muted-foreground font-body">
-            {business.name} is led by certified cigar professionals trained through Tobacconist University. Our expertise
-            ensures that every recommendation, pairing, and experience is backed by deep knowledge and genuine passion for
-            the craft.
-          </p>
         </div>
       </div>
     </section>
