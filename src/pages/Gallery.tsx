@@ -150,10 +150,12 @@ const Gallery = () => {
 
       <section
         className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-t border-primary/15"
-        aria-label="Lounge photo strip"
+        aria-label="Inside and around the lounge"
       >
         <div className="container mx-auto max-w-6xl mb-10">
-          <h2 className="font-heading text-2xl md:text-3xl text-center text-foreground mb-2">On the lounge floor</h2>
+          <h2 className="font-heading text-2xl md:text-3xl text-center text-foreground mb-2">
+            Inside & Around the Lounge
+          </h2>
           <p className="text-center text-muted-foreground text-sm font-body max-w-xl mx-auto">
             {prefersReducedMotion
               ? "Tap an image to view larger. Auto-scrolling is off because your device prefers reduced motion."
