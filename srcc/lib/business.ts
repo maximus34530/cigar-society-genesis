@@ -2,6 +2,9 @@
 const GOOGLE_MAPS_PLACE =
   "Cigar Society Lounge and Bar, 116 W State Ave, Pharr, TX 78577" as const;
 
+const MAP_OSM_LAT = "26.1948332" as const;
+const MAP_OSM_LON = "-98.1796119" as const;
+
 export const business = {
   name: "Cigar Society, LLC",
   shortName: "Cigar Society",
@@ -25,7 +28,7 @@ export const business = {
   instagramUrl: "https://www.instagram.com/cigarsocietystx/",
   instagramHandle: "cigarsocietystx",
   googleMapsPlaceQuery: GOOGLE_MAPS_PLACE,
-  mapEmbedSrc: `https://www.google.com/maps?q=${encodeURIComponent(GOOGLE_MAPS_PLACE)}&z=16&hl=en&output=embed`,
+  mapEmbedSrc: `https://www.openstreetmap.org/export/embed.html?bbox=-98.186%2C26.190%2C-98.173%2C26.199&layer=map&marker=${MAP_OSM_LAT}%2C${MAP_OSM_LON}`,
   mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   appleDirectionsUrl: `https://maps.apple.com/?dirflg=d&daddr=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,

@@ -222,13 +222,25 @@ const Index = () => {
               <ExternalLink className="size-4 shrink-0 opacity-90" aria-hidden />
             </a>
             <iframe
-              title={`Map showing ${business.shortName} in Pharr, TX`}
+              title={`Map of ${business.shortName} location in Pharr, TX`}
               src={business.mapEmbedSrc}
               className="absolute left-0 top-0 h-full w-full border-0"
               allowFullScreen
               loading="lazy"
             />
           </div>
+          <p className="mt-4 max-w-2xl text-center font-body text-xs text-muted-foreground">
+            ©{" "}
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-foreground"
+            >
+              OpenStreetMap contributors
+            </a>
+            . Use <span className="text-foreground/80">Open in Maps</span> for the full Google Maps listing.
+          </p>
         </div>
       </section>
     </Layout>

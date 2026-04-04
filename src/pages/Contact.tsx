@@ -131,13 +131,24 @@ const Contact = () => {
 
               <div className="relative h-0 w-full overflow-hidden rounded-lg border border-border pb-[56.25%] shadow-card">
                 <iframe
-                  title={`Map showing ${business.shortName} in Pharr, TX`}
+                  title={`Map of ${business.shortName} location in Pharr, TX`}
                   src={business.mapEmbedSrc}
                   className="absolute left-0 top-0 h-full w-full border-0"
                   allowFullScreen
                   loading="lazy"
                 />
               </div>
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                ©{" "}
+                <a
+                  href="https://www.openstreetmap.org/copyright"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-border underline-offset-2 hover:text-foreground"
+                >
+                  OpenStreetMap contributors
+                </a>
+              </p>
             </div>
           </div>
         </div>
