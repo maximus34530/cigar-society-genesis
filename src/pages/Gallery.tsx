@@ -5,29 +5,33 @@ import { Seo } from "@/components/Seo";
 import { InstagramFeedEmbed } from "@/components/InstagramFeedEmbed";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import heroImg from "@/assets/hero-lounge.jpg";
-import cigarsImg from "@/assets/cigars-featured.jpg";
-import humidorImg from "@/assets/humidor.jpg";
-import exteriorImg from "@/assets/exterior.jpg";
-import eventImg from "@/assets/event.jpg";
-import cigarCloseup from "@/assets/cigar-closeup.jpg";
-import loungeSeating from "@/assets/lounge-seating.jpg";
 import { business } from "@/lib/business";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Instagram } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
-const galleryImages = [
-  { src: heroImg, alt: "Premium cigar lounge interior" },
-  { src: humidorImg, alt: "Walk-in humidor" },
-  { src: cigarsImg, alt: "Featured cigar selection" },
-  { src: eventImg, alt: "Lounge seating and social space" },
-  { src: exteriorImg, alt: "Lounge exterior" },
-  { src: cigarCloseup, alt: "Premium cigar detail" },
-  { src: loungeSeating, alt: "Leather lounge seating area" },
-] as const;
+type GalleryImage = { src: string; alt: string };
 
-type GalleryImage = (typeof galleryImages)[number];
+function altFromGalleryPath(path: string): string {
+  const base = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "Gallery photo";
+  return base
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const galleryImageModules = import.meta.glob<{ default: string }>(
+  "../assets/gallery/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}",
+  { eager: true },
+);
+
+const GALLERY_IMAGES: GalleryImage[] = Object.entries(galleryImageModules)
+  .map(([path, mod]) => ({
+    src: mod.default,
+    alt: altFromGalleryPath(path),
+  }))
+  .sort((a, b) => a.alt.localeCompare(b.alt, undefined, { sensitivity: "base" }));
 
 function LoungePhotoTile({
   img,
@@ -77,12 +81,12 @@ const Gallery = () => {
   const [selected, setSelected] = useState<GalleryImage | null>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
 
+  const marqueeTrack = [...GALLERY_IMAGES, ...GALLERY_IMAGES];
+
   const openImage = (img: GalleryImage) => {
     setSelected(img);
     setOpen(true);
   };
-
-  const marqueeTrack = [...galleryImages, ...galleryImages];
 
   return (
     <Layout>
@@ -104,6 +108,52 @@ const Gallery = () => {
             A visual tour of the lounge—humidor, seating, and the details that make {business.shortName} home in Pharr.
           </p>
         </div>
+      </section>
+
+      <section
+        className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-b border-border/50"
+        aria-label="Inside and around the lounge"
+      >
+        <div className="container mx-auto max-w-6xl mb-10">
+          <h2 className="font-heading text-2xl md:text-3xl text-center text-foreground mb-2">
+            Inside & Around the Lounge
+          </h2>
+          <p className="text-center text-muted-foreground text-sm font-body max-w-xl mx-auto">
+            {GALLERY_IMAGES.length === 0
+              ? "Gallery photos will appear here once images are added to the project gallery folder."
+              : prefersReducedMotion
+                ? "Tap an image to view larger. Auto-scrolling is off because your device prefers reduced motion."
+                : "Photos scroll automatically—tap an image to view larger."}
+          </p>
+        </div>
+
+        {GALLERY_IMAGES.length > 0 ? (
+          <div className="relative w-full overflow-hidden">
+            {!prefersReducedMotion ? (
+              <>
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-20 bg-gradient-to-r from-background via-background/80 to-transparent"
+                  aria-hidden
+                />
+                <div
+                  className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-20 bg-gradient-to-l from-background via-background/80 to-transparent"
+                  aria-hidden
+                />
+                <div className="flex w-max gap-4 md:gap-6 py-2 animate-gallery-marquee">
+                  {marqueeTrack.map((img, i) => (
+                    <LoungePhotoTile key={`${img.src}-${i}`} img={img} onOpen={openImage} layout="marquee" />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="container mx-auto flex max-w-6xl flex-wrap justify-center gap-4 md:gap-6 py-2">
+                {GALLERY_IMAGES.map((img) => (
+                  <LoungePhotoTile key={img.src} img={img} onOpen={openImage} layout="static" />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </section>
 
       <section className="bg-background border-b border-border/50 section-padding">
@@ -148,74 +198,24 @@ const Gallery = () => {
         </div>
       </section>
 
-      <section
-        className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-t border-primary/15"
-        aria-label="Inside and around the lounge"
-      >
-        <div className="container mx-auto max-w-6xl mb-10">
-          <h2 className="font-heading text-2xl md:text-3xl text-center text-foreground mb-2">
-            Inside & Around the Lounge
-          </h2>
-          <p className="text-center text-muted-foreground text-sm font-body max-w-xl mx-auto">
-            {prefersReducedMotion
-              ? "Tap an image to view larger. Auto-scrolling is off because your device prefers reduced motion."
-              : "Photos drift side to side—hover the strip to pause. Tap an image to view larger."}
-          </p>
-        </div>
-
-        <div className="relative w-full overflow-hidden">
-          {!prefersReducedMotion ? (
-            <>
-              <div
-                className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-20 bg-gradient-to-r from-background via-background/80 to-transparent"
-                aria-hidden
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background border-border">
+          {selected ? (
+            <div>
+              <img
+                src={selected.src}
+                alt={selected.alt}
+                className="w-full h-auto max-h-[70vh] object-contain"
+                decoding="async"
+                fetchPriority="high"
               />
-              <div
-                className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-20 bg-gradient-to-l from-background via-background/80 to-transparent"
-                aria-hidden
-              />
-              <div className="group">
-                <div className="flex w-max gap-4 md:gap-6 py-2 animate-gallery-marquee group-hover:[animation-play-state:paused]">
-                  {marqueeTrack.map((img, i) => (
-                    <LoungePhotoTile key={`${img.alt}-${i}`} img={img} onOpen={openImage} layout="marquee" />
-                  ))}
-                </div>
+              <div className="p-4 border-t border-border/60">
+                <p className="text-muted-foreground text-sm">{selected.alt}</p>
               </div>
-            </>
-          ) : (
-            <div className="container mx-auto flex max-w-6xl flex-wrap justify-center gap-4 md:gap-6 py-2">
-              {galleryImages.map((img) => (
-                <LoungePhotoTile key={img.alt} img={img} onOpen={openImage} layout="static" />
-              ))}
             </div>
-          )}
-        </div>
-
-        {!prefersReducedMotion ? (
-          <p className="text-center text-xs text-muted-foreground mt-8 max-w-md mx-auto">
-            Tip: hover the strip to pause and choose a photo.
-          </p>
-        ) : null}
-
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background border-border">
-            {selected ? (
-              <div>
-                <img
-                  src={selected.src}
-                  alt={selected.alt}
-                  className="w-full h-auto max-h-[70vh] object-contain"
-                  decoding="async"
-                  fetchPriority="high"
-                />
-                <div className="p-4 border-t border-border/60">
-                  <p className="text-muted-foreground text-sm">{selected.alt}</p>
-                </div>
-              </div>
-            ) : null}
-          </DialogContent>
-        </Dialog>
-      </section>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
