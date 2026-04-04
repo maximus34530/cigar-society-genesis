@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { List, MapPin, Navigation, Star } from "lucide-react";
+import { ExternalLink, List, MapPin, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
@@ -194,43 +194,32 @@ const Index = () => {
 
       <section
         id="find-us"
-        className="section-padding bg-muted/80 border-t border-border/40 scroll-mt-24"
+        className="section-padding scroll-mt-24 border-t border-border/25 bg-card"
       >
-        <div className="container mx-auto max-w-4xl">
-          <SectionHeading
-            title="Find us"
-            subtitle={`${business.shortName} — ${business.address}`}
-          />
-          <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
-            <Button variant="outline" asChild className="gap-2 border-primary/50">
-              <a
-                href={business.mapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() =>
-                  trackEvent("Visit the Lounge", {
-                    location: "find-us",
-                    target: "google-maps",
-                  })
-                }
-              >
-                <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-                Open in Google Maps
-              </a>
-            </Button>
-            <Button variant="outline" asChild className="gap-2 border-primary/50">
-              <a
-                href={business.googleDirectionsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent("Directions", { location: "find-us" })}
-              >
-                <Navigation className="h-4 w-4 shrink-0" aria-hidden />
-                Get directions
-              </a>
-            </Button>
-          </div>
-          <div className="relative mx-auto aspect-video w-full max-w-4xl overflow-hidden rounded-xl border border-border/70 shadow-card ring-1 ring-border/30">
+        <div className="container mx-auto flex w-full max-w-6xl flex-col items-center px-4 text-center md:px-8">
+          <h2 className="find-us-section-title mb-5 text-4xl font-semibold tracking-tight text-foreground/95 md:mb-6 md:text-5xl">
+            Find Us
+          </h2>
+          <div className="find-us-gold-accent mb-10 md:mb-12" />
+          <p className="mb-12 max-w-2xl font-body text-base leading-relaxed text-muted-foreground md:mb-14 md:text-lg">
+            {business.address}
+          </p>
+          <div className="relative aspect-video w-full max-w-[min(100%,56rem)] overflow-hidden rounded-2xl shadow-card ring-1 ring-border/40">
+            <a
+              href={business.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-medium text-blue-600 shadow-md ring-1 ring-black/5 transition-colors hover:bg-white/95 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              onClick={() =>
+                trackEvent("Visit the Lounge", {
+                  location: "find-us",
+                  target: "google-maps",
+                })
+              }
+            >
+              Open in Maps
+              <ExternalLink className="size-4 shrink-0 opacity-90" aria-hidden />
+            </a>
             <iframe
               title={`Map showing ${business.shortName} in Pharr, TX`}
               src={business.mapEmbedSrc}

@@ -81,6 +81,10 @@
   }
 }
 
+h2.find-us-section-title {
+  font-family: var(--font-heading), Georgia, serif;
+}
+
 @layer utilities {
   .text-gold-gradient {
     background: var(--gradient-gold);
@@ -115,6 +119,18 @@
 
   .gold-divider {
     @apply w-24 h-px mx-auto rounded-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--gold) / 0.35) 15%,
+      hsl(var(--gold-light)) 50%,
+      hsl(var(--gold) / 0.35) 85%,
+      transparent
+    );
+  }
+
+  .find-us-gold-accent {
+    @apply mx-auto h-px w-16 rounded-full md:w-20;
     background: linear-gradient(
       90deg,
       transparent,
