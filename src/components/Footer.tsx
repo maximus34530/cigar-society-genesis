@@ -10,17 +10,23 @@ const Footer = () => {
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="flex flex-col items-center text-center">
-            <h3 className="mb-4 w-full font-heading">
+            <h3 className="mb-4 flex w-full justify-center font-heading">
               <Link
                 to="/"
                 aria-label={`${business.shortName} Lounge and Bar — home`}
-                className="group flex flex-col items-center gap-3 text-primary transition-colors touch-manipulation hover:text-primary/90"
+                className="group inline-flex items-stretch gap-4 text-primary transition-colors touch-manipulation hover:text-primary/90 md:gap-5"
               >
-                <BrandLogo variant="footer" />
-                <span className="text-2xl font-semibold tracking-tight md:text-3xl">{business.shortName}</span>
-                <span className="font-body text-[0.7rem] font-medium uppercase tracking-[0.2em] text-primary/90 md:text-xs">
-                  Lounge and Bar
-                </span>
+                <BrandLogo
+                  variant="footer"
+                  className="self-stretch items-center"
+                  imgClassName="!h-full !max-h-none w-auto max-w-[6.5rem] object-contain object-left md:max-w-[8.25rem]"
+                />
+                <div className="flex flex-col justify-center gap-1 text-left">
+                  <span className="text-2xl font-semibold tracking-tight md:text-3xl">{business.shortName}</span>
+                  <span className="font-body text-[0.7rem] font-medium uppercase tracking-[0.2em] text-primary/90 md:text-xs">
+                    Lounge and Bar
+                  </span>
+                </div>
               </Link>
             </h3>
             <p className="max-w-sm text-muted-foreground font-body leading-relaxed">
