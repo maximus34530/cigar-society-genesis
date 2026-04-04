@@ -222,7 +222,7 @@ const Index = () => {
               className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
             >
               <a
-                href={business.appleDirectionsUrl}
+                href={business.appleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() =>

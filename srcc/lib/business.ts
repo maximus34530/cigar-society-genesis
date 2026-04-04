@@ -30,6 +30,8 @@ export const business = {
   )}&output=embed`,
   mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
+  appleMapsUrl:
+    "https://maps.apple.com/place?place-id=IF326323518F8FD96&address=116+W+State+Ave%2C+Pharr%2C+TX++78577%2C+United+States&coordinate=26.195983%2C-98.184578&name=Cigar+Society&_provider=9902" as const,
   appleDirectionsUrl: `https://maps.apple.com/?dirflg=d&daddr=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   homeV2VideoPaths: [
     "/videos/copy_99474A51-7078-450C-937E-34DEB928683E.MOV",
