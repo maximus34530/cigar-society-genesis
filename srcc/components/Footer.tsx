@@ -16,7 +16,7 @@ const Footer = () => {
                 className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors touch-manipulation"
               >
                 <BrandLogo variant="footer" />
-                <span>{business.name}</span>
+                <span>{business.publicVenueName}</span>
               </Link>
             </h3>
             <p className="text-muted-foreground font-body leading-relaxed">
