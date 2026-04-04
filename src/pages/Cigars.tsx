@@ -5,7 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cigars } from "@/data/cigars";
+import { resolveCigarCardImage } from "@/lib/resolveCigarCardImage";
 import { cn } from "@/lib/utils";
+import boldSmoke from "@/assets/cigar-cards/unsplash-cigar-smoke-table.jpg";
+import classicSingle from "@/assets/cigar-cards/unsplash-single-cigar-plate.jpg";
+import mildSelection from "@/assets/cigar-cards/unsplash-three-cigars-ashtray.jpg";
+import cigarsFeatured from "@/assets/cigars-featured.jpg";
+import featuredFigurado from "@/assets/featured-figurado-style.jpg";
+import featuredMaduro from "@/assets/featured-maduro-style.jpg";
 
 /** Set to false to show the full 222-cigar Humidor Selection (filters + grid) again. */
 const SHOW_HUMIDOR_SELECTION = false;
@@ -17,6 +24,7 @@ type OurCigar = {
   meta: string;
   strength: OurCigarStrength;
   description: string;
+  imageSrc: string;
 };
 
 /** Six featured cigars: two Mild, two Medium, two Full Body (order preserved). */
@@ -26,38 +34,52 @@ const OUR_CIGARS_STATIC: OurCigar[] = [
     meta: "Dominican Republic · Connecticut Shade",
     strength: "Mild",
     description: "Creamy and smooth with subtle notes of cedar and vanilla.",
+    imageSrc: mildSelection,
   },
   {
     name: "Ashton Classic",
     meta: "Dominican Republic · Connecticut",
     strength: "Mild",
     description: "Elegant and refined with a mellow, buttery finish.",
+    imageSrc: cigarsFeatured,
   },
   {
     name: "Arturo Fuente Hemingway",
     meta: "Dominican Republic · Cameroon",
     strength: "Medium",
     description: "Perfectly balanced with flavors of earth, nuts, and sweet spice.",
+    imageSrc: featuredFigurado,
   },
   {
     name: "Romeo y Julieta 1875",
     meta: "Honduras · Connecticut",
     strength: "Medium",
     description: "Classic medium-body with notes of almond and light pepper.",
+    imageSrc: classicSingle,
   },
   {
     name: "Padrón 1964 Anniversary",
     meta: "Nicaragua · Maduro",
     strength: "Full Body",
     description: "Rich and complex with cocoa, coffee, and a long earthy finish.",
+    imageSrc: featuredMaduro,
   },
   {
     name: "Liga Privada No. 9",
     meta: "Nicaragua · Connecticut Broadleaf",
     strength: "Full Body",
     description: "Dark and powerful with notes of dark chocolate, pepper, and leather.",
+    imageSrc: boldSmoke,
   },
 ];
+
+function CigarCardHero({ alt, src }: { alt: string; src: string }) {
+  return (
+    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-lg border-b border-border/60 bg-muted">
+      <img alt={alt} src={src} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+    </div>
+  );
+}
 
 const CIGARS_SEO =
   "Browse premium cigars at Cigar Society in Pharr, TX — humidor snapshot by strength with pricing. Must be 21+.";
@@ -203,10 +225,14 @@ const HumidorSelectionHidden = () => {
               <li key={c.id}>
                 <Card
                   className={cn(
-                    "h-full border-border/80 shadow-card transition-opacity",
+                    "h-full overflow-hidden border-border/80 shadow-card transition-opacity",
                     !c.inStock && "bg-muted/40 opacity-60",
                   )}
                 >
+                  <CigarCardHero
+                    src={resolveCigarCardImage(c.name)}
+                    alt={`Representative cigar photo for ${c.name}. Ask our team for current bands and availability.`}
+                  />
                   <CardHeader className="space-y-3 pb-2">
                     <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
                       <CardTitle className="font-heading pr-2 text-lg leading-snug text-balance">{c.name}</CardTitle>
@@ -270,7 +296,11 @@ const Cigars = () => {
               <ul className="m-0 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2 xl:grid-cols-3">
                 {OUR_CIGARS_STATIC.map((c) => (
                   <li key={c.name}>
-                    <Card className="h-full border-border/80 shadow-card transition-opacity">
+                    <Card className="h-full overflow-hidden border-border/80 shadow-card transition-opacity">
+                      <CigarCardHero
+                        src={c.imageSrc}
+                        alt={`Representative cigar photo for ${c.name}. Visit the lounge to see our current selection.`}
+                      />
                       <CardHeader className="space-y-3 pb-2">
                         <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
                           <CardTitle className="font-heading pr-2 text-lg leading-snug text-balance">{c.name}</CardTitle>
