@@ -99,9 +99,9 @@ const Index = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <SectionHeading title="The Experience" />
           <p className="text-muted-foreground text-lg leading-relaxed font-body max-w-3xl mx-auto">
-            {business.name} is built for cigar enthusiasts who value craftsmanship, community, and calm. Our lounge in
-            Pharr offers a curated selection of the world&apos;s finest cigars, attentive service, and a setting where
-            every detail—from lighting to leather—supports the ritual of a great smoke.
+            {business.shortName} was built for the RGV. Founded by Rick and Priscilla Romo in 2025, our lounge in Pharr
+            is a place where everyone belongs — culturally diverse, welcoming, and unapologetically South Texas. Pull up a
+            seat, pick your smoke, and stay a while.
           </p>
           <Button asChild variant="link" className="mt-8 text-primary font-body tracking-wider uppercase text-sm">
             <Link to="/about">Our story →</Link>
