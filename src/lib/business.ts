@@ -31,6 +31,9 @@ export const business = {
   )}&output=embed`,
   /** Full listing in Google Maps (embed above uses main-branch address-only `output=embed` URL). */
   mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
+  /** Stable Google Maps place URL (About “Get directions” and similar). */
+  googleMapsPlacePageUrl:
+    "https://www.google.com/maps/place/Cigar+Society+Lounge+and+Bar/@26.1959365,-98.184545,17z/data=!3m1!4b1!4m6!3m5!1s0x8665a15ba2993d4b:0xbd01be9230522f42!8m2!3d26.1959365!4d-98.184545!16s%2Fg%2F11xkd76kh7?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D" as const,
   googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   /** Apple Maps place listing (official place id). */
   appleMapsUrl:

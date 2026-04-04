@@ -87,7 +87,7 @@ const About = () => (
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <a
-                  href={business.googleDirectionsUrl}
+                  href={business.googleMapsPlacePageUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackEvent("Directions", { location: "about-story" })}
