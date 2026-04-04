@@ -78,8 +78,10 @@ const Index = () => {
         <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
           <Button asChild variant="default" size="lg" className={heroPrimaryCta}>
             <a
-              href="#find-us"
-              onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "find-us-map" })}
+              href={business.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "google-maps" })}
             >
               <MapPin className="size-4 opacity-90" aria-hidden />
               Visit the Lounge
