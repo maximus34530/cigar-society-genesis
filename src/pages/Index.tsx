@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { List, MapPin, Star } from "lucide-react";
+import { List, MapPin, Navigation, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
@@ -196,15 +196,45 @@ const Index = () => {
         id="find-us"
         className="section-padding bg-muted/80 border-t border-border/40 scroll-mt-24"
       >
-        <div className="container mx-auto">
-          <SectionHeading title="Find us" subtitle={business.address} />
-          <div className="rounded-xl overflow-hidden border border-border/70 shadow-card max-w-4xl mx-auto ring-1 ring-border/30">
+        <div className="container mx-auto max-w-4xl">
+          <SectionHeading
+            title="Find us"
+            subtitle={`${business.shortName} — ${business.address}`}
+          />
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
+            <Button variant="outline" asChild className="gap-2 border-primary/50">
+              <a
+                href={business.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  trackEvent("Visit the Lounge", {
+                    location: "find-us",
+                    target: "google-maps",
+                  })
+                }
+              >
+                <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                Open in Google Maps
+              </a>
+            </Button>
+            <Button variant="outline" asChild className="gap-2 border-primary/50">
+              <a
+                href={business.googleDirectionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent("Directions", { location: "find-us" })}
+              >
+                <Navigation className="h-4 w-4 shrink-0" aria-hidden />
+                Get directions
+              </a>
+            </Button>
+          </div>
+          <div className="relative mx-auto aspect-video w-full max-w-4xl overflow-hidden rounded-xl border border-border/70 shadow-card ring-1 ring-border/30">
             <iframe
-              title={`${business.name} location`}
+              title={`Map showing ${business.shortName} in Pharr, TX`}
               src={business.mapEmbedSrc}
-              width="100%"
-              height="400"
-              className="w-full border-0 min-h-[280px] sm:min-h-[400px]"
+              className="absolute inset-0 h-full w-full border-0"
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

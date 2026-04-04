@@ -25,7 +25,7 @@ export const business = {
   instagramUrl: "https://www.instagram.com/cigarsocietystx/",
   instagramHandle: "cigarsocietystx",
   googleMapsPlaceQuery: GOOGLE_MAPS_PLACE,
-  mapEmbedSrc: `https://www.google.com/maps?q=${encodeURIComponent(GOOGLE_MAPS_PLACE)}&output=embed`,
+  mapEmbedSrc: `https://maps.google.com/maps?q=${encodeURIComponent(GOOGLE_MAPS_PLACE)}&z=16&hl=en&output=embed`,
   mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   appleDirectionsUrl: `https://maps.apple.com/?dirflg=d&daddr=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,

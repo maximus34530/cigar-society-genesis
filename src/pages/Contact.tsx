@@ -129,13 +129,11 @@ const Contact = () => {
                 </ul>
               </div>
 
-              <div className="rounded-lg overflow-hidden border border-border shadow-card">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border shadow-card">
                 <iframe
-                  title={`${business.name} location`}
+                  title={`Map showing ${business.shortName} in Pharr, TX`}
                   src={business.mapEmbedSrc}
-                  width="100%"
-                  height="250"
-                  className="w-full border-0"
+                  className="absolute inset-0 h-full w-full border-0"
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
