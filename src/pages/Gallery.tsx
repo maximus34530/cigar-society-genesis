@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Layout from "@/components/Layout";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { Seo } from "@/components/Seo";
 import { InstagramFeedEmbed } from "@/components/InstagramFeedEmbed";
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import heroImg from "@/assets/hero-lounge.jpg";
 import cigarsImg from "@/assets/cigars-featured.jpg";
@@ -24,7 +17,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Instagram } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
-const images = [
+const galleryImages = [
   { src: heroImg, alt: "Premium cigar lounge interior" },
   { src: humidorImg, alt: "Walk-in humidor" },
   { src: cigarsImg, alt: "Featured cigar selection" },
@@ -32,32 +25,64 @@ const images = [
   { src: exteriorImg, alt: "Lounge exterior" },
   { src: cigarCloseup, alt: "Premium cigar detail" },
   { src: loungeSeating, alt: "Leather lounge seating area" },
-  { src: heroImg, alt: "Lounge ambiance" },
-];
+] as const;
+
+type GalleryImage = (typeof galleryImages)[number];
+
+function LoungePhotoTile({
+  img,
+  onOpen,
+  layout,
+}: {
+  img: GalleryImage;
+  onOpen: (img: GalleryImage) => void;
+  layout: "marquee" | "static";
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Open photo: ${img.alt}`}
+      onClick={() => onOpen(img)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(img);
+        }
+      }}
+      className={cn(
+        "relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group/card",
+        layout === "marquee" && "w-[min(78vw,320px)] shrink-0",
+        layout === "static" && "w-full max-w-sm sm:max-w-none sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]",
+      )}
+    >
+      <div className="aspect-[4/3] bg-muted">
+        <img
+          src={img.src}
+          alt=""
+          className="h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-[1.02]"
+          decoding="async"
+          loading="lazy"
+        />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent pt-12 pb-3 px-3">
+        <p className="text-foreground font-body text-xs sm:text-sm text-center leading-snug">{img.alt}</p>
+      </div>
+    </div>
+  );
+}
 
 const Gallery = () => {
-  type GalleryImage = (typeof images)[number];
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<GalleryImage | null>(null);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-  const [activeIndex, setActiveIndex] = useState(0);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   const openImage = (img: GalleryImage) => {
     setSelected(img);
     setOpen(true);
   };
 
-  useEffect(() => {
-    if (!carouselApi) {
-      return;
-    }
-    const onSelect = () => setActiveIndex(carouselApi.selectedScrollSnap());
-    onSelect();
-    carouselApi.on("select", onSelect);
-    return () => {
-      carouselApi.off("select", onSelect);
-    };
-  }, [carouselApi]);
+  const marqueeTrack = [...galleryImages, ...galleryImages];
 
   return (
     <Layout>
@@ -126,75 +151,52 @@ const Gallery = () => {
         </div>
       </section>
 
-      <section className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-t border-primary/15">
-        <div className="container mx-auto max-w-6xl">
+      <section
+        className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-t border-primary/15"
+        aria-label="Lounge photo strip"
+      >
+        <div className="container mx-auto max-w-6xl mb-10">
           <h2 className="font-heading text-2xl md:text-3xl text-center text-foreground mb-2">On the lounge floor</h2>
-          <p className="text-center text-muted-foreground text-sm font-body mb-10 max-w-xl mx-auto">
-            Swipe on mobile or use the arrows. Tap an image to view larger.
+          <p className="text-center text-muted-foreground text-sm font-body max-w-xl mx-auto">
+            {prefersReducedMotion
+              ? "Tap an image to view larger. Auto-scrolling is off because your device prefers reduced motion."
+              : "Photos drift side to side—hover the strip to pause. Tap an image to view larger."}
           </p>
-          <Carousel
-            setApi={setCarouselApi}
-            opts={{ loop: true, align: "center" }}
-            className="mx-auto w-full max-w-5xl px-10 sm:px-14 md:px-16"
-          >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {images.map((img, i) => (
-                <CarouselItem key={`${img.alt}-${i}`} className="pl-2 md:pl-4 basis-full">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Open photo: ${img.alt}`}
-                    onClick={() => openImage(img)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        openImage(img);
-                      }
-                    }}
-                    className="relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group"
-                  >
-                    <div className="aspect-[4/3] sm:aspect-[16/10] bg-muted">
-                      <img
-                        src={img.src}
-                        alt={img.alt}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                        decoding="async"
-                        fetchPriority={i === 0 ? "high" : "low"}
-                        loading={i === 0 ? "eager" : "lazy"}
-                      />
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent pt-16 pb-4 px-4">
-                      <p className="text-foreground font-body text-sm text-center">{img.alt}</p>
-                    </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious
-              variant="outline"
-              className="border-primary/60 text-primary hover:bg-primary/10 h-9 w-9 sm:h-10 sm:w-10 left-0 sm:left-1 md:-left-4 top-1/2 -translate-y-1/2 z-10 disabled:opacity-35"
-            />
-            <CarouselNext
-              variant="outline"
-              className="border-primary/60 text-primary hover:bg-primary/10 h-9 w-9 sm:h-10 sm:w-10 right-0 sm:right-1 md:-right-4 top-1/2 -translate-y-1/2 z-10 disabled:opacity-35"
-            />
-          </Carousel>
-          <div className="flex justify-center gap-2 mt-8" aria-label="Choose a gallery photo">
-            {images.map((_, i) => (
-              <button
-                key={`dot-${i}`}
-                type="button"
-                aria-label={`Show photo ${i + 1} of ${images.length}`}
-                aria-current={i === activeIndex ? "true" : undefined}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  i === activeIndex ? "w-8 bg-primary shadow-[0_0_12px_hsl(var(--gold)/0.35)]" : "w-2 bg-primary/35 hover:bg-primary/55",
-                )}
-                onClick={() => carouselApi?.scrollTo(i)}
-              />
-            ))}
-          </div>
         </div>
+
+        <div className="relative w-full overflow-hidden">
+          {!prefersReducedMotion ? (
+            <>
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-20 bg-gradient-to-r from-background via-background/80 to-transparent"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-20 bg-gradient-to-l from-background via-background/80 to-transparent"
+                aria-hidden
+              />
+              <div className="group">
+                <div className="flex w-max gap-4 md:gap-6 py-2 animate-gallery-marquee group-hover:[animation-play-state:paused]">
+                  {marqueeTrack.map((img, i) => (
+                    <LoungePhotoTile key={`${img.alt}-${i}`} img={img} onOpen={openImage} layout="marquee" />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="container mx-auto flex max-w-6xl flex-wrap justify-center gap-4 md:gap-6 py-2">
+              {galleryImages.map((img) => (
+                <LoungePhotoTile key={img.alt} img={img} onOpen={openImage} layout="static" />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {!prefersReducedMotion ? (
+          <p className="text-center text-xs text-muted-foreground mt-8 max-w-md mx-auto">
+            Tip: hover the strip to pause and choose a photo.
+          </p>
+        ) : null}
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background border-border">
