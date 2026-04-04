@@ -194,7 +194,45 @@ const Index = () => {
 
       <section id="find-us" className="section-padding scroll-mt-24 bg-muted">
         <div className="container mx-auto">
-          <SectionHeading title="Find Us" subtitle={business.address} />
+          <SectionHeading
+            title="Find Us"
+            subtitle={business.address}
+            className="!mb-8 md:!mb-10"
+          />
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-3 md:mb-10">
+            <Button
+              asChild
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              <a
+                href={business.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  trackEvent("Visit the Lounge", { location: "find-us", target: "google-maps" })
+                }
+              >
+                Google Maps
+              </a>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              <a
+                href={business.appleDirectionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  trackEvent("Directions", { location: "find-us", target: "apple-maps" })
+                }
+              >
+                Apple Maps
+              </a>
+            </Button>
+          </div>
           <div className="mx-auto max-w-4xl overflow-hidden rounded-lg border border-border shadow-card">
             <iframe
               title={`${business.name} location`}
@@ -207,20 +245,6 @@ const Index = () => {
               referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
-          <p className="mt-6 text-center font-body text-sm text-muted-foreground">
-            <a
-              href={business.mapUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-primary underline decoration-primary/50 underline-offset-4 hover:text-primary/90"
-              onClick={() =>
-                trackEvent("Visit the Lounge", { location: "find-us", target: "google-maps" })
-              }
-            >
-              Open in Google Maps
-            </a>{" "}
-            if the map does not appear in your browser.
-          </p>
         </div>
       </section>
     </Layout>
