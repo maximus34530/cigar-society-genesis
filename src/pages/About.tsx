@@ -40,9 +40,6 @@ const About = () => (
               Built for the People
             </h2>
             <p className="leading-relaxed text-muted-foreground font-body">
-              Some places are built for business. Cigar Society was built for the people.
-            </p>
-            <p className="leading-relaxed text-muted-foreground font-body">
               Rick and Priscilla Romo opened the doors in 2025 with a vision that was personal — a lounge rooted in the
               Rio Grande Valley, designed for the community they love. Not a chain. Not a franchise. A family-owned space
               in the heart of Pharr, Texas, built from passion and opened with purpose.
