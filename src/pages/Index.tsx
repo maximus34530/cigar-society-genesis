@@ -33,6 +33,71 @@ const highlights = [
   },
 ];
 
+const REVIEWS = [
+  { name: "Kevin Garcia", text: "First time here but one of the most chill vibes to relax and to kick back." },
+  {
+    name: "Hermilo Rodriguez",
+    text: "First time here on our way through the valley. Nice vibe as you walk through the door. Decent selection with good service and knowledgeable suggestions. Will be coming through again.",
+  },
+  {
+    name: "Juan Isasi",
+    text: "Great atmosphere and staff. My go to place for a cigar with a great variety. The lounge is modern and spacious.",
+  },
+  { name: "Richard King", text: "Great place and a great experience. Highly recommend." },
+  {
+    name: "Gerry Flores",
+    text: "Stopped by this cigar lounge after my wife pointed it out as we drove by. I was excited at the layout of this very comfortable space. Rick and his wife Priscilla got it right! These owners and their son Brandon provided us with a welcoming experience.",
+  },
+  {
+    name: "Taylor Calderon",
+    text: "Great environment and awesome entertainment. The owners, Pricsilla and Rick, are very friendly and welcoming.",
+  },
+  {
+    name: "Domingo De La Garza",
+    text: "Cigar Society in Pharr, Texas is easily one of the best spots in the Valley to enjoy a good cigar and unwind in a top-tier atmosphere.",
+  },
+  { name: "Keely Orta", text: "Fantastic experience! I highly recommend!" },
+  {
+    name: "Thabata Rada",
+    text: "Amazing service. Great atmosphere. Rick and Ray were super helpful and super friendly. They are very knowledgeable. Great quality. Would come again and recommend.",
+  },
+  {
+    name: "Kevin Klapcic",
+    text: "Great cigar shop in McAllen. Lots of good sticks and nice bar selection. Rick knows his cigars. Will stop when in McAllen.",
+  },
+  {
+    name: "Edward Villa",
+    text: "The fact that they have amazing cigars and they have some air fried foods.... sign me up. I love this place.",
+  },
+  {
+    name: "Edward G",
+    text: "An ideal setting for a relaxed evening among friends. The owner and his staff exemplify professionalism, offering thoughtful recommendations and ensuring you experience only the finest selections available.",
+  },
+  {
+    name: "Luis Palacios",
+    text: "Great Cigar Lounge! Had the pleasure of visiting Cigar Society — must say, this place has great vibes and great service.",
+  },
+  {
+    name: "David Alvarado",
+    text: "Rick is super helpful in choosing a good cigar for a new cigar aficionado like myself, so far his suggestions haven't disappointed. Super chill place to enjoy a cigar while watching the game.",
+  },
+  {
+    name: "Reynaldo Montez",
+    text: "Great service but most importantly great ventilation. I went and was able to enjoy my cigar without suffocating in other cigar smokers' smoke — and the place was packed. 10/10 I will be taking my non-smoker friends there to enjoy any events and a great cigar.",
+  },
+  {
+    name: "Gilberto Garcia",
+    text: "You have to come check it out. Good cigar varieties, clean and great customer service.",
+  },
+  { name: "Mario Rosa", text: "Super cool place :) great way to unwind." },
+  {
+    name: "Tracie Smith",
+    text: "What a treat. Excellent selection of cigars, bourbon, beer, or mixed drinks. The lounge has comfortable seating. The staff is knowledgeable. Entertainment and football too.",
+  },
+  { name: "Michael Lucke", text: "Nice place and wonderful personable owners. Highly recommend." },
+  { name: "Aaron Borjas", text: "Great vibe, great choice of cigars, great service — will be coming back!!!" },
+];
+
 const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
@@ -174,20 +239,45 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="section-padding border-t border-border/30">
-        <div className="container mx-auto text-center max-w-2xl">
-          <div className="rounded-2xl border border-border/60 bg-card/40 px-8 py-10 md:px-12 md:py-12 shadow-card backdrop-blur-sm">
-            <div className="flex justify-center gap-1.5 mb-8">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-primary fill-primary drop-shadow-[0_0_8px_hsl(var(--gold)/0.35)]" />
-              ))}
-            </div>
-            <blockquote className="font-heading text-2xl md:text-3xl text-foreground/95 italic mb-5 leading-snug text-balance">
-              &quot;Great vibe great choice of cigars great service will be coming back !!!&quot;
-            </blockquote>
-            <p className="text-muted-foreground text-sm font-body tracking-wide">
-              {business.googleRating.stars.toFixed(1)} · {business.googleRating.reviewCount} reviews
-            </p>
+      {/* Reviews */}
+      <section className="section-padding overflow-hidden">
+        <div className="container mx-auto text-center mb-10">
+          <div className="flex justify-center gap-1 mb-2">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-5 h-5 text-primary fill-primary" />
+            ))}
+          </div>
+          <p className="text-muted-foreground text-sm">Google Reviews · 5.0 Stars</p>
+        </div>
+
+        <style>{`
+    @keyframes marquee {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee 120s linear infinite;
+    }
+  `}</style>
+
+        <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="marquee-track">
+            {[...REVIEWS, ...REVIEWS].map((r, i) => (
+              <div
+                key={i}
+                className="mx-3 flex-shrink-0 w-72 rounded-xl border border-border bg-card p-5 shadow-sm"
+              >
+                <div className="flex gap-0.5 mb-3">
+                  {[...Array(5)].map((_, s) => (
+                    <Star key={s} className="w-3.5 h-3.5 text-primary fill-primary" />
+                  ))}
+                </div>
+                <p className="text-foreground text-sm leading-relaxed mb-4 line-clamp-4">&quot;{r.text}&quot;</p>
+                <p className="text-muted-foreground text-xs font-medium">— {r.name}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
