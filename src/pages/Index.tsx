@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { List, MapPin, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
-import exteriorImg from "@/assets/exterior.jpg";
+import communityHospitalityImg from "@/assets/community-hospitality.png";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
@@ -28,8 +28,8 @@ const highlights = [
   {
     title: "South Texas hospitality",
     description: "Located in Pharr with easy access from across the Rio Grande Valley—your destination for an elevated evening out.",
-    image: exteriorImg,
-    alt: "Cigar Society exterior",
+    image: communityHospitalityImg,
+    alt: "Guests together at Cigar Society in front of the lounge backdrop",
   },
 ];
 
