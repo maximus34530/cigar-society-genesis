@@ -10,15 +10,13 @@ const Footer = () => {
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
-            <h3 className="mb-4">
+            <h3 className="font-heading text-2xl mb-4">
               <Link
                 to="/"
-                className="inline-flex flex-col items-start gap-0.5 hover:opacity-90 transition-opacity touch-manipulation"
+                className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors touch-manipulation"
               >
                 <BrandLogo variant="footer" />
-                <span className="text-xs font-body font-normal normal-case tracking-normal text-muted-foreground">
-                  {business.name}
-                </span>
+                <span>{business.name}</span>
               </Link>
             </h3>
             <p className="text-muted-foreground font-body leading-relaxed">
