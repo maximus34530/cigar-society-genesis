@@ -1,72 +1,48 @@
-import { useEffect } from "react";
 import { business } from "@/lib/business";
 
-declare global {
-  interface Window {
-    instgrm?: { Embeds: { process: () => void } };
-  }
-}
-
-const EMBED_SCRIPT_SRC = "https://www.instagram.com/embed.js";
-
-function permalinkWithDarkTheme(url: string): string {
+/**
+ * Builds the official Instagram `/embed/` iframe URL.
+ * - Profile URL → grid of recent posts (updates as the account posts).
+ * - Post / reel / TV URL → single-media embed (when using VITE_INSTAGRAM_EMBED_PERMALINK).
+ */
+function buildInstagramEmbedIframeSrc(pageUrl: string): string {
+  let pathname: string;
   try {
-    const u = new URL(url);
-    u.searchParams.set("theme", "dark");
-    return u.toString();
+    pathname = new URL(pageUrl).pathname;
   } catch {
-    return url;
+    return `https://www.instagram.com/${business.instagramHandle}/embed/?theme=dark`;
   }
+
+  const parts = pathname.split("/").filter(Boolean);
+  const kind = parts[0];
+  const code = parts[1];
+
+  if (code && (kind === "p" || kind === "reel" || kind === "tv")) {
+    return `https://www.instagram.com/${kind}/${code}/embed/?theme=dark`;
+  }
+
+  const username = (kind ?? business.instagramHandle).replace(/^@/, "");
+  return `https://www.instagram.com/${username}/embed/?theme=dark`;
 }
 
 /**
- * Loads Instagram's embed.js and asks it to process oEmbed markup.
- * Profile URLs may not render a full grid; set VITE_INSTAGRAM_EMBED_PERMALINK to a specific post/reel URL for a guaranteed embed.
+ * Official Instagram embed iframe — profile URLs show recent posts; no embed.js required.
+ * Override with VITE_INSTAGRAM_EMBED_PERMALINK for a fixed post/reel instead of the profile grid.
  */
 export function InstagramFeedEmbed() {
-  const rawPermalink =
+  const rawPageUrl =
     import.meta.env.VITE_INSTAGRAM_EMBED_PERMALINK ?? business.instagramUrl;
-  const permalink = permalinkWithDarkTheme(rawPermalink);
-
-  useEffect(() => {
-    const runProcess = () => window.instgrm?.Embeds.process();
-
-    const existing = document.querySelector(`script[src="${EMBED_SCRIPT_SRC}"]`);
-    if (existing) {
-      runProcess();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = EMBED_SCRIPT_SRC;
-    script.async = true;
-    script.onload = runProcess;
-    document.body.appendChild(script);
-  }, [permalink]);
+  const iframeSrc = buildInstagramEmbedIframeSrc(rawPageUrl);
 
   return (
-    <div className="instagram-embed-shell flex w-full justify-center overflow-x-auto rounded-xl border border-primary/30 bg-background p-3 shadow-card color-scheme-dark ring-1 ring-inset ring-primary/15 sm:p-4">
-      <blockquote
-        className="instagram-media !m-0 !bg-transparent"
-        data-instgrm-permalink={permalink}
-        data-instgrm-version="14"
-        data-theme="dark"
-        style={{
-          background: "hsl(var(--card))",
-          border: "1px solid hsl(var(--gold) / 0.28)",
-          borderRadius: 10,
-          margin: 0,
-          maxWidth: 540,
-          minWidth: 280,
-          padding: 0,
-          width: "calc(100% - 2px)",
-        }}
-      >
-        <span className="sr-only">
-          Instagram — @{business.instagramHandle}
-        </span>
-      </blockquote>
+    <div className="instagram-embed-shell flex w-full justify-center overflow-hidden rounded-xl border border-primary/30 bg-background p-3 shadow-card color-scheme-dark ring-1 ring-inset ring-primary/15 sm:p-4">
+      <iframe
+        title={`Instagram — @${business.instagramHandle}`}
+        src={iframeSrc}
+        className="h-[min(85vh,780px)] min-h-[520px] w-full max-w-[540px] shrink-0 rounded-[10px] border border-primary/25 bg-card"
+        loading="lazy"
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
     </div>
   );
 }
-
