@@ -25,8 +25,11 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-20 px-4">
         <Link to="/" className="flex items-center gap-3 touch-manipulation">
           <BrandLogo />
-          <span className="font-heading text-xl font-semibold text-primary hidden sm:block">
-            {business.shortName}
+          <span className="hidden flex-col items-center leading-none sm:flex">
+            <span className="font-heading text-xl font-semibold text-primary">{business.shortName}</span>
+            <span className="mt-1 font-body text-[0.625rem] font-medium uppercase tracking-[0.18em] text-primary/90">
+              Lounge and Bar
+            </span>
           </span>
         </Link>
 
