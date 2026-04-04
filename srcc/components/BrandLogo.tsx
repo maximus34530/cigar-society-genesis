@@ -10,7 +10,7 @@ type BrandLogoProps = {
 
 export function BrandLogo({ className, imgClassName, variant = "nav" }: BrandLogoProps) {
   return (
-    <span className={cn(variant === "footer" ? "flex shrink-0" : "inline-flex shrink-0", className)}>
+    <span className={cn("inline-flex shrink-0", className)}>
       <img
         src={logo}
         alt={business.shortName}

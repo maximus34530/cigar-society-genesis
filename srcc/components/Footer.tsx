@@ -9,30 +9,20 @@ const Footer = () => {
     <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="flex flex-col items-center text-center">
-            <h3 className="mb-4 flex w-full justify-center font-heading">
+          <div>
+            <h3 className="font-heading text-2xl mb-4">
               <Link
                 to="/"
-                aria-label={`${business.shortName} Lounge and Bar — home`}
-                className="group inline-flex items-stretch gap-4 text-primary transition-colors touch-manipulation hover:text-primary/90 md:gap-5"
+                className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors touch-manipulation"
               >
-                <BrandLogo
-                  variant="footer"
-                  className="self-stretch items-center"
-                  imgClassName="!h-full !max-h-none w-auto max-w-[6.5rem] object-contain object-left md:max-w-[8.25rem]"
-                />
-                <div className="flex flex-col items-center justify-center gap-1 text-center">
-                  <span className="text-2xl font-semibold tracking-tight text-primary md:text-3xl">{business.shortName}</span>
-                  <span className="max-w-[14rem] font-body text-sm font-normal leading-relaxed text-muted-foreground md:text-[0.9375rem]">
-                    Lounge and Bar
-                  </span>
-                </div>
+                <BrandLogo variant="footer" />
+                <span>{business.publicVenueName}</span>
               </Link>
             </h3>
-            <p className="max-w-sm text-muted-foreground font-body leading-relaxed">
+            <p className="text-muted-foreground font-body leading-relaxed">
               A premium cigar lounge experience in the heart of the Rio Grande Valley.
             </p>
-            <div className="mt-6 flex justify-center gap-2">
+            <div className="flex gap-2 mt-6">
               <a
                 href="https://www.facebook.com/cigarsocietyus"
                 target="_blank"

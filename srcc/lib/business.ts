@@ -4,6 +4,7 @@ const GOOGLE_MAPS_PLACE =
 
 export const business = {
   name: "Cigar Society, LLC",
+  publicVenueName: "Cigar Society Lounge and Bar" as const,
   shortName: "Cigar Society",
   address: "116 W State Ave, Pharr, TX 78577",
   directionsDestination: "Cigar Society, 116 W State Ave, Pharr, TX 78577",
