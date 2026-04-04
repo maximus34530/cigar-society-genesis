@@ -12,13 +12,29 @@ import { trackEvent } from "@/lib/analytics";
 
 type GalleryImage = { src: string; alt: string };
 
-function altFromGalleryPath(path: string): string {
-  const base = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "Gallery photo";
-  return base
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+/** macOS screenshot filenames use U+202F between the time and "AM/PM". */
+const NNBSP = "\u202f";
+
+const GALLERY_CAPTIONS: Record<string, string> = {
+  "641777087_17876480688513223_1895504743949000298_n.jpg": "Unwinding with a hand-rolled cigar",
+  [`Screenshot 2026-04-04 at 2.54.38${NNBSP}PM.png`]: "Celebration night in the lounge",
+  [`Screenshot 2026-04-04 at 2.55.16${NNBSP}PM.png`]: "Industrial-chic seating for your evening",
+  [`Screenshot 2026-04-04 at 2.55.41${NNBSP}PM.png`]: "Cigars, spirits, and South Texas nights",
+  [`Screenshot 2026-04-04 at 2.56.58${NNBSP}PM.png`]: "Illuminated humidor wall and premium selection",
+  [`Screenshot 2026-04-04 at 2.58.16${NNBSP}PM.png`]: "A perfect pour at the bar",
+  [`Screenshot 2026-04-04 at 2.58.26${NNBSP}PM.png`]: "Live acoustic music in the lounge",
+  [`Screenshot 2026-04-04 at 3.03.12${NNBSP}PM.png`]: "Friends gathered outside Cigar Society",
+  [`Screenshot 2026-04-04 at 3.03.41${NNBSP}PM.png`]: "Blood Medicine cigars at the bar",
+  [`Screenshot 2026-04-04 at 3.12.50${NNBSP}PM.png`]: "Premium spirits and hand-picked cigars at the bar",
+  [`Screenshot 2026-04-04 at 3.15.37${NNBSP}PM.png`]: "Signature cocktail menu",
+  [`Screenshot 2026-04-04 at 3.19.02${NNBSP}PM.png`]: "Rare bourbons and Fuente OpusX on display",
+  "Uploaded image.png": "Arriving in style at Cigar Society",
+  "tobacconist_certificate_enhanced.png": "Certified Retail Tobacconist credentials",
+};
+
+function galleryBasename(modulePath: string): string {
+  const parts = modulePath.split("/");
+  return parts[parts.length - 1] ?? modulePath;
 }
 
 const galleryImageModules = import.meta.glob<{ default: string }>(
@@ -27,10 +43,13 @@ const galleryImageModules = import.meta.glob<{ default: string }>(
 );
 
 const GALLERY_IMAGES: GalleryImage[] = Object.entries(galleryImageModules)
-  .map(([path, mod]) => ({
-    src: mod.default,
-    alt: altFromGalleryPath(path),
-  }))
+  .map(([path, mod]) => {
+    const file = galleryBasename(path);
+    return {
+      src: mod.default,
+      alt: GALLERY_CAPTIONS[file] ?? "Lounge photo",
+    };
+  })
   .sort((a, b) => a.alt.localeCompare(b.alt, undefined, { sensitivity: "base" }));
 
 function LoungePhotoTile({
