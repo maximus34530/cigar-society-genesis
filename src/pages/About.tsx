@@ -12,11 +12,14 @@ const About = () => (
       description={`${business.name} in Pharr, TX — a refined cigar lounge, walk-in humidor, and certified cigar professionals. Premium cigars, drinks, and hospitality in the Rio Grande Valley. 21+.`}
       path="/about"
     />
-    <section className="relative flex h-[50vh] items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden md:min-h-[55vh]">
       <img
         src={loungeImg}
         alt={`${business.name} lounge`}
         className="absolute inset-0 h-full w-full object-cover"
+        decoding="async"
+        fetchPriority="high"
+        loading="eager"
       />
       <div className="absolute inset-0 hero-overlay" />
       <div className="relative z-10 animate-fade-in px-4 text-center">
@@ -49,8 +52,9 @@ const About = () => (
           </div>
           <img
             src={humidorImg}
-            alt="Walk-in humidor"
+            alt="Walk-in humidor at Cigar Society"
             className="w-full rounded-xl shadow-card ring-1 ring-border/40"
+            decoding="async"
             loading="lazy"
           />
         </div>
