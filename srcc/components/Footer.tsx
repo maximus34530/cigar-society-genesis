@@ -21,9 +21,9 @@ const Footer = () => {
                   className="self-stretch items-center"
                   imgClassName="!h-full !max-h-none w-auto max-w-[6.5rem] object-contain object-left md:max-w-[8.25rem]"
                 />
-                <div className="flex flex-col justify-center gap-1 text-left">
-                  <span className="text-2xl font-semibold tracking-tight md:text-3xl">{business.shortName}</span>
-                  <span className="font-body text-[0.7rem] font-medium uppercase tracking-[0.2em] text-primary/90 md:text-xs">
+                <div className="flex flex-col items-center justify-center gap-1 text-center">
+                  <span className="text-2xl font-semibold tracking-tight text-primary md:text-3xl">{business.shortName}</span>
+                  <span className="max-w-[14rem] font-body text-sm font-normal leading-relaxed text-muted-foreground md:text-[0.9375rem]">
                     Lounge and Bar
                   </span>
                 </div>
