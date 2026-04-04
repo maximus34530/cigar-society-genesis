@@ -7,6 +7,64 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cigars } from "@/data/cigars";
 import { cn } from "@/lib/utils";
 
+/** Set to false to show the full 222-cigar Humidor Selection (filters + grid) again. */
+const SHOW_HUMIDOR_SELECTION = false;
+
+type OurCigarStrength = "Mild" | "Medium" | "Full Body";
+
+type OurCigar = {
+  name: string;
+  meta: string;
+  strength: OurCigarStrength;
+  description: string;
+};
+
+/** Six featured cigars: two Mild, two Medium, two Full Body (order preserved). */
+const OUR_CIGARS_STATIC: OurCigar[] = [
+  {
+    name: "Macanudo Café",
+    meta: "Dominican Republic · Connecticut Shade",
+    strength: "Mild",
+    description: "Creamy and smooth with subtle notes of cedar and vanilla.",
+  },
+  {
+    name: "Ashton Classic",
+    meta: "Dominican Republic · Connecticut",
+    strength: "Mild",
+    description: "Elegant and refined with a mellow, buttery finish.",
+  },
+  {
+    name: "Arturo Fuente Hemingway",
+    meta: "Dominican Republic · Cameroon",
+    strength: "Medium",
+    description: "Perfectly balanced with flavors of earth, nuts, and sweet spice.",
+  },
+  {
+    name: "Romeo y Julieta 1875",
+    meta: "Honduras · Connecticut",
+    strength: "Medium",
+    description: "Classic medium-body with notes of almond and light pepper.",
+  },
+  {
+    name: "Padrón 1964 Anniversary",
+    meta: "Nicaragua · Maduro",
+    strength: "Full Body",
+    description: "Rich and complex with cocoa, coffee, and a long earthy finish.",
+  },
+  {
+    name: "Liga Privada No. 9",
+    meta: "Nicaragua · Connecticut Broadleaf",
+    strength: "Full Body",
+    description: "Dark and powerful with notes of dark chocolate, pepper, and leather.",
+  },
+];
+
+const CIGARS_SEO =
+  "Browse premium cigars at Cigar Society in Pharr, TX — humidor snapshot by strength with pricing. Must be 21+.";
+
+const OUR_CIGARS_SEO =
+  "Featured premium cigars at Cigar Society in Pharr, TX — mild, medium, and full-bodied selections. Must be 21+.";
+
 const STRENGTH_ORDER = ["Mild", "Mild to Medium", "Medium", "Medium to Full", "Full"] as const;
 type Strength = (typeof STRENGTH_ORDER)[number];
 
@@ -57,12 +115,9 @@ function inferStrength(name: string, description?: string): Strength {
 
 const sorted = [...cigars].sort((a, b) => a.name.localeCompare(b.name));
 
-const CIGARS_SEO =
-  "Browse premium cigars at Cigar Society in Pharr, TX — humidor snapshot by strength with pricing. Must be 21+.";
-
 type FilterKey = "all" | Strength;
 
-const Cigars = () => {
+const HumidorSelectionHidden = () => {
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const enriched = useMemo(
@@ -91,8 +146,7 @@ const Cigars = () => {
   }, [visible]);
 
   return (
-    <Layout>
-      <Seo title="Humidor Selection — Cigar Menu" description={CIGARS_SEO} path="/cigars" />
+    <>
       <section className="section-padding border-b border-border/40 bg-muted/30">
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="mb-4 font-heading text-4xl font-bold text-foreground md:text-5xl">Humidor Selection</h1>
@@ -186,6 +240,68 @@ const Cigars = () => {
           </ul>
         </div>
       </section>
+    </>
+  );
+};
+
+const Cigars = () => {
+  return (
+    <Layout>
+      <Seo
+        title={SHOW_HUMIDOR_SELECTION ? "Humidor Selection — Cigar Menu" : "Our Cigars — Featured Selection"}
+        description={SHOW_HUMIDOR_SELECTION ? CIGARS_SEO : OUR_CIGARS_SEO}
+        path="/cigars"
+      />
+
+      {!SHOW_HUMIDOR_SELECTION ? (
+        <>
+          <section className="section-padding border-b border-border/40 bg-muted/30">
+            <div className="container mx-auto max-w-4xl text-center">
+              <h1 className="mb-4 font-heading text-4xl font-bold text-foreground md:text-5xl">Our Cigars</h1>
+              <p className="mx-auto max-w-2xl font-body leading-relaxed text-muted-foreground">
+                A sample of the premium cigars we carry—visit the lounge for our full humidor and personal recommendations.
+                Must be 21+ to purchase.
+              </p>
+            </div>
+          </section>
+
+          <section className="section-padding">
+            <div className="container mx-auto">
+              <ul className="m-0 grid list-none grid-cols-1 gap-6 p-0 sm:grid-cols-2 xl:grid-cols-3">
+                {OUR_CIGARS_STATIC.map((c) => (
+                  <li key={c.name}>
+                    <Card className="h-full border-border/80 shadow-card transition-opacity">
+                      <CardHeader className="space-y-3 pb-2">
+                        <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
+                          <CardTitle className="font-heading pr-2 text-lg leading-snug text-balance">{c.name}</CardTitle>
+                        </div>
+                        <p className="font-heading text-xl text-primary">{c.meta}</p>
+                        <Badge
+                          variant="outline"
+                          className="w-fit border-primary/55 bg-primary/10 font-body text-xs font-medium text-primary"
+                        >
+                          {c.strength}
+                        </Badge>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{c.description}</p>
+                      </CardContent>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </>
+      ) : null}
+
+      <div
+        className={cn(!SHOW_HUMIDOR_SELECTION && "hidden")}
+        aria-hidden={!SHOW_HUMIDOR_SELECTION}
+        data-phase="humidor-selection-deferred"
+      >
+        <HumidorSelectionHidden />
+      </div>
     </Layout>
   );
 };
