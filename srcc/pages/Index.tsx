@@ -4,41 +4,11 @@ import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
-import featuredFigurado from "@/assets/featured-figurado-style.jpg";
-import featuredMaduro from "@/assets/featured-maduro-style.jpg";
-import featuredOpus from "@/assets/featured-opus-style.jpg";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
-
-const featuredCigars = [
-  {
-    name: "Arturo Fuente Opus X",
-    wrapper: "Rosado",
-    strength: "Full",
-    description: "A legendary Dominican puro with rich, complex flavors of cedar, leather, and spice.",
-    image: featuredOpus,
-    imageAlt: "Stylized photo of a premium cigar with a warm rosado wrapper on a dark surface",
-  },
-  {
-    name: "Padrón 1964 Anniversary",
-    wrapper: "Maduro",
-    strength: "Medium-Full",
-    description: "Smooth and creamy with notes of cocoa, coffee, and earth. A timeless classic.",
-    image: featuredMaduro,
-    imageAlt: "Stylized photo of a dark maduro cigar on rich wood with moody lighting",
-  },
-  {
-    name: "Oliva Serie V Melanio",
-    wrapper: "Ecuadorian Sumatra",
-    strength: "Full",
-    description: "Bold and refined with dark chocolate, espresso, and a peppery finish.",
-    image: featuredFigurado,
-    imageAlt: "Stylized photo of a figurado-shaped premium cigar on a charcoal background",
-  },
-];
 
 const highlights = [
   {
@@ -65,8 +35,8 @@ const highlights = [
 const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
-const HomeV2 = () => {
-  const homeV2VideoPath = business.homeV2VideoPaths[0] ?? "";
+const Index = () => {
+  const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
 
   return (
     <Layout>
@@ -80,7 +50,7 @@ const HomeV2 = () => {
           className="absolute inset-0 h-full w-full object-cover"
           aria-label="Cigar Society lounge cinematic background"
         >
-          <source src={homeV2VideoPath} type="video/mp4" />
+          <source src={heroVideoPath} type="video/mp4" />
         </video>
         <div className="absolute inset-0 hero-overlay" />
 
@@ -137,27 +107,23 @@ const HomeV2 = () => {
 
       <section className="section-padding bg-muted/80 border-y border-border/40">
         <div className="container mx-auto">
-          <SectionHeading title="Featured selections" subtitle="A taste of what you’ll find in our humidor—ask our team for today’s full lineup." />
+          <SectionHeading
+            title="Featured selections"
+            subtitle="Highlighted picks from our humidor will appear here soon. Stop by or call for today’s lineup."
+          />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredCigars.map((cigar) => (
+            {[0, 1, 2].map((slot) => (
               <div
-                key={cigar.name}
-                className="group bg-card rounded-xl border border-border/70 p-8 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card-hover"
+                key={slot}
+                className="flex min-h-[220px] md:min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-10 text-center ring-1 ring-border/20"
+                aria-hidden={slot !== 0}
               >
-                <img
-                  src={cigar.image}
-                  alt={cigar.imageAlt}
-                  className="w-full h-48 object-cover rounded-lg mb-6 ring-1 ring-border/50 transition-transform duration-500 group-hover:scale-[1.02]"
-                  decoding="async"
-                  loading="lazy"
-                />
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-2">{cigar.name}</h3>
-                <div className="flex gap-3 mb-4 text-xs font-body tracking-wider uppercase text-primary">
-                  <span>{cigar.wrapper}</span>
-                  <span>·</span>
-                  <span>{cigar.strength}</span>
-                </div>
-                <p className="text-muted-foreground text-sm leading-relaxed">{cigar.description}</p>
+                <p className="font-heading text-lg font-semibold tracking-wide text-muted-foreground/90 md:text-xl">
+                  Coming soon
+                </p>
+                <p className="mt-3 max-w-[14rem] text-sm text-muted-foreground/70 font-body leading-relaxed">
+                  We&apos;re preparing this spotlight for you.
+                </p>
               </div>
             ))}
           </div>
@@ -244,4 +210,4 @@ const HomeV2 = () => {
   );
 };
 
-export default HomeV2;
+export default Index;

@@ -31,7 +31,7 @@ Status: ✅ Complete
 
 Issues:
 
-* Home v2 (video hero)
+* Video hero homepage (`Index` at `/`)
 * Homepage promotion
 * Hero CTA directions
 * Map accuracy fix

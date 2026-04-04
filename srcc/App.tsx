@@ -5,9 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageLoadingFallback } from "./components/PageLoadingFallback";
 
-const HomeV2 = lazy(() => import("./pages/HomeV2"));
+const Index = lazy(() => import("./pages/Index"));
 const About = lazy(() => import("./pages/About"));
 const Cigars = lazy(() => import("./pages/Cigars"));
+const CigarsV1 = lazy(() => import("./pages/CigarsV1"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -21,9 +22,10 @@ const App = () => (
     <BrowserRouter>
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
-          <Route path="/" element={<HomeV2 />} />
+          <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/cigars" element={<Cigars />} />
+          <Route path="/cigars-v1" element={<CigarsV1 />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />
