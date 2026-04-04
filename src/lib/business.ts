@@ -1,3 +1,7 @@
+/** Matches the Google Business Profile name so Maps opens the listing, not a wrong pin at the street address. */
+const GOOGLE_MAPS_PLACE =
+  "Cigar Society Lounge and Bar, 116 W State Ave, Pharr, TX 78577" as const;
+
 export const business = {
   name: "Cigar Society, LLC",
   shortName: "Cigar Society",
@@ -20,16 +24,11 @@ export const business = {
   googleRating: { stars: 5.0, reviewCount: 27 } as const,
   instagramUrl: "https://www.instagram.com/cigarsocietystx/",
   instagramHandle: "cigarsocietystx",
-  mapEmbedSrc: `https://www.google.com/maps?q=${encodeURIComponent(
-    "116 W State Ave, Pharr, TX 78577"
-  )}&output=embed`,
-  mapUrl: `https://www.google.com/maps?q=${encodeURIComponent("116 W State Ave, Pharr, TX 78577")}&output=search`,
-  googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(
-    "Cigar Society, 116 W State Ave, Pharr, TX 78577"
-  )}`,
-  appleDirectionsUrl: `https://maps.apple.com/?dirflg=d&daddr=${encodeURIComponent(
-    "Cigar Society, 116 W State Ave, Pharr, TX 78577"
-  )}`,
+  googleMapsPlaceQuery: GOOGLE_MAPS_PLACE,
+  mapEmbedSrc: `https://maps.google.com/maps?q=${encodeURIComponent(GOOGLE_MAPS_PLACE)}&z=16&hl=en&output=embed`,
+  mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
+  googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
+  appleDirectionsUrl: `https://maps.apple.com/?dirflg=d&daddr=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   homeV2VideoPaths: [
     "/videos/copy_99474A51-7078-450C-937E-34DEB928683E.MOV",
   ],

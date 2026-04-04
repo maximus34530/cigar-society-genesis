@@ -3,11 +3,12 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { ExternalLink, List, MapPin, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
 import { business } from "@/lib/business";
+import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
 
 const highlights = [
@@ -35,69 +36,74 @@ const highlights = [
 const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
+const heroCtaBase =
+  "h-auto min-h-[3rem] rounded-full px-8 py-3.5 font-body text-sm font-medium uppercase tracking-wide transition-all duration-200 sm:w-auto sm:min-w-[11rem]";
+
+const heroPrimaryCta = cn(
+  heroCtaBase,
+  "!bg-gold-gradient text-primary-foreground shadow-gold hover:!brightness-110 hover:!bg-gold-gradient focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+);
+
+const heroSecondaryCta = cn(
+  heroCtaBase,
+  "!border-2 !border-primary/60 !bg-background/35 !text-primary backdrop-blur-sm hover:!border-primary hover:!bg-primary/10 hover:!text-primary",
+);
+
 const Index = () => {
   const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
 
   return (
-    <Layout>
-      <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
-      <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover"
-          aria-label="Cigar Society lounge cinematic background"
-        >
-          <source src={heroVideoPath} type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 hero-overlay" />
+  <Layout>
+    <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
+    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover"
+        aria-label="Cigar Society lounge cinematic background"
+      >
+        <source src={heroVideoPath} type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 hero-overlay" />
 
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center animate-fade-in">
-          <p className="text-sm md:text-base text-primary/95 font-body tracking-[0.2em] uppercase mb-4">
-            Pharr, Texas · {business.phoneDisplay}
-          </p>
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold mb-6 text-foreground tracking-tight text-balance drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)]">
-            Welcome to <span className="text-gold-gradient">{business.shortName}</span>
-          </h1>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
-            <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
-              <a
-                href="#find-us"
-                onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "find-us-map" })}
-              >
-                Visit the Lounge
-              </a>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6"
+      <div className="relative z-10 mx-auto max-w-4xl px-4 pb-12 text-center animate-fade-in sm:pb-16">
+        <h1 className="!font-heading text-4xl font-bold tracking-tight text-balance text-foreground drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)] sm:text-5xl md:text-7xl mb-6">
+          Welcome to <span className="text-gold-gradient">{business.shortName}</span>
+        </h1>
+        <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-foreground/85 font-body md:text-lg">
+          A premium cigar lounge experience in the Rio Grande Valley.
+        </p>
+        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
+          <Button asChild variant="default" size="lg" className={heroPrimaryCta}>
+            <a
+              href={business.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "google-maps" })}
             >
-              <Link
-                to="/cigars"
-                onClick={() => trackEvent("View Menu", { location: "home-hero" })}
-              >
-                View Menu
-              </Link>
-            </Button>
-          </div>
-          <p className="text-lg md:text-xl text-muted-foreground/95 font-body mt-8 md:mt-10 max-w-2xl mx-auto leading-relaxed text-balance">
-            A premium cigar lounge in the Rio Grande Valley—hand-selected cigars, curated drinks, and an atmosphere
-            designed for those who appreciate the finer things.
-          </p>
+              <MapPin className="size-4 opacity-90" aria-hidden />
+              Visit the Lounge
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="lg" className={heroSecondaryCta}>
+            <Link to="/cigars" onClick={() => trackEvent("View Menu", { location: "home-hero" })}>
+              <List className="size-4 opacity-90" aria-hidden />
+              View Menu
+            </Link>
+          </Button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section className="section-padding border-t border-border/30 bg-gradient-to-b from-background to-muted/20">
+    <section className="section-padding border-t border-border/30 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto max-w-4xl text-center">
           <SectionHeading title="The Experience" />
           <p className="text-muted-foreground text-lg leading-relaxed font-body max-w-3xl mx-auto">
-            {business.name} is built for cigar enthusiasts who value craftsmanship, community, and calm. Our lounge in
-            Pharr offers a curated selection of the world&apos;s finest cigars, attentive service, and a setting where
-            every detail—from lighting to leather—supports the ritual of a great smoke.
+            {business.shortName} was built for the RGV. Founded by Rick and Priscilla Romo in 2025, our lounge in Pharr
+            is a place where everyone belongs — culturally diverse, welcoming, and unapologetically South Texas. Pull up a
+            seat, pick your smoke, and stay a while.
           </p>
           <Button asChild variant="link" className="mt-8 text-primary font-body tracking-wider uppercase text-sm">
             <Link to="/about">Our story →</Link>
@@ -188,17 +194,36 @@ const Index = () => {
 
       <section
         id="find-us"
-        className="section-padding bg-muted/80 border-t border-border/40 scroll-mt-24"
+        className="section-padding scroll-mt-24 border-t border-border/25 bg-card"
       >
-        <div className="container mx-auto">
-          <SectionHeading title="Find us" subtitle={business.address} />
-          <div className="rounded-xl overflow-hidden border border-border/70 shadow-card max-w-4xl mx-auto ring-1 ring-border/30">
+        <div className="container mx-auto flex w-full max-w-6xl flex-col items-center px-4 text-center md:px-8">
+          <h2 className="find-us-section-title mb-5 text-4xl font-semibold tracking-tight text-foreground/95 md:mb-6 md:text-5xl">
+            Find Us
+          </h2>
+          <div className="find-us-gold-accent mb-10 md:mb-12" />
+          <p className="mb-12 max-w-2xl font-body text-base leading-relaxed text-muted-foreground md:mb-14 md:text-lg">
+            {business.address}
+          </p>
+          <div className="relative aspect-video w-full max-w-[min(100%,56rem)] overflow-hidden rounded-2xl shadow-card ring-1 ring-border/40">
+            <a
+              href={business.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-medium text-blue-600 shadow-md ring-1 ring-black/5 transition-colors hover:bg-white/95 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              onClick={() =>
+                trackEvent("Visit the Lounge", {
+                  location: "find-us",
+                  target: "google-maps",
+                })
+              }
+            >
+              Open in Maps
+              <ExternalLink className="size-4 shrink-0 opacity-90" aria-hidden />
+            </a>
             <iframe
-              title={`${business.name} location`}
+              title={`Map showing ${business.shortName} in Pharr, TX`}
               src={business.mapEmbedSrc}
-              width="100%"
-              height="400"
-              className="w-full border-0 min-h-[280px] sm:min-h-[400px]"
+              className="absolute inset-0 h-full w-full border-0"
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

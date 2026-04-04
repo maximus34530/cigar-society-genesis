@@ -11,7 +11,10 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
             <h3 className="font-heading text-2xl mb-4">
-              <Link to="/" className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-3 group text-primary hover:text-primary/90 transition-colors touch-manipulation"
+              >
                 <BrandLogo variant="footer" />
                 <span>{business.name}</span>
               </Link>
