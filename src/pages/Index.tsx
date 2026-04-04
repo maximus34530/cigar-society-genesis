@@ -5,7 +5,7 @@ import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { List, MapPin, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
-import loungeSeating from "@/assets/lounge-seating.jpg";
+import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
@@ -22,8 +22,8 @@ const highlights = [
   {
     title: "Spirits & refreshments",
     description: "Bourbon, beer, and mixed drinks in a relaxed lounge built for conversation and unwinding.",
-    image: loungeSeating,
-    alt: "Leather lounge seating",
+    image: spiritsBarImg,
+    alt: "Full bar with premium spirits at Cigar Society",
   },
   {
     title: "South Texas hospitality",
