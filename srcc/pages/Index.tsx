@@ -65,8 +65,8 @@ const highlights = [
 const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
-const HomeV2 = () => {
-  const homeV2VideoPath = business.homeV2VideoPaths[0] ?? "";
+const Index = () => {
+  const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
 
   return (
     <Layout>
@@ -80,7 +80,7 @@ const HomeV2 = () => {
           className="absolute inset-0 h-full w-full object-cover"
           aria-label="Cigar Society lounge cinematic background"
         >
-          <source src={homeV2VideoPath} type="video/mp4" />
+          <source src={heroVideoPath} type="video/mp4" />
         </video>
         <div className="absolute inset-0 hero-overlay" />
 
@@ -244,4 +244,4 @@ const HomeV2 = () => {
   );
 };
 
-export default HomeV2;
+export default Index;

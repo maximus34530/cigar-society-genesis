@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageLoadingFallback } from "./components/PageLoadingFallback";
 
-const HomeV2 = lazy(() => import("./pages/HomeV2"));
+const Index = lazy(() => import("./pages/Index"));
 const About = lazy(() => import("./pages/About"));
 const Cigars = lazy(() => import("./pages/Cigars"));
 const Gallery = lazy(() => import("./pages/Gallery"));
@@ -21,7 +21,7 @@ const App = () => (
     <BrowserRouter>
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
-          <Route path="/" element={<HomeV2 />} />
+          <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/cigars" element={<Cigars />} />
           <Route path="/gallery" element={<Gallery />} />
