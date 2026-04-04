@@ -3,7 +3,8 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { Mouse, Star } from "lucide-react";
+import cigarCloseup from "@/assets/cigar-closeup.jpg";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
@@ -35,61 +36,53 @@ const highlights = [
 const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
-const Index = () => {
-  const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
+const heroCtaClassName =
+  "bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity";
 
-  return (
-    <Layout>
-      <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
-      <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover"
-          aria-label="Cigar Society lounge cinematic background"
-        >
-          <source src={heroVideoPath} type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 hero-overlay" />
+const Index = () => (
+  <Layout>
+    <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
+    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
+      <img
+        src={cigarCloseup}
+        alt="Premium cigar with smoke — Cigar Society lounge"
+        className="absolute inset-0 h-full w-full object-cover"
+        decoding="async"
+        fetchPriority="high"
+      />
+      <div className="absolute inset-0 hero-overlay" />
 
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center animate-fade-in">
-          <p className="text-sm md:text-base text-primary/95 font-body tracking-[0.2em] uppercase mb-4">
-            Pharr, Texas · {business.phoneDisplay}
-          </p>
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold mb-6 text-foreground tracking-tight text-balance drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)]">
-            Welcome to <span className="text-gold-gradient">{business.shortName}</span>
-          </h1>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
-            <Button asChild size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity">
-              <a
-                href="#find-us"
-                onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "find-us-map" })}
-              >
-                Visit the Lounge
-              </a>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6"
+      <div className="relative z-10 mx-auto max-w-4xl px-4 pb-20 text-center animate-fade-in">
+        <h1 className="!font-heading text-4xl font-bold tracking-tight text-balance text-foreground drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)] sm:text-5xl md:text-7xl mb-6">
+          Welcome to <span className="text-gold-gradient">{business.shortName}</span>
+        </h1>
+        <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-foreground/85 font-body md:text-lg">
+          A premium cigar lounge experience in the Rio Grande Valley.
+        </p>
+        <div className="flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
+          <Button asChild size="lg" className={heroCtaClassName}>
+            <a
+              href="#find-us"
+              onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "find-us-map" })}
             >
-              <Link
-                to="/cigars"
-                onClick={() => trackEvent("View Menu", { location: "home-hero" })}
-              >
-                View Menu
-              </Link>
-            </Button>
-          </div>
-          <p className="text-lg md:text-xl text-muted-foreground/95 font-body mt-8 md:mt-10 max-w-2xl mx-auto leading-relaxed text-balance">
-            A premium cigar lounge in the Rio Grande Valley—hand-selected cigars, curated drinks, and an atmosphere
-            designed for those who appreciate the finer things.
-          </p>
+              Visit the Lounge
+            </a>
+          </Button>
+          <Button asChild size="lg" className={heroCtaClassName}>
+            <Link to="/cigars" onClick={() => trackEvent("View Menu", { location: "home-hero" })}>
+              View Menu
+            </Link>
+          </Button>
         </div>
-      </section>
+      </div>
+
+      <div
+        className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-foreground/35"
+        aria-hidden
+      >
+        <Mouse className="mx-auto h-9 w-9" strokeWidth={1.25} />
+      </div>
+    </section>
 
       <section className="section-padding border-t border-border/30 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto max-w-4xl text-center">
@@ -207,7 +200,6 @@ const Index = () => {
         </div>
       </section>
     </Layout>
-  );
-};
+);
 
 export default Index;
