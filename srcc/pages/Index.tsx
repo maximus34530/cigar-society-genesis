@@ -4,7 +4,6 @@ import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Mouse, Star } from "lucide-react";
-import cigarCloseup from "@/assets/cigar-closeup.jpg";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
@@ -39,17 +38,23 @@ const HOME_DESCRIPTION =
 const heroCtaClassName =
   "bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity";
 
-const Index = () => (
+const Index = () => {
+  const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
+
+  return (
   <Layout>
     <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
     <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
-      <img
-        src={cigarCloseup}
-        alt="Premium cigar with smoke — Cigar Society lounge"
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
         className="absolute inset-0 h-full w-full object-cover"
-        decoding="async"
-        fetchPriority="high"
-      />
+        aria-label="Cigar Society lounge cinematic background"
+      >
+        <source src={heroVideoPath} type="video/mp4" />
+      </video>
       <div className="absolute inset-0 hero-overlay" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 pb-20 text-center animate-fade-in">
@@ -84,7 +89,7 @@ const Index = () => (
       </div>
     </section>
 
-      <section className="section-padding border-t border-border/30 bg-gradient-to-b from-background to-muted/20">
+    <section className="section-padding border-t border-border/30 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto max-w-4xl text-center">
           <SectionHeading title="The Experience" />
           <p className="text-muted-foreground text-lg leading-relaxed font-body max-w-3xl mx-auto">
@@ -200,6 +205,7 @@ const Index = () => (
         </div>
       </section>
     </Layout>
-);
+  );
+};
 
 export default Index;
