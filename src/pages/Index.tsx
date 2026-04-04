@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { List, MapPin, Mouse, Star } from "lucide-react";
+import { List, MapPin, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
@@ -68,7 +68,7 @@ const Index = () => {
       </video>
       <div className="absolute inset-0 hero-overlay" />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 pb-20 text-center animate-fade-in">
+      <div className="relative z-10 mx-auto max-w-4xl px-4 pb-12 text-center animate-fade-in sm:pb-16">
         <h1 className="!font-heading text-4xl font-bold tracking-tight text-balance text-foreground drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)] sm:text-5xl md:text-7xl mb-6">
           Welcome to <span className="text-gold-gradient">{business.shortName}</span>
         </h1>
@@ -92,13 +92,6 @@ const Index = () => {
             </Link>
           </Button>
         </div>
-      </div>
-
-      <div
-        className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-foreground/35"
-        aria-hidden
-      >
-        <Mouse className="mx-auto h-9 w-9" strokeWidth={1.25} />
       </div>
     </section>
 
