@@ -204,8 +204,7 @@ const Index = () => {
           <p className="mb-12 max-w-2xl font-body text-base leading-relaxed text-muted-foreground md:mb-14 md:text-lg">
             {business.address}
           </p>
-          {/* Padding-bottom aspect box: flex + items-center + aspect-video + only absolute children collapses height */}
-          <div className="relative h-0 w-full max-w-[min(100%,56rem)] overflow-hidden rounded-2xl pb-[56.25%] shadow-card ring-1 ring-border/40">
+          <div className="relative box-content h-0 w-full max-w-[min(100%,56rem)] shrink-0 overflow-hidden rounded-2xl pb-[56.25%] shadow-card ring-1 ring-border/40">
             <a
               href={business.mapUrl}
               target="_blank"
@@ -224,9 +223,9 @@ const Index = () => {
             <iframe
               title={`Map of ${business.shortName} location in Pharr, TX`}
               src={business.mapEmbedSrc}
-              className="absolute left-0 top-0 h-full w-full border-0"
+              className="absolute left-0 top-0 h-full w-full border-0 bg-muted"
               allowFullScreen
-              loading="lazy"
+              loading="eager"
             />
           </div>
           <p className="mt-4 max-w-2xl text-center font-body text-xs text-muted-foreground">

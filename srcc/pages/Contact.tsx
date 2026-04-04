@@ -129,13 +129,13 @@ const Contact = () => {
                 </ul>
               </div>
 
-              <div className="relative h-0 w-full overflow-hidden rounded-lg border border-border pb-[56.25%] shadow-card">
+              <div className="relative box-content h-0 w-full shrink-0 overflow-hidden rounded-lg border border-border pb-[56.25%] shadow-card">
                 <iframe
                   title={`Map of ${business.shortName} location in Pharr, TX`}
                   src={business.mapEmbedSrc}
-                  className="absolute left-0 top-0 h-full w-full border-0"
+                  className="absolute left-0 top-0 h-full w-full border-0 bg-muted"
                   allowFullScreen
-                  loading="lazy"
+                  loading="eager"
                 />
               </div>
               <p className="mt-2 text-center text-xs text-muted-foreground">
