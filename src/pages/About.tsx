@@ -1,15 +1,18 @@
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
+import { Button } from "@/components/ui/button";
 import loungeImg from "@/assets/lounge-seating.jpg";
 import humidorImg from "@/assets/humidor.jpg";
 import { business } from "@/lib/business";
+import { trackEvent } from "@/lib/analytics";
 
 const About = () => (
   <Layout>
     <Seo
       title="About Us — Our Story"
-      description={`${business.name} in Pharr, TX — a refined cigar lounge, walk-in humidor, and certified cigar professionals. Premium cigars, drinks, and hospitality in the Rio Grande Valley. 21+.`}
+      description={`Family-owned cigar lounge in Pharr, TX — Rick and Priscilla Romo, walk-in humidor, full bar, and weekly events in the Rio Grande Valley. 21+.`}
       path="/about"
     />
     <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden md:min-h-[55vh]">
@@ -34,21 +37,68 @@ const About = () => (
         <div className="grid items-start gap-12 md:grid-cols-2 md:gap-16">
           <div className="space-y-6">
             <h2 className="!font-heading text-3xl font-semibold text-foreground md:text-4xl">
-              A Home for Cigar Enthusiasts
+              Built for the People
             </h2>
             <p className="leading-relaxed text-muted-foreground font-body">
-              {business.name} was born from a passion for premium tobacco and the belief that every great cigar deserves
-              to be enjoyed in the right setting. Located in the heart of Pharr, Texas, our lounge provides a refined yet
-              relaxed environment where enthusiasts come together.
+              Some places are built for business. Cigar Society was built for the people.
             </p>
             <p className="leading-relaxed text-muted-foreground font-body">
-              From our carefully maintained walk-in humidor stocked with the world&apos;s finest cigars to our comfortable
-              leather seating and ambient lighting, every detail has been designed to elevate your experience.
+              Rick and Priscilla Romo opened the doors in 2025 with a vision that was personal — a lounge rooted in the
+              Rio Grande Valley, designed for the community they love. Not a chain. Not a franchise. A family-owned space
+              in the heart of Pharr, Texas, built from passion and opened with purpose.
             </p>
             <p className="leading-relaxed text-muted-foreground font-body">
-              Whether you&apos;re a seasoned aficionado or just beginning your cigar journey, our knowledgeable staff is
-              here to guide you to the perfect smoke.
+              From day one, the mission was clear: create a place where everyone belongs. Culturally diverse, genuinely
+              welcoming, and unapologetically South Texas. Whether you&apos;re a lifelong cigar enthusiast or lighting up
+              for the very first time, you&apos;ll find your place here.
             </p>
+            <p className="leading-relaxed text-muted-foreground font-body">
+              Inside, you&apos;ll find a walk-in humidor stocked with a carefully curated selection of premium cigars, a
+              full bar offering bourbon, beer, and mixed drinks, and a dark lounge atmosphere built for conversation, games,
+              and unwinding. Leather seating, ambient lighting, TVs — every detail was chosen with intention.
+            </p>
+            <p className="leading-relaxed text-muted-foreground font-body">
+              And there&apos;s always something happening. Here at Cigar Society, we host weekly events that bring the
+              community together — because a great smoke is even better shared.
+            </p>
+            <p className="leading-relaxed text-muted-foreground font-body">
+              Not sure where to start?{" "}
+              <Link
+                to="/cigars"
+                className="font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-colors hover:text-primary/90"
+              >
+                Browse our cigar selection
+              </Link>{" "}
+              and get expert pairing recommendations — the right smoke for your drink, your mood, and your moment.{" "}
+              <a
+                href={business.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-colors hover:text-primary/90"
+              >
+                Check out our upcoming events
+              </a>{" "}
+              so you never miss out on the fun. And when you&apos;re ready, come see us yourself.
+            </p>
+            <p className="leading-relaxed text-muted-foreground font-body">
+              We&apos;re at {business.address} — or just click below for directions.
+            </p>
+            <div>
+              <Button
+                asChild
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <a
+                  href={business.googleDirectionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent("Directions", { location: "about-story" })}
+                >
+                  Get directions
+                </a>
+              </Button>
+            </div>
           </div>
           <img
             src={humidorImg}
