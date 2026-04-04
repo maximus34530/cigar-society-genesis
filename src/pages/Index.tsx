@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, List, MapPin, Star } from "lucide-react";
+import { List, MapPin, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
@@ -192,53 +192,34 @@ const Index = () => {
         </div>
       </section>
 
-      <section
-        id="find-us"
-        className="section-padding scroll-mt-24 border-t border-border/25 bg-card"
-      >
-        <div className="container mx-auto flex w-full max-w-6xl flex-col items-center px-4 text-center md:px-8">
-          <h2 className="find-us-section-title mb-5 text-4xl font-semibold tracking-tight text-foreground/95 md:mb-6 md:text-5xl">
-            Find Us
-          </h2>
-          <div className="find-us-gold-accent mb-10 md:mb-12" />
-          <p className="mb-12 max-w-2xl font-body text-base leading-relaxed text-muted-foreground md:mb-14 md:text-lg">
-            {business.address}
-          </p>
-          <div className="relative box-content h-0 w-full max-w-[min(100%,56rem)] shrink-0 overflow-hidden rounded-2xl pb-[56.25%] shadow-card ring-1 ring-border/40">
+      <section id="find-us" className="section-padding scroll-mt-24 bg-muted">
+        <div className="container mx-auto">
+          <SectionHeading title="Find Us" subtitle={business.address} />
+          <div className="mx-auto max-w-4xl overflow-hidden rounded-lg border border-border shadow-card">
+            <iframe
+              title={`${business.name} location`}
+              src={business.mapEmbedSrc}
+              width="100%"
+              height="400"
+              className="w-full min-h-[280px] border-0 sm:min-h-[400px]"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          <p className="mt-6 text-center font-body text-sm text-muted-foreground">
             <a
               href={business.mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-medium text-blue-600 shadow-md ring-1 ring-black/5 transition-colors hover:bg-white/95 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="font-medium text-primary underline decoration-primary/50 underline-offset-4 hover:text-primary/90"
               onClick={() =>
-                trackEvent("Visit the Lounge", {
-                  location: "find-us",
-                  target: "google-maps",
-                })
+                trackEvent("Visit the Lounge", { location: "find-us", target: "google-maps" })
               }
             >
-              Open in Maps
-              <ExternalLink className="size-4 shrink-0 opacity-90" aria-hidden />
-            </a>
-            <iframe
-              title={`Map of ${business.shortName} location in Pharr, TX`}
-              src={business.mapEmbedSrc}
-              className="absolute left-0 top-0 h-full w-full border-0 bg-muted"
-              allowFullScreen
-              loading="eager"
-            />
-          </div>
-          <p className="mt-4 max-w-2xl text-center font-body text-xs text-muted-foreground">
-            ©{" "}
-            <a
-              href="https://www.openstreetmap.org/copyright"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground underline decoration-border underline-offset-2 transition-colors hover:text-foreground"
-            >
-              OpenStreetMap contributors
-            </a>
-            . Use <span className="text-foreground/80">Open in Maps</span> for the full Google Maps listing.
+              Open in Google Maps
+            </a>{" "}
+            if the map does not appear in your browser.
           </p>
         </div>
       </section>
