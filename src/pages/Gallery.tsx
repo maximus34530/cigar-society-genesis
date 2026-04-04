@@ -145,9 +145,6 @@ const Gallery = () => {
             </Button>
           </div>
           <InstagramFeedEmbed />
-          <p className="text-center text-xs text-muted-foreground mt-6 max-w-md mx-auto leading-relaxed">
-            Having trouble loading the embed? Use the button above to open our profile on Instagram.
-          </p>
         </div>
       </section>
 
