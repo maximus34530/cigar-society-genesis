@@ -3,11 +3,12 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { Mouse, Star } from "lucide-react";
+import { List, MapPin, Mouse, Star } from "lucide-react";
 import humidorImg from "@/assets/humidor.jpg";
 import loungeSeating from "@/assets/lounge-seating.jpg";
 import exteriorImg from "@/assets/exterior.jpg";
 import { business } from "@/lib/business";
+import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
 
 const highlights = [
@@ -35,8 +36,18 @@ const highlights = [
 const HOME_DESCRIPTION =
   "Cigar Society is a premium cigar lounge in Pharr, Texas. Hand-selected cigars, drinks, and a luxury lounge experience in the Rio Grande Valley.";
 
-const heroCtaClassName =
-  "bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 py-6 shadow-gold hover:opacity-90 transition-opacity";
+const heroCtaBase =
+  "h-auto min-h-[3rem] rounded-full px-8 py-3.5 font-body text-sm font-medium uppercase tracking-wide transition-all duration-200 sm:w-auto sm:min-w-[11rem]";
+
+const heroPrimaryCta = cn(
+  heroCtaBase,
+  "!bg-gold-gradient text-primary-foreground shadow-gold hover:!brightness-110 hover:!bg-gold-gradient focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+);
+
+const heroSecondaryCta = cn(
+  heroCtaBase,
+  "!border-2 !border-primary/60 !bg-background/35 !text-primary backdrop-blur-sm hover:!border-primary hover:!bg-primary/10 hover:!text-primary",
+);
 
 const Index = () => {
   const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
@@ -64,17 +75,19 @@ const Index = () => {
         <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-foreground/85 font-body md:text-lg">
           A premium cigar lounge experience in the Rio Grande Valley.
         </p>
-        <div className="flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
-          <Button asChild size="lg" className={heroCtaClassName}>
+        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
+          <Button asChild variant="default" size="lg" className={heroPrimaryCta}>
             <a
               href="#find-us"
               onClick={() => trackEvent("Visit the Lounge", { location: "home-hero", target: "find-us-map" })}
             >
+              <MapPin className="size-4 opacity-90" aria-hidden />
               Visit the Lounge
             </a>
           </Button>
-          <Button asChild size="lg" className={heroCtaClassName}>
+          <Button asChild variant="outline" size="lg" className={heroSecondaryCta}>
             <Link to="/cigars" onClick={() => trackEvent("View Menu", { location: "home-hero" })}>
+              <List className="size-4 opacity-90" aria-hidden />
               View Menu
             </Link>
           </Button>
