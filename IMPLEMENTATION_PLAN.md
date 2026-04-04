@@ -192,21 +192,30 @@ npm run dev
 Recent client requests include additional functionality beyond the current launch scope.  
 These features are acknowledged and planned, but will be implemented **only after Phase 3 (Launch Prep) is complete and approved**.
 
+**Operational checklist (discovery → launch slices):** see `ONBOARDING_PLAN.md` (living document; iterate there).
+
+**Owner-aligned build order (post Phase 3):** documented in `docs/CLIENT_PRICING_AND_TIMELINE.md` and `PHASE_0_SCOPE.md`:
+
+1. **Events + ticket payments** (Stripe)  
+2. **Cigar catalog + hold / reserve** → customer picks up, **pays in store**, **ID in store** *(no full online cigar checkout in v1 unless rescoped)*  
+3. **Monthly membership** (Stripe subscriptions)
+
+The numbered **capability** sections below (4–6) describe *what* gets built; **when** follows the order above.
+
 ---
 
-### Phase 4 — Commerce System
+### Phase 4 — Commerce System (cigar side)
 
-**Objective**: Enable direct revenue through online cigar sales.
+**Objective**: Support cigar sales in a **compliance-friendly** way: catalog + **hold/reserve** workflow before full online checkout (if ever).
 
 **Scope**:
-- Marketplace (product listing + Stripe checkout)
-- Inventory system (basic cigar management)
-- Admin panel (add/edit/remove cigars)
+- Admin panel (add/edit/remove cigars, stock / hold status)
+- Customer **request** flow → staff **places hold** → **in-store pickup**, **payment at lounge**, **21+ at counter**
+- *(Optional later)* Marketplace with Stripe checkout for cigars — **not** assumed for v1 of this phase
 
 **Notes**:
-- Use Stripe for all payments (no custom payment logic)
-- Admin panel will be simple (table-based UI, not complex dashboard)
-- Focus on functionality over design polish
+- Aligns with **Option B** in `CLIENT_PRICING_AND_TIMELINE.md`
+- Admin UI can stay simple (table/forms)
 
 ---
 
@@ -220,7 +229,7 @@ These features are acknowledged and planned, but will be implemented **only afte
 
 **Notes**:
 - Requires authentication system
-- Will only begin after marketplace is stable
+- **Typically third** in the owner-aligned order (after events + cigar holds)
 
 ---
 
@@ -230,11 +239,11 @@ These features are acknowledged and planned, but will be implemented **only afte
 
 **Scope**:
 - Event listings (dynamic)
-- Ticket purchasing system
+- Ticket purchasing system (Stripe)
 
 **Notes**:
-- Can leverage Stripe for payments
-- May integrate with existing event tools if needed (avoid overbuilding)
+- **Typically first** in the owner-aligned revenue build
+- Refund / capacity rules owned by the business
 
 ---
 
