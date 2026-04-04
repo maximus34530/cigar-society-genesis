@@ -61,7 +61,7 @@ const Index = () => {
         <h1 className="!font-heading text-4xl font-bold tracking-tight text-balance text-foreground drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)] sm:text-5xl md:text-7xl mb-6">
           Welcome to <span className="text-gold-gradient">{business.shortName}</span>
         </h1>
-        <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-foreground/85 font-body md:text-lg">
+        <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-foreground/70 font-body md:text-lg">
           A premium cigar lounge experience in the Rio Grande Valley.
         </p>
         <div className="flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
