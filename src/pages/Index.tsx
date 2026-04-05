@@ -4,20 +4,27 @@ import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { List, MapPin, Star } from "lucide-react";
-import liveEventsImg from "@/assets/live-events-lounge-performance.png";
+import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
 
-const highlights = [
+type LoungeHighlight = {
+  title: string;
+  description: string;
+  image: string;
+  alt: string;
+};
+
+const highlights: LoungeHighlight[] = [
   {
     title: "Live Events",
     description:
       "Comedy nights, live concerts, watch parties, ladies nights and more — something's always happening at Cigar Society.",
     image: liveEventsImg,
-    alt: "Live acoustic performance at Cigar Society — musician singing with guitar under lounge lighting",
+    alt: "Acoustic performer under the spotlight at Cigar Society — singer with guitar and microphone in blue and warm lounge lighting",
   },
   {
     title: "Spirits & refreshments",
@@ -218,11 +225,11 @@ const Index = () => {
                 key={item.title}
                 className="bg-card rounded-xl border border-border/70 overflow-hidden shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card-hover group"
               >
-                <div className="overflow-hidden">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                   <img
                     src={item.image}
                     alt={item.alt}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     decoding="async"
                     loading="lazy"
                   />
