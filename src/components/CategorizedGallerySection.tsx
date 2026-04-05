@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -143,6 +143,10 @@ function LoungePhotoTile({
   );
 }
 
+/** ~55s per full loop at 60fps for a typical duplicated track width; feels close to the old CSS marquee. */
+const GALLERY_AUTO_SCROLL_PX_PER_FRAME = 0.42;
+const GALLERY_AUTO_PAUSE_AFTER_USER_MS = 4000;
+
 function CategoryGalleryRow({
   category,
   images,
@@ -155,6 +159,50 @@ function CategoryGalleryRow({
   onOpen: (img: GalleryImage) => void;
 }) {
   const marqueeTrack = [...images, ...images];
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isProgrammaticScrollRef = useRef(false);
+  const pauseUntilRef = useRef(0);
+  const rafRef = useRef(0);
+
+  const pauseAutoScroll = useCallback(() => {
+    pauseUntilRef.current = performance.now() + GALLERY_AUTO_PAUSE_AFTER_USER_MS;
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion || images.length === 0) return;
+
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const tick = () => {
+      const now = performance.now();
+      if (now >= pauseUntilRef.current) {
+        isProgrammaticScrollRef.current = true;
+        el.scrollLeft += GALLERY_AUTO_SCROLL_PX_PER_FRAME;
+        const half = el.scrollWidth / 2;
+        if (half > 0 && el.scrollLeft >= half - 2) {
+          el.scrollLeft -= half;
+        }
+        // `scroll` can fire after this stack or the next frame; clearing the flag immediately
+        // made `onScroll` treat every auto tick as a user scroll and pause forever.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            isProgrammaticScrollRef.current = false;
+          });
+        });
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [prefersReducedMotion, images.length, category]);
+
+  const onScroll = useCallback(() => {
+    if (!isProgrammaticScrollRef.current) {
+      pauseAutoScroll();
+    }
+  }, [pauseAutoScroll]);
 
   return (
     <div className="mb-16 last:mb-0">
@@ -170,7 +218,7 @@ function CategoryGalleryRow({
       </div>
 
       {images.length > 0 ? (
-        <div className="relative w-full overflow-hidden">
+        <div className="relative w-full">
           {!prefersReducedMotion ? (
             <>
               <div
@@ -181,15 +229,28 @@ function CategoryGalleryRow({
                 className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-20 bg-gradient-to-l from-background via-background/80 to-transparent"
                 aria-hidden
               />
-              <div className="flex w-max gap-4 md:gap-6 py-2 animate-gallery-marquee">
-                {marqueeTrack.map((img, i) => (
-                  <LoungePhotoTile
-                    key={`${category}-${img.src}-${i}`}
-                    img={img}
-                    onOpen={onOpen}
-                    layout="marquee"
-                  />
-                ))}
+              <div
+                ref={scrollRef}
+                role="region"
+                aria-label={`${CATEGORY_LABELS[category]} — scroll horizontally or wait for auto-play`}
+                className="w-full overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-pl-4 scroll-pr-4 sm:scroll-pl-6 sm:scroll-pr-6 lg:scroll-pl-8 lg:scroll-pr-8 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                onScroll={onScroll}
+                onWheel={(e) => {
+                  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                    pauseAutoScroll();
+                  }
+                }}
+              >
+                <div className="flex w-max gap-4 md:gap-6 py-2 pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-8">
+                  {marqueeTrack.map((img, i) => (
+                    <LoungePhotoTile
+                      key={`${category}-${img.src}-${i}`}
+                      img={img}
+                      onOpen={onOpen}
+                      layout="marquee"
+                    />
+                  ))}
+                </div>
               </div>
             </>
           ) : (

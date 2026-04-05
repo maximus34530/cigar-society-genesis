@@ -86,17 +86,12 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
-        "gallery-marquee": {
-          from: { transform: "translateX(0)" },
-          to: { transform: "translateX(-50%)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.8s ease-out forwards",
         "fade-in-slow": "fade-in-slow 1.2s ease-out forwards",
-        "gallery-marquee": "gallery-marquee 55s linear infinite",
       },
     },
   },
