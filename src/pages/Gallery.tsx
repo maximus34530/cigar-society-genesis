@@ -20,7 +20,7 @@ const Gallery = () => {
             className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
             decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.75)] to-[rgba(0,0,0,0.9)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.375)] to-[rgba(0,0,0,0.45)]" />
         </div>
         <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]" />
         <div className="container mx-auto section-padding text-center relative z-10 max-w-3xl">

@@ -4,7 +4,7 @@ import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import loungeImg from "@/assets/lounge-seating.jpg";
 import humidorImg from "@/assets/humidor.jpg";
-import tobacconistCertificateImg from "@/assets/gallery/lounge/tobacconist_certificate_enhanced.png";
+import tobacconistCertificateImg from "@/assets/tobacconist_certificate_enhanced.png";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
 

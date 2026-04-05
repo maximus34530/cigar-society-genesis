@@ -20,8 +20,8 @@ const CATEGORY_LABELS: Record<Category, string> = {
 const NNBSP = "\u202f";
 
 const GALLERY_CAPTIONS: Record<string, string> = {
-  "580512872_17863436763513223_5233616996161284758_n.jpg": "Ladies Night gathering in the lounge",
-  "585159513_17864278512513223_5660544312649645129_n.jpg": "Event night energy at Cigar Society",
+  "580512872_17863436763513223_5233616996161284758_n.jpg": "Ladies Night in the lounge",
+  "585159513_17864278512513223_5660544312649645129_n.jpg": "Cars & Cigars",
   "586903901_17865668085513223_6123565809163254740_n.jpg": "Warm lighting over leather and wood tones",
   "591173580_17866953369513223_4076419742576703159_n.jpg": "Friends catching up over drinks",
   "604395680_17868253992513223_880812479605106285_n.jpg": "Premium sticks lined up in the humidor",
@@ -40,22 +40,28 @@ const GALLERY_CAPTIONS: Record<string, string> = {
   "628448370_17873396073513223_4952463424014874406_n.jpg": "Night-out smoke on the patio",
   "630210155_17874944961513223_3907484928646509513_n.jpg": "Ladies Night out in Pharr",
   "640521743_17876872863513223_1598545724808852459_n.jpg": "Dressed-up evening at the lounge",
-  "641767635_17876872875513223_7481023002489191223_n.jpg": "Sisters of the leaf, South Texas style",
+  "641104878_122170470326917320_524090666738891469_n.jpg": "Your favorite hour, made even better.",
+  "641257260_17876872920513223_8406291060331286732_n.jpg": "Acoustic performer under the spotlight",
+  "641767635_17876872875513223_7481023002489191223_n.jpg": "Smoke, sip, and celebrate — RGV style",
   "641787042_17876872929513223_6135396041659189178_n.jpg": "Closing the night with one more round",
   "641777087_17876480688513223_1895504743949000298_n.jpg": "Unwinding with a hand-rolled cigar",
+  "648268694_17877210447513223_4436444531094811554_n.jpg": "Live music night — save the date in Pharr",
+  "648720465_17877383793513223_7442216020774777898_n.jpg": "Unplugged duo on the Society stage",
+  "649223639_17877383829513223_6721050269951457093_n.jpg": "Leather chairs, good friends, cigars, and a cold drink",
+  "649246053_17877686865513223_1470363784287960166_n.jpg": "Premium pours, cigars, and lounge conversation",
+  "656294732_17879541051513223_1720072432877599320_n.jpg": "The crew under the Cigar Society banner",
   [`Screenshot 2026-04-04 at 2.54.38${NNBSP}PM.png`]: "Celebration night in the lounge",
   [`Screenshot 2026-04-04 at 2.55.16${NNBSP}PM.png`]: "Industrial-chic seating for your evening",
   [`Screenshot 2026-04-04 at 2.55.41${NNBSP}PM.png`]: "Cigars, spirits, and South Texas nights",
   [`Screenshot 2026-04-04 at 2.56.58${NNBSP}PM.png`]: "Illuminated humidor wall and premium selection",
   [`Screenshot 2026-04-04 at 2.58.16${NNBSP}PM.png`]: "A perfect pour at the bar",
-  [`Screenshot 2026-04-04 at 2.58.26${NNBSP}PM.png`]: "Live acoustic music in the lounge",
+  [`Screenshot 2026-04-04 at 2.58.26${NNBSP}PM.png`]: "Fiddle, guitar, and a pour — from your table",
   [`Screenshot 2026-04-04 at 3.03.12${NNBSP}PM.png`]: "Friends gathered outside Cigar Society",
   [`Screenshot 2026-04-04 at 3.03.41${NNBSP}PM.png`]: "Blood Medicine cigars at the bar",
   [`Screenshot 2026-04-04 at 3.12.50${NNBSP}PM.png`]: "Premium spirits and hand-picked cigars at the bar",
   [`Screenshot 2026-04-04 at 3.15.37${NNBSP}PM.png`]: "Signature cocktail menu",
   [`Screenshot 2026-04-04 at 3.19.02${NNBSP}PM.png`]: "Rare bourbons and Fuente OpusX on display",
   "Uploaded image.png": "Arriving in style at Cigar Society",
-  "tobacconist_certificate_enhanced.png": "Certified Retail Tobacconist credentials",
 };
 
 function galleryBasename(modulePath: string): string {
