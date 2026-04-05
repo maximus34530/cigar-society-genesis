@@ -107,7 +107,7 @@ const Terms = () => (
         <div>
           <h2 className="font-heading text-2xl text-foreground mb-3">10. Contact</h2>
           <p>
-            Questions about these Terms:{" "}
+            Questions about these Terms?{" "}
             <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>
             <br />
             <span className="text-foreground">116 W State Ave, Pharr, TX 78577</span>
