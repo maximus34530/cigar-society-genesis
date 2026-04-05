@@ -4,7 +4,7 @@ import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { List, MapPin, Star } from "lucide-react";
-import liveEventsImg from "@/assets/live-events-lounge-performance.png";
+import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
 import { business } from "@/lib/business";
@@ -16,8 +16,6 @@ type LoungeHighlight = {
   description: string;
   image: string;
   alt: string;
-  /** Show full image in frame without cropping (e.g. promo photos). */
-  fitContain?: boolean;
 };
 
 const highlights: LoungeHighlight[] = [
@@ -27,7 +25,6 @@ const highlights: LoungeHighlight[] = [
       "Comedy nights, live concerts, watch parties, ladies nights and more — something's always happening at Cigar Society.",
     image: liveEventsImg,
     alt: "Acoustic performer under the spotlight at Cigar Society — singer with guitar and microphone in blue and warm lounge lighting",
-    fitContain: true,
   },
   {
     title: "Spirits & refreshments",
@@ -196,21 +193,11 @@ const Index = () => {
                 key={item.title}
                 className="bg-card rounded-xl border border-border/70 overflow-hidden shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card-hover group"
               >
-                <div
-                  className={cn(
-                    "relative aspect-[4/3] w-full overflow-hidden",
-                    item.fitContain ? "bg-black" : "bg-muted",
-                  )}
-                >
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                   <img
                     src={item.image}
                     alt={item.alt}
-                    className={cn(
-                      "h-full w-full transition-transform duration-500",
-                      item.fitContain
-                        ? "object-contain object-center group-hover:scale-[1.02]"
-                        : "object-cover object-center group-hover:scale-105",
-                    )}
+                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     decoding="async"
                     loading="lazy"
                   />
