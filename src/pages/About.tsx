@@ -62,9 +62,9 @@ const About = () => (
                 Browse our cigar selection
               </Link>{" "}
               and get expert pairing recommendations — the right smoke for your drink, your mood, and your moment.{" "}
-              <a href={business.instagramUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+              <Link to="/events" className={linkClass}>
                 Check out our upcoming events
-              </a>{" "}
+              </Link>{" "}
               so you never miss out on the fun. Look forward to seeing you soon.
             </p>
             <p className="leading-relaxed text-muted-foreground font-body">
