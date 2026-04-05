@@ -1,6 +1,7 @@
 import acidStyle from "@/assets/cigar-cards/unsplash-tobacco-leaves-wood.jpg";
 import boldSmoke from "@/assets/cigar-cards/unsplash-cigar-smoke-table.jpg";
 import classicSingle from "@/assets/cigar-cards/unsplash-single-cigar-plate.jpg";
+import macanudoCafe from "@/assets/cigar-cards/macanudo-cafe-connecticut.jpg";
 import mildSelection from "@/assets/cigar-cards/unsplash-three-cigars-ashtray.jpg";
 import cigarCloseup from "@/assets/cigar-closeup.jpg";
 import cigarsFeatured from "@/assets/cigars-featured.jpg";
@@ -27,7 +28,8 @@ const RULES: Rule[] = [
   { test: /\b(padr[oó]n|pardon)\b/i, src: featuredMaduro },
   { test: /\b(cohiba|montecristo|casa cuba)\b/i, src: classicSingle },
   { test: /\bromeo\b/i, src: classicSingle },
-  { test: /\b(macanudo|\bm bourbon\b)\b/i, src: mildSelection },
+  { test: /\bmacanudo\b/i, src: macanudoCafe },
+  { test: /\bm bourbon\b/i, src: mildSelection },
   { test: /\b(ashton|avo)\b/i, src: cigarsFeatured },
   { test: /\boliva.*melanio\b/i, src: featuredFigurado },
   { test: /\b(my father|gurkha)\b/i, src: featuredMaduro },

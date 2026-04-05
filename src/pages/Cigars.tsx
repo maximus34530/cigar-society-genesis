@@ -1,8 +1,7 @@
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
-import cigarsImg from "@/assets/cigars-featured.jpg";
-import cigarCloseup from "@/assets/cigar-closeup.jpg";
+import { resolveCigarCardImage } from "@/lib/resolveCigarCardImage";
 
 const categories = [
   {
@@ -65,15 +64,21 @@ const Cigars = () => (
       description="Browse mild, medium, and full-body cigars at Cigar Society in Pharr, TX — curated selections from the world's finest makers."
       path="/cigars"
     />
-    <section className="relative flex h-[50vh] items-center justify-center overflow-hidden">
-      <img
-        src={cigarCloseup}
-        alt="Premium cigars"
-        className="absolute inset-0 h-full w-full object-cover"
-        decoding="async"
-        fetchPriority="high"
+    <section className="relative flex h-[50vh] items-center justify-center overflow-hidden border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40">
+      <div className="absolute inset-0 -z-10 pointer-events-none" aria-hidden>
+        <img
+          src="/images/cigar-lounge-bg.jpg"
+          alt=""
+          className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
+          decoding="async"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.375)] to-[rgba(0,0,0,0.45)]" />
+      </div>
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]"
+        aria-hidden
       />
-      <div className="absolute inset-0 bg-background/75" />
       <div className="relative z-10 animate-fade-in px-4 text-center">
         <h1 className="!font-heading text-4xl font-bold text-foreground md:text-6xl">Our Cigars</h1>
         <div className="gold-divider mt-6" />
@@ -93,7 +98,13 @@ const Cigars = () => (
                 key={cigar.name}
                 className="overflow-hidden rounded-lg border border-border bg-card shadow-card transition-colors hover:border-primary/30"
               >
-                <img src={cigarsImg} alt={cigar.name} className="h-48 w-full object-cover" loading="lazy" decoding="async" />
+                <img
+                  src={resolveCigarCardImage(cigar.name)}
+                  alt={cigar.name}
+                  className="h-48 w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="p-6">
                   <h3 className="!font-heading text-xl font-semibold text-foreground mb-1">{cigar.name}</h3>
                   <div className="mb-3 flex flex-wrap gap-2 text-xs font-body uppercase tracking-wider text-primary">
