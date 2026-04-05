@@ -4,7 +4,7 @@ import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { List, MapPin, Star } from "lucide-react";
-import humidorImg from "@/assets/humidor.jpg";
+import liveEventsImg from "@/assets/live-events-lounge-performance.png";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
 import { business } from "@/lib/business";
@@ -13,11 +13,11 @@ import { trackEvent } from "@/lib/analytics";
 
 const highlights = [
   {
-    title: "Walk-in humidor",
+    title: "Live Events",
     description:
-      "Climate-controlled storage and a rotating selection of premium cigars from established and boutique makers.",
-    image: humidorImg,
-    alt: "Walk-in humidor at Cigar Society",
+      "Comedy nights, live concerts, watch parties, ladies nights and more — something's always happening at Cigar Society.",
+    image: liveEventsImg,
+    alt: "Live acoustic performance at Cigar Society — musician singing with guitar under lounge lighting",
   },
   {
     title: "Spirits & refreshments",
@@ -180,8 +180,8 @@ const Index = () => {
       <section className="section-padding bg-muted/80 border-y border-border/40">
         <div className="container mx-auto">
           <SectionHeading
-            title="Featured selections"
-            subtitle="Highlighted picks from our humidor will appear here soon. Stop by or call for today’s lineup."
+            title="Cigar marketplace"
+            subtitle={`Coming soon — browse and shop highlighted picks from our humidor online. Until then, explore our in-store menu or stop by and call for today's lineup.`}
           />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[0, 1, 2].map((slot) => (
@@ -194,14 +194,16 @@ const Index = () => {
                   Coming soon
                 </p>
                 <p className="mt-3 max-w-[14rem] text-sm text-muted-foreground/70 font-body leading-relaxed">
-                  We&apos;re preparing this spotlight for you.
+                  Marketplace listings will appear here when we launch.
                 </p>
               </div>
             ))}
           </div>
           <div className="text-center mt-12">
             <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              <Link to="/contact">Plan your visit</Link>
+              <Link to="/cigars" onClick={() => trackEvent("Marketplace CTA", { location: "home-marketplace-soon" })}>
+                Browse our cigar menu
+              </Link>
             </Button>
           </div>
         </div>
