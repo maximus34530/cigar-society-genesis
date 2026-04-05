@@ -187,38 +187,6 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="section-padding bg-muted/80 border-y border-border/40">
-        <div className="container mx-auto">
-          <SectionHeading
-            title="Cigar marketplace"
-            subtitle={`Coming soon — browse and shop highlighted picks from our humidor online. Until then, explore our in-store menu or stop by and call for today's lineup.`}
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[0, 1, 2].map((slot) => (
-              <div
-                key={slot}
-                className="flex min-h-[220px] md:min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-10 text-center ring-1 ring-border/20"
-                aria-hidden={slot !== 0}
-              >
-                <p className="font-heading text-lg font-semibold tracking-wide text-muted-foreground/90 md:text-xl">
-                  Coming soon
-                </p>
-                <p className="mt-3 max-w-[14rem] text-sm text-muted-foreground/70 font-body leading-relaxed">
-                  Marketplace listings will appear here when we launch.
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              <Link to="/cigars" onClick={() => trackEvent("Marketplace CTA", { location: "home-marketplace-soon" })}>
-                Browse our cigar menu
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       <section className="section-padding bg-background">
         <div className="container mx-auto">
           <SectionHeading title="Inside the lounge" subtitle="Comfort, quality, and a warm welcome—every time you walk through the door." />
@@ -257,6 +225,38 @@ const Index = () => {
           <div className="text-center mt-12">
             <Button asChild variant="link" className="text-primary font-body tracking-wider uppercase text-sm">
               <Link to="/gallery">View the gallery →</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-padding bg-muted/80 border-y border-border/40">
+        <div className="container mx-auto">
+          <SectionHeading
+            title="Cigar marketplace"
+            subtitle={`Coming soon — browse and shop highlighted picks from our humidor online. Until then, explore our in-store menu or stop by and call for today's lineup.`}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[0, 1, 2].map((slot) => (
+              <div
+                key={slot}
+                className="flex min-h-[220px] md:min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-10 text-center ring-1 ring-border/20"
+                aria-hidden={slot !== 0}
+              >
+                <p className="font-heading text-lg font-semibold tracking-wide text-muted-foreground/90 md:text-xl">
+                  Coming soon
+                </p>
+                <p className="mt-3 max-w-[14rem] text-sm text-muted-foreground/70 font-body leading-relaxed">
+                  Marketplace listings will appear here when we launch.
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-12">
+            <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+              <Link to="/cigars" onClick={() => trackEvent("Marketplace CTA", { location: "home-marketplace-soon" })}>
+                Browse our cigar menu
+              </Link>
             </Button>
           </div>
         </div>
