@@ -5,7 +5,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export type GalleryImage = { src: string; alt: string };
 
-const CATEGORIES = ["lounge", "events", "cigars", "community", "ladies-night"] as const;
+const CATEGORIES = ["community", "cigars", "lounge", "events", "ladies-night"] as const;
 type Category = (typeof CATEGORIES)[number];
 
 const CATEGORY_LABELS: Record<Category, string> = {
