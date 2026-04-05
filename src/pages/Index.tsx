@@ -166,8 +166,9 @@ const Index = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <SectionHeading title="The Experience" />
           <p className="text-muted-foreground text-lg leading-relaxed font-body max-w-3xl mx-auto">
-            {business.shortName} was built for the RGV. Founded by Rick and Priscilla Romo in 2025, our lounge in Pharr
-            is a place where everyone belongs — culturally diverse, welcoming, and unapologetically South Texas. Pull up a
+            We opened in 2025 to bring something different to the Rio Grande Valley—a place where quality, comfort, and
+            community come together. With live events, a full bar, and a lounge built for conversation, it&apos;s a space
+            to unwind, connect, and enjoy a proper smoke. Whether it&apos;s your first cigar or your hundredth, pull up a
             seat, pick your smoke, and stay a while.
           </p>
           <Button asChild variant="link" className="mt-8 text-primary font-body tracking-wider uppercase text-sm">
