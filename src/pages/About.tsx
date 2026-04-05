@@ -4,6 +4,7 @@ import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import loungeImg from "@/assets/lounge-seating.jpg";
 import humidorImg from "@/assets/humidor.jpg";
+import tobacconistCertificateImg from "@/assets/gallery/lounge/tobacconist_certificate_enhanced.png";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
 
@@ -36,7 +37,7 @@ const About = () => (
         <div className="grid items-start gap-12 md:grid-cols-2 md:gap-16">
           <div className="space-y-6">
             <h2 className="!font-heading text-3xl font-semibold text-foreground md:text-4xl">
-              Built for the People
+              A Home for Cigar Enthusiasts
             </h2>
             <p className="leading-relaxed text-muted-foreground font-body">
               Rick and Priscilla Romo opened the doors in 2025 with a vision that was personal — a lounge rooted in the
@@ -103,6 +104,35 @@ const About = () => (
             decoding="async"
             loading="lazy"
           />
+        </div>
+      </div>
+    </section>
+
+    <section className="section-padding bg-muted/25 border-t border-border/50">
+      <div className="container mx-auto max-w-6xl">
+        <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
+          <div className="space-y-4 md:order-2">
+            <h2 className="!font-heading text-3xl font-semibold text-foreground md:text-4xl">
+              Certified Expertise
+            </h2>
+            <p className="text-lg leading-relaxed text-muted-foreground font-body">
+              Our team is committed to the highest standards in tobacco knowledge.
+            </p>
+          </div>
+          <div className="space-y-5 md:order-1">
+            <img
+              src={tobacconistCertificateImg}
+              alt="Certified Retail Tobacconist credentials at Cigar Society"
+              className="w-full max-h-[min(70vh,520px)] rounded-xl border border-border/40 bg-muted object-contain object-center p-3 shadow-card ring-1 ring-border/40 md:max-h-[560px]"
+              decoding="async"
+              loading="lazy"
+            />
+            <p className="text-sm leading-relaxed text-muted-foreground font-body sm:text-base">
+              Cigar Society, LLC is led by certified cigar professionals trained through Tobacconist University. Our
+              expertise ensures that every recommendation, pairing, and experience is backed by deep knowledge and
+              genuine passion for the craft.
+            </p>
+          </div>
         </div>
       </div>
     </section>
