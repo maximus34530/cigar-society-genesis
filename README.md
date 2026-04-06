@@ -37,6 +37,7 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 ## Project docs
 
 - `IMPLEMENTATION_PLAN.md` — Phases and scope
+- `Phase_2_implementation_plan.md` — Phase 2 epics, order, and hold areas
 - `GITHUB_ISSUES_GUIDE.md` — Issue workflow
 - `GITHUB_ISSUES_BACKLOG.md` — Issue backlog
 - `SYSTEM_OVERVIEW.md` — Architecture summary
