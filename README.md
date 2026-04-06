@@ -39,6 +39,7 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 - `IMPLEMENTATION_PLAN.md` — Phases and scope
 - `Phase_2_implementation_plan.md` — Phase 2 epics, order, and hold areas
 - `GITHUB_ISSUES_GUIDE.md` — Issue workflow
+- `partner_handoff.md` — Partner / collaborator onboarding (Phase 2)
 - `GITHUB_ISSUES_BACKLOG.md` — Issue backlog
 - `SYSTEM_OVERVIEW.md` — Architecture summary
 - `LAUNCH_CHECKLIST.md` — Owner sign-off (Issue 25)
