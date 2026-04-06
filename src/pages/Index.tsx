@@ -145,7 +145,7 @@ const Index = () => {
           Welcome to <span className="text-gold-gradient">{business.shortName}</span>
         </h1>
         <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-foreground/85 font-body md:text-lg">
-          A premium cigar lounge experience in the Rio Grande Valley.
+          A premium cigar lounge and bar experience in the Rio Grande Valley.
         </p>
         <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
           <Button asChild variant="default" size="lg" className={heroPrimaryCta}>
