@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import logo from "@/assets/logo.png";
-import { business } from "@/lib/business";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -17,7 +16,6 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  // If route changes, ensure the mobile menu doesn't remain open.
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
@@ -25,14 +23,10 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/80 shadow-nav">
       <div className="container mx-auto flex items-center justify-between h-20 px-4">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt={business.shortName} className="h-14 w-auto" />
-          <span className="font-heading text-xl font-semibold text-primary hidden sm:block">
-            {business.shortName}
-          </span>
+        <Link to="/" className="inline-flex items-center touch-manipulation">
+          <BrandLogo />
         </Link>
 
-        {/* Desktop */}
         <ul className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <li key={link.path}>
@@ -48,10 +42,10 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Mobile toggle */}
         <button
+          type="button"
           onClick={() => setOpen(!open)}
-          className="lg:hidden text-foreground p-2"
+          className="lg:hidden text-foreground min-h-[44px] min-w-[44px] inline-flex items-center justify-center touch-manipulation rounded-md"
           aria-label="Toggle menu"
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -60,7 +54,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div
           id="mobile-menu"
@@ -75,7 +68,7 @@ const Navbar = () => {
                 <Link
                   to={link.path}
                   onClick={() => setOpen(false)}
-                  className={`block px-6 py-3 text-sm tracking-widest uppercase transition-colors hover:text-primary hover:bg-muted ${
+                  className={`flex min-h-[44px] items-center px-6 py-3 text-sm tracking-widest uppercase transition-colors touch-manipulation hover:text-primary hover:bg-muted ${
                     location.pathname === link.path ? "text-primary" : "text-foreground/70"
                   }`}
                 >

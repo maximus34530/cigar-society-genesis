@@ -1,93 +1,42 @@
-import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
-import SectionHeading from "@/components/SectionHeading";
-import heroImg from "@/assets/hero-lounge.jpg";
-import cigarsImg from "@/assets/cigars-featured.jpg";
-import humidorImg from "@/assets/humidor.jpg";
-import exteriorImg from "@/assets/exterior.jpg";
-import eventImg from "@/assets/event.jpg";
-import cigarCloseup from "@/assets/cigar-closeup.jpg";
-import loungeSeating from "@/assets/lounge-seating.jpg";
 import { business } from "@/lib/business";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-
-const images = [
-  { src: heroImg, alt: "Premium cigar lounge interior" },
-  { src: humidorImg, alt: "Walk-in humidor" },
-  { src: cigarsImg, alt: "Featured cigar selection" },
-  { src: eventImg, alt: "Cigar tasting event" },
-  { src: exteriorImg, alt: "Lounge exterior" },
-  { src: cigarCloseup, alt: "Cigar and cutter close-up" },
-  { src: loungeSeating, alt: "Leather lounge seating area" },
-  { src: heroImg, alt: "Lounge ambiance" },
-];
+import { CategorizedGallerySection } from "@/components/CategorizedGallerySection";
 
 const Gallery = () => {
-  type GalleryImage = (typeof images)[number];
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<GalleryImage | null>(null);
-
-  const openImage = (img: GalleryImage) => {
-    setSelected(img);
-    setOpen(true);
-  };
-
   return (
     <Layout>
       <Seo
-        title="Gallery — Lounge & Humidor"
-        description="Photos of the Cigar Society lounge, walk-in humidor, and events in Pharr, TX."
+        title="Gallery — Lounge, Humidor & Events"
+        description="Photos of Cigar Society in Pharr, TX—the lounge, cigars, events, and community."
         path="/gallery"
       />
-      <section className="section-padding">
-        <div className="container mx-auto">
-          <SectionHeading title="Gallery" subtitle={`Step inside the ${business.name} experience.`} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {images.map((img, i) => (
-              <div
-                key={i}
-                role="button"
-                tabIndex={0}
-                aria-label={`Open photo: ${img.alt}`}
-                onClick={() => openImage(img)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    openImage(img);
-                  }
-                }}
-                className="relative overflow-hidden rounded-lg group cursor-pointer aspect-[4/3]"
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/40 transition-colors duration-300 flex items-end">
-                  <span className="text-foreground font-body text-sm p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {img.alt}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background">
-            {selected ? (
-              <div>
-                <img src={selected.src} alt={selected.alt} className="w-full h-auto max-h-[70vh] object-contain" />
-                <div className="p-4">
-                  <p className="text-muted-foreground text-sm">{selected.alt}</p>
-                </div>
-              </div>
-            ) : null}
-          </DialogContent>
-        </Dialog>
+      <section className="relative border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40 overflow-hidden">
+        <div className="absolute inset-0 -z-10 pointer-events-none" aria-hidden>
+          <img
+            src="/images/cigar-lounge-bg.jpg"
+            alt=""
+            className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
+            decoding="async"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.375)] to-[rgba(0,0,0,0.45)]" />
+        </div>
+        <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]" />
+        <div className="container mx-auto section-padding text-center relative z-10 max-w-3xl">
+          <p className="text-primary font-body text-xs tracking-[0.35em] uppercase mb-4">La Sociedad</p>
+          <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground tracking-tight text-balance mb-6">
+            Gallery
+          </h1>
+          <div className="gold-divider mx-auto mb-6 max-w-xs" />
+          <p className="text-muted-foreground font-body text-lg leading-relaxed">
+            A visual tour of the lounge—humidor, seating, and the details that make {business.shortName} home in
+            Pharr. Scroll through each section below.
+          </p>
+        </div>
       </section>
+
+      <CategorizedGallerySection />
     </Layout>
   );
 };
