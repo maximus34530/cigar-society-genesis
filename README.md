@@ -32,7 +32,8 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 | `VITE_PLAUSIBLE_DOMAIN` | No | Plausible analytics domain (e.g. `cigarsocietyus.com`) |
 | `VITE_GA_MEASUREMENT_ID` | No | Google Analytics 4 measurement ID (`G-…`) |
 | `VITE_SUPABASE_URL` | Phase 2 | Supabase project URL (`https://xxxxx.supabase.co`) |
-| `VITE_SUPABASE_ANON_KEY` | Phase 2 | Supabase anon key (client-safe) |
+| `VITE_SUPABASE_ANON_KEY` | Phase 2 | Supabase anon key (client-safe; optional if using publishable key) |
+| `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Phase 2 | Supabase publishable key (client-safe alternative to anon) |
 
 ## Project docs
 
