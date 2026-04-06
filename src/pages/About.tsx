@@ -15,7 +15,7 @@ const About = () => (
   <Layout>
     <Seo
       title="About Us — Our Story"
-      description="Cigar Society in Pharr, TX — walk-in humidor, full bar, weekly events, and a lounge built for the Rio Grande Valley. 21+."
+      description={`${business.shortName} in Pharr, TX — walk-in humidor, full bar, weekly events, certified professionals, and a lounge built for the Rio Grande Valley. 21+.`}
       path="/about"
     />
     <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden md:min-h-[55vh]">
