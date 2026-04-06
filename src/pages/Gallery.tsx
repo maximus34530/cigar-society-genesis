@@ -24,14 +24,14 @@ const Gallery = () => {
         </div>
         <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]" />
         <div className="container mx-auto section-padding text-center relative z-10 max-w-3xl">
-          <p className="text-primary font-body text-xs tracking-[0.35em] uppercase mb-4">La Sociedad</p>
+          <p className="text-primary font-body text-xs tracking-[0.35em] uppercase mb-4">Sociedad del cigarro</p>
           <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground tracking-tight text-balance mb-6">
             Gallery
           </h1>
           <div className="gold-divider mx-auto mb-6 max-w-xs" />
           <p className="text-muted-foreground font-body text-lg leading-relaxed">
-            A visual tour of the lounge—humidor, seating, and the details that make {business.shortName} home in
-            Pharr. Scroll through each section below.
+            Every night at {business.shortName} tells a story. Browse the moments, the people, and the experiences that
+            make this place home.
           </p>
         </div>
       </section>

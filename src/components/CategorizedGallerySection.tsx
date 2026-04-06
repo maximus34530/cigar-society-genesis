@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -178,25 +178,39 @@ function CategoryGalleryRow({
     pauseUntilRef.current = performance.now() + GALLERY_AUTO_PAUSE_AFTER_USER_MS;
   }, []);
 
-  /** Left → right motion starts at the duplicate seam so decrementing loops seamlessly (once per mount). */
-  useEffect(() => {
+  const endProgrammaticScroll = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isProgrammaticScrollRef.current = false;
+      });
+    });
+  }, []);
+
+  /**
+   * Left → right rows start at the duplicate seam. Any `scrollLeft` assign must set
+   * `isProgrammaticScrollRef` first — otherwise `onScroll` treats it as the user and pauses auto-scroll.
+   */
+  useLayoutEffect(() => {
     backwardLoopSeededRef.current = false;
     if (prefersReducedMotion || images.length === 0 || contentMovesRightToLeft) return;
     const el = scrollRef.current;
     if (!el) return;
+
     const seedIfNeeded = () => {
       if (backwardLoopSeededRef.current) return;
       const half = el.scrollWidth / 2;
-      if (half > 0) {
-        el.scrollLeft = half;
-        backwardLoopSeededRef.current = true;
-      }
+      if (half <= 0) return;
+      isProgrammaticScrollRef.current = true;
+      el.scrollLeft = half;
+      backwardLoopSeededRef.current = true;
+      endProgrammaticScroll();
     };
+
     seedIfNeeded();
     const ro = new ResizeObserver(seedIfNeeded);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [prefersReducedMotion, images.length, category, contentMovesRightToLeft]);
+  }, [prefersReducedMotion, images.length, category, contentMovesRightToLeft, endProgrammaticScroll]);
 
   useEffect(() => {
     if (prefersReducedMotion || images.length === 0) return;
