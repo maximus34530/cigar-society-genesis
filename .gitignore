@@ -25,4 +25,5 @@ dist-ssr
 
 # Cursor MCP config (keep token-bearing local config out of commits)
 .cursor/mcp.json
+.env.local
 .vercel
