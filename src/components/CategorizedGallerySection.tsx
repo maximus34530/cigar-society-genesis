@@ -158,21 +158,45 @@ function CategoryGalleryRow({
   images,
   prefersReducedMotion,
   onOpen,
+  /** 1st / 3rd / 5th rows: content moves right → left. 2nd / 4th: left → right. */
+  contentMovesRightToLeft,
 }: {
   category: Category;
   images: GalleryImage[];
   prefersReducedMotion: boolean;
   onOpen: (img: GalleryImage) => void;
+  contentMovesRightToLeft: boolean;
 }) {
   const marqueeTrack = [...images, ...images];
   const scrollRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScrollRef = useRef(false);
   const pauseUntilRef = useRef(0);
   const rafRef = useRef(0);
+  const backwardLoopSeededRef = useRef(false);
 
   const pauseAutoScroll = useCallback(() => {
     pauseUntilRef.current = performance.now() + GALLERY_AUTO_PAUSE_AFTER_USER_MS;
   }, []);
+
+  /** Left → right motion starts at the duplicate seam so decrementing loops seamlessly (once per mount). */
+  useEffect(() => {
+    backwardLoopSeededRef.current = false;
+    if (prefersReducedMotion || images.length === 0 || contentMovesRightToLeft) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const seedIfNeeded = () => {
+      if (backwardLoopSeededRef.current) return;
+      const half = el.scrollWidth / 2;
+      if (half > 0) {
+        el.scrollLeft = half;
+        backwardLoopSeededRef.current = true;
+      }
+    };
+    seedIfNeeded();
+    const ro = new ResizeObserver(seedIfNeeded);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [prefersReducedMotion, images.length, category, contentMovesRightToLeft]);
 
   useEffect(() => {
     if (prefersReducedMotion || images.length === 0) return;
@@ -184,10 +208,17 @@ function CategoryGalleryRow({
       const now = performance.now();
       if (now >= pauseUntilRef.current) {
         isProgrammaticScrollRef.current = true;
-        el.scrollLeft += GALLERY_AUTO_SCROLL_PX_PER_FRAME;
         const half = el.scrollWidth / 2;
-        if (half > 0 && el.scrollLeft >= half - 2) {
-          el.scrollLeft -= half;
+        if (contentMovesRightToLeft) {
+          el.scrollLeft += GALLERY_AUTO_SCROLL_PX_PER_FRAME;
+          if (half > 0 && el.scrollLeft >= half - 2) {
+            el.scrollLeft -= half;
+          }
+        } else {
+          el.scrollLeft -= GALLERY_AUTO_SCROLL_PX_PER_FRAME;
+          if (half > 0 && el.scrollLeft <= 2) {
+            el.scrollLeft += half;
+          }
         }
         // `scroll` can fire after this stack or the next frame; clearing the flag immediately
         // made `onScroll` treat every auto tick as a user scroll and pause forever.
@@ -202,7 +233,7 @@ function CategoryGalleryRow({
 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [prefersReducedMotion, images.length, category]);
+  }, [prefersReducedMotion, images.length, category, contentMovesRightToLeft]);
 
   const onScroll = useCallback(() => {
     if (!isProgrammaticScrollRef.current) {
@@ -288,13 +319,14 @@ export function CategorizedGallerySection() {
         className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-b border-border/50"
         aria-label="Photo gallery by category"
       >
-        {CATEGORIES.map((cat) => (
+        {CATEGORIES.map((cat, index) => (
           <CategoryGalleryRow
             key={cat}
             category={cat}
             images={GALLERY_BY_CATEGORY[cat]}
             prefersReducedMotion={prefersReducedMotion}
             onOpen={openImage}
+            contentMovesRightToLeft={index % 2 === 0}
           />
         ))}
       </section>
