@@ -43,6 +43,13 @@
     --charcoal: 0 0% 10%;
     --charcoal-light: 0 0% 15%;
 
+    /* Age gate (21+ splash): modal and actions (~#0a4a91 buttons per reference) */
+    --age-gate-modal: 0 0% 0%;
+    --age-gate-button: 211 87% 30%;
+    --age-gate-button-hover: 211 87% 36%;
+    --age-gate-checkbox: 211 87% 30%;
+    --age-gate-underage: 0 72% 52%;
+
     --font-heading: 'Playfair Display', Georgia, serif;
     --font-body: 'Lato', -apple-system, sans-serif;
 
