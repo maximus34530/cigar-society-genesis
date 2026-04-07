@@ -1,14 +1,24 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import eventsHeroImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarDays, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 type EventRow = {
   id: string;
@@ -21,10 +31,46 @@ type EventRow = {
   image_path: string | null;
 };
 
+const reservationSchema = z.object({
+  name: z.string().min(2, "Name is required"),
+  email: z.string().email("Enter a valid email"),
+  phone: z.string().min(7, "Enter a valid phone number"),
+});
+
+type ReservationValues = z.infer<typeof reservationSchema>;
+
 const Events = () => {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [reserving, setReserving] = useState(false);
+  const [activeEvent, setActiveEvent] = useState<EventRow | null>(null);
+
+  const form = useForm<ReservationValues>({
+    resolver: zodResolver(reservationSchema),
+    defaultValues: { name: "", email: "", phone: "" },
+  });
+
+  const n8nWebhookUrl = useMemo(() => {
+    const raw = import.meta.env.VITE_N8N_EVENT_RESERVATION_WEBHOOK_URL as string | undefined;
+    return raw?.trim() ? raw.trim() : null;
+  }, []);
+
+  const openReservation = (event: EventRow) => {
+    if (!user) {
+      navigate("/login", { replace: false, state: { from: "/events" } });
+      return;
+    }
+
+    setActiveEvent(event);
+    form.reset({
+      name: profile?.full_name?.trim() ? profile.full_name : "",
+      email: user.email ?? "",
+      phone: "",
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -108,7 +154,19 @@ const Events = () => {
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {events.map((event) => (
-                <Card key={event.id} className="bg-card/40 border-border/60 overflow-hidden">
+                <Card
+                  key={event.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openReservation(event)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") openReservation(event);
+                  }}
+                  className={cn(
+                    "bg-card/40 border-border/60 overflow-hidden transition-colors",
+                    "hover:border-primary/35 hover:bg-card/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
+                  )}
+                >
                   {event.image_path || event.image_url ? (
                     <img
                       src={
@@ -134,6 +192,13 @@ const Events = () => {
                     ) : (
                       <p className="font-body text-sm text-muted-foreground">Details coming soon.</p>
                     )}
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className="font-body text-xs text-muted-foreground">Click to reserve</p>
+                      <span className="inline-flex items-center gap-1 text-xs font-body text-primary">
+                        Reserve <ChevronRight className="h-4 w-4" aria-hidden />
+                      </span>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -168,6 +233,146 @@ const Events = () => {
           </div>
         </div>
       </section>
+
+      <Dialog
+        open={!!activeEvent}
+        onOpenChange={(next) => {
+          if (!next) {
+            setActiveEvent(null);
+            setReserving(false);
+            form.reset({ name: "", email: "", phone: "" });
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-heading">Reserve your spot</DialogTitle>
+          </DialogHeader>
+
+          {activeEvent ? (
+            <div className="rounded-xl border border-border/60 bg-card/30 p-4">
+              <p className="font-heading text-base text-foreground">{activeEvent.name}</p>
+              <p className="mt-1 font-body text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
+                  {activeEvent.date} • {activeEvent.time}
+                </span>
+              </p>
+              <p className="mt-2 font-body text-xs text-muted-foreground/80">
+                Ticket quantity: <span className="text-foreground/80">1</span>
+              </p>
+            </div>
+          ) : null}
+
+          <Form {...form}>
+            <form
+              className="mt-2 space-y-4"
+              onSubmit={form.handleSubmit(async (values) => {
+                if (!activeEvent || !user) return;
+                setReserving(true);
+                try {
+                  const payload = {
+                    user_id: user.id,
+                    event_id: activeEvent.id,
+                    name: values.name.trim(),
+                    email: values.email.trim().toLowerCase(),
+                    phone: values.phone.trim(),
+                    tickets: 1,
+                    total_paid: 0,
+                  };
+
+                  const { error: insertError } = await supabase.from("bookings").insert(payload);
+                  if (insertError) throw insertError;
+
+                  // Fire-and-forget: webhook should not block reservation UX
+                  if (n8nWebhookUrl) {
+                    fetch(n8nWebhookUrl, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        type: "event_reservation",
+                        created_at: new Date().toISOString(),
+                        user_id: user.id,
+                        event: activeEvent,
+                        reservation: { ...values, tickets: 1 },
+                      }),
+                    }).catch(() => {});
+                  }
+
+                  toast({
+                    title: "Reserved — thank you!",
+                    description: "Your reservation has been saved. You can manage it from your Dashboard.",
+                  });
+
+                  setActiveEvent(null);
+                  navigate("/dashboard");
+                } catch (e) {
+                  form.setError("root", {
+                    message: e instanceof Error ? e.message : "Could not reserve this event",
+                  });
+                } finally {
+                  setReserving(false);
+                }
+              })}
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-card border-border" autoComplete="name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" className="bg-card border-border" autoComplete="email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="tel" className="bg-card border-border" autoComplete="tel" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.formState.errors.root?.message ? (
+                <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+              ) : null}
+
+              <DialogFooter className="mt-2 gap-2">
+                <Button type="button" variant="outline" onClick={() => setActiveEvent(null)} disabled={reserving}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90" disabled={reserving}>
+                  {reserving ? "Reserving…" : "Reserve"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
