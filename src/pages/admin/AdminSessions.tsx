@@ -36,7 +36,7 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 
-export default function AdminSessions() {
+export default function AdminSessionsDeprecated() {
   const [rows, setRows] = useState<SessionCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -71,9 +71,9 @@ export default function AdminSessions() {
     <Card className="bg-card/40 border-border/60">
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <CardTitle className="font-heading">Sessions</CardTitle>
+          <CardTitle className="font-heading">Sessions (deprecated)</CardTitle>
           <p className="mt-1 font-body text-sm text-muted-foreground">
-            Manage session categories (services you offer).
+            This page is no longer linked. We’re using Events instead.
           </p>
         </div>
 

@@ -3,12 +3,12 @@ import { ProfileMenu } from "@/components/ProfileMenu";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { Seo } from "@/components/Seo";
 import { cn } from "@/lib/utils";
-import { CalendarDays, ClipboardList, LayoutDashboard, Settings, Users } from "lucide-react";
+import { CalendarDays, LayoutDashboard, PartyPopper, Settings, Users } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 const sidebarLinks = [
   { label: "Overview", to: "/admin", icon: LayoutDashboard, end: true },
-  { label: "Sessions", to: "/admin/sessions", icon: ClipboardList },
+  { label: "Events", to: "/admin/events", icon: PartyPopper },
   { label: "Clients", to: "/admin/clients", icon: Users },
   { label: "Bookings", to: "/admin/bookings", icon: CalendarDays },
 ];

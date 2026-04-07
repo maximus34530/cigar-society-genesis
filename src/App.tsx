@@ -22,6 +22,7 @@ const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
 const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
 const AdminBookings = lazy(() => import("./pages/admin/AdminBookings"));
+const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -59,7 +60,7 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminOverview />} />
-                  <Route path="sessions" element={<AdminSessions />} />
+                  <Route path="events" element={<AdminEvents />} />
                   <Route path="clients" element={<AdminClients />} />
                   <Route path="bookings" element={<AdminBookings />} />
                 </Route>

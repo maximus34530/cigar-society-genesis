@@ -3,24 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
-import { ArrowRight, CalendarDays, ChevronDown, ClipboardList, PoundSterling, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronDown, PartyPopper, PoundSterling, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 type Counts = {
-  sessions: number;
+  events: number;
   clients: number;
   bookings: number;
 };
 
 export default function AdminOverview() {
-  const [counts, setCounts] = useState<Counts>({ sessions: 0, clients: 0, bookings: 0 });
+  const [counts, setCounts] = useState<Counts>({ events: 0, clients: 0, bookings: 0 });
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const [sessions, clients, bookings] = await Promise.all([
-        supabase.from("session_categories").select("id", { count: "exact", head: true }),
+        supabase.from("events").select("id", { count: "exact", head: true }),
         supabase.from("clients").select("id", { count: "exact", head: true }),
         supabase.from("bookings").select("id", { count: "exact", head: true }),
       ]);
@@ -28,7 +28,7 @@ export default function AdminOverview() {
       if (cancelled) return;
 
       setCounts({
-        sessions: sessions.count ?? 0,
+        events: sessions.count ?? 0,
         clients: clients.count ?? 0,
         bookings: bookings.count ?? 0,
       });
@@ -65,7 +65,7 @@ export default function AdminOverview() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard title="Total Revenue" value="—" hint="Payments not enabled yet." icon={PoundSterling} />
         <StatCard title="Client Base" value={`${counts.clients}`} hint="Total clients in your database." icon={Users} />
-        <StatCard title="Active Sessions" value={`${counts.sessions}`} hint="Session categories available." icon={ClipboardList} />
+        <StatCard title="Active Events" value={`${counts.events}`} hint="Events currently in your calendar." icon={PartyPopper} />
         <StatCard title="Pending Actions" value={`${counts.bookings}`} hint="Bookings requiring review." icon={CalendarDays} />
       </div>
 
