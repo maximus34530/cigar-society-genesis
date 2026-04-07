@@ -26,12 +26,25 @@ type BookingRow = {
   tickets: number;
   total_paid: number;
   created_at: string;
-  events: { id: string; name: string; date: string; time: string } | null;
+  events: { id: string; name: string; date: string; time: string } | { id: string; name: string; date: string; time: string }[] | null;
 };
+
+function errorMessage(value: unknown, fallback: string) {
+  if (value instanceof Error) return value.message;
+  if (typeof value === "object" && value && "message" in value && typeof (value as { message?: unknown }).message === "string") {
+    return (value as { message: string }).message;
+  }
+  return fallback;
+}
 
 function parseEventDateTime(date: string, time: string) {
   const d = new Date(`${date}T${time}`);
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function embeddedEvent(row: BookingRow) {
+  if (!row.events) return null;
+  return Array.isArray(row.events) ? row.events[0] ?? null : row.events;
 }
 
 const Dashboard = () => {
@@ -46,20 +59,21 @@ const Dashboard = () => {
     if (!user) return;
     setLoading(true);
     setError(null);
-    try {
-      const { data, error: err } = await supabase
-        .from("bookings")
-        .select("id,tickets,total_paid,created_at,events(id,name,date,time)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+    const { data, error: err } = await supabase
+      .from("bookings")
+      .select("id,tickets,total_paid,created_at,events(id,name,date,time)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
 
-      if (err) throw err;
-      setBookings((data as BookingRow[]) ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load dashboard data");
-    } finally {
+    if (err) {
+      setError(err.message);
+      setBookings([]);
       setLoading(false);
+      return;
     }
+
+    setBookings(((data as unknown) as BookingRow[]) ?? []);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -71,14 +85,17 @@ const Dashboard = () => {
     const now = new Date();
     return bookings
       .filter((b) => {
-        if (!b.events) return false;
-        const dt = parseEventDateTime(b.events.date, b.events.time);
+        const ev = embeddedEvent(b);
+        if (!ev) return false;
+        const dt = parseEventDateTime(ev.date, ev.time);
         return dt ? dt >= now : true;
       })
       .sort((a, b) => {
-        if (!a.events || !b.events) return 0;
-        const ad = parseEventDateTime(a.events.date, a.events.time)?.getTime() ?? Number.POSITIVE_INFINITY;
-        const bd = parseEventDateTime(b.events.date, b.events.time)?.getTime() ?? Number.POSITIVE_INFINITY;
+        const ae = embeddedEvent(a);
+        const be = embeddedEvent(b);
+        if (!ae || !be) return 0;
+        const ad = parseEventDateTime(ae.date, ae.time)?.getTime() ?? Number.POSITIVE_INFINITY;
+        const bd = parseEventDateTime(be.date, be.time)?.getTime() ?? Number.POSITIVE_INFINITY;
         return ad - bd;
       });
   }, [bookings]);
@@ -86,18 +103,20 @@ const Dashboard = () => {
   const history = useMemo(() => {
     const now = new Date();
     return bookings.filter((b) => {
-      if (!b.events) return true;
-      const dt = parseEventDateTime(b.events.date, b.events.time);
+      const ev = embeddedEvent(b);
+      if (!ev) return true;
+      const dt = parseEventDateTime(ev.date, ev.time);
       return dt ? dt < now : false;
     });
   }, [bookings]);
 
   const notifications = useMemo(() => {
     const items: Array<{ title: string; body: string }> = [];
-    if (upcoming[0]?.events) {
+    const firstUpcomingEvent = upcoming[0] ? embeddedEvent(upcoming[0]) : null;
+    if (firstUpcomingEvent) {
       items.push({
         title: "Upcoming event",
-        body: `${upcoming[0].events.name} • ${upcoming[0].events.date} ${upcoming[0].events.time}`,
+        body: `${firstUpcomingEvent.name} • ${firstUpcomingEvent.date} ${firstUpcomingEvent.time}`,
       });
     }
     if (bookings.length === 0) {
@@ -210,15 +229,20 @@ const Dashboard = () => {
                           key={b.id}
                           className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/30 p-4 md:flex-row md:items-center md:justify-between"
                         >
+                          {(() => {
+                            const ev = embeddedEvent(b);
+                            return (
                           <div className="min-w-0">
-                            <p className="font-heading text-base text-foreground">{b.events?.name ?? "Event"}</p>
+                            <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
                             <p className="mt-1 font-body text-sm text-muted-foreground">
-                              {b.events ? `${b.events.date} • ${b.events.time}` : "Event details unavailable"}
+                              {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
                             </p>
                             <p className="mt-2 font-body text-xs text-muted-foreground/80">
                               {b.tickets} tickets {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
                             </p>
                           </div>
+                            );
+                          })()}
 
                           <div className="flex flex-col gap-2 sm:flex-row">
                             <Button type="button" variant="outline" className="border-border/70" asChild>
@@ -246,10 +270,14 @@ const Dashboard = () => {
                       <div className="mt-3 space-y-2">
                         {history.slice(0, 3).map((b) => (
                           <div key={b.id} className="rounded-xl border border-border/60 bg-card/20 px-4 py-3">
+                            {(() => {
+                              const ev = embeddedEvent(b);
+                              return (
                             <p className="font-body text-sm text-foreground/80">
-                              {b.events?.name ?? "Booking"} •{" "}
-                              {b.events ? `${b.events.date} ${b.events.time}` : "No event linked"}
+                              {ev?.name ?? "Booking"} • {ev ? `${ev.date} ${ev.time}` : "No event linked"}
                             </p>
+                              );
+                            })()}
                           </div>
                         ))}
                       </div>
@@ -309,7 +337,7 @@ const Dashboard = () => {
                   if (err) throw err;
                   await load();
                 } catch (e) {
-                  setError(e instanceof Error ? e.message : "Could not cancel booking");
+                  setError(errorMessage(e, "Could not cancel booking"));
                 } finally {
                   setCancelling(false);
                 }

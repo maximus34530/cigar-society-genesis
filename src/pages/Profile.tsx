@@ -6,11 +6,98 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
+import { CalendarDays, XCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+
+type BookingRow = {
+  id: string;
+  tickets: number;
+  total_paid: number;
+  created_at: string;
+  events: { id: string; name: string; date: string; time: string } | { id: string; name: string; date: string; time: string }[] | null;
+};
+
+function errorMessage(value: unknown, fallback: string) {
+  if (value instanceof Error) return value.message;
+  if (typeof value === "object" && value && "message" in value && typeof (value as { message?: unknown }).message === "string") {
+    return (value as { message: string }).message;
+  }
+  return fallback;
+}
+
+function parseEventDateTime(date: string, time: string) {
+  const d = new Date(`${date}T${time}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function embeddedEvent(row: BookingRow) {
+  if (!row.events) return null;
+  return Array.isArray(row.events) ? row.events[0] ?? null : row.events;
+}
 
 const Profile = () => {
   const { user, profile, isAdmin, refreshProfile } = useAuth();
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [bookingsError, setBookingsError] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [confirmCancel, setConfirmCancel] = useState<BookingRow | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  const loadBookings = async () => {
+    if (!user) return;
+    setLoadingBookings(true);
+    setBookingsError(null);
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("id,tickets,total_paid,created_at,events(id,name,date,time)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setBookings(((data as unknown) as BookingRow[]) ?? []);
+    } catch (e) {
+      setBookingsError(errorMessage(e, "Failed to load bookings"));
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const upcoming = useMemo(() => {
+    const now = new Date();
+    return bookings
+      .filter((b) => {
+        const ev = embeddedEvent(b);
+        if (!ev) return false;
+        const dt = parseEventDateTime(ev.date, ev.time);
+        return dt ? dt >= now : true;
+      })
+      .sort((a, b) => {
+        const ae = embeddedEvent(a);
+        const be = embeddedEvent(b);
+        if (!ae || !be) return 0;
+        const ad = parseEventDateTime(ae.date, ae.time)?.getTime() ?? Number.POSITIVE_INFINITY;
+        const bd = parseEventDateTime(be.date, be.time)?.getTime() ?? Number.POSITIVE_INFINITY;
+        return ad - bd;
+      });
+  }, [bookings]);
 
   return (
     <RequireAuth>
@@ -80,15 +167,103 @@ const Profile = () => {
                   <CardTitle className="font-heading">My bookings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="font-body text-sm text-muted-foreground">
-                    Coming soon — this will show your event bookings from Supabase once the dashboard wiring is complete.
-                  </p>
+                  {bookingsError ? (
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+                      <p className="font-body text-sm text-destructive">Couldn’t load bookings: {bookingsError}</p>
+                    </div>
+                  ) : null}
+
+                  {loadingBookings ? (
+                    <p className="font-body text-sm text-muted-foreground">Loading…</p>
+                  ) : upcoming.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-8 text-center">
+                      <p className="font-heading text-lg text-muted-foreground/90">No bookings yet</p>
+                      <p className="mt-2 font-body text-sm text-muted-foreground/70">
+                        Reserve an event and it will show here.
+                      </p>
+                      <div className="mt-5">
+                        <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90" asChild>
+                          <Link to="/events">Browse events</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {upcoming.map((b) => (
+                        <div
+                          key={b.id}
+                          className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/30 p-4 md:flex-row md:items-center md:justify-between"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-heading text-base text-foreground">{b.events?.name ?? "Event"}</p>
+                            <p className="mt-1 font-body text-sm text-muted-foreground">
+                              <span className="inline-flex items-center gap-2">
+                                <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
+                                {b.events ? `${b.events.date} • ${b.events.time}` : "Event details unavailable"}
+                              </span>
+                            </p>
+                            <p className="mt-2 font-body text-xs text-muted-foreground/80">
+                              {b.tickets} ticket {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <Button type="button" variant="outline" className="border-border/70" onClick={() => void loadBookings()}>
+                              Refresh
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              className={cn(cancelling ? "opacity-80" : "")}
+                              disabled={cancelling}
+                              onClick={() => setConfirmCancel(b)}
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
           </div>
         </section>
       </Layout>
+
+      <AlertDialog open={!!confirmCancel} onOpenChange={(next) => (!next ? setConfirmCancel(null) : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
+            <AlertDialogDescription>This will remove your booking from the system.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Keep booking</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={cancelling}
+              onClick={async () => {
+                const row = confirmCancel;
+                setConfirmCancel(null);
+                if (!row) return;
+                setCancelling(true);
+                try {
+                  const { error } = await supabase.from("bookings").delete().eq("id", row.id);
+                  if (error) throw error;
+                  await loadBookings();
+                } catch (e) {
+                  setBookingsError(errorMessage(e, "Could not cancel booking"));
+                } finally {
+                  setCancelling(false);
+                }
+              }}
+            >
+              Cancel booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </RequireAuth>
   );
 };
