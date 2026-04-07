@@ -50,12 +50,30 @@ const Login = () => {
                 onSubmit={form.handleSubmit(async (values) => {
                   setSubmitting(true);
                   try {
-                    const { error } = await supabase.auth.signInWithPassword(values);
-                    if (error) {
-                      form.setError("root", { message: error.message });
+                    const { data, error } = await supabase.auth.signInWithPassword(values);
+                    if (error || !data.user) {
+                      form.setError("root", { message: error?.message ?? "Login failed" });
                       return;
                     }
-                    navigate(from, { replace: true });
+
+                    const { data: profile, error: profileError } = await supabase
+                      .from("profiles")
+                      .select("role")
+                      .eq("id", data.user.id)
+                      .maybeSingle();
+
+                    if (profileError) {
+                      form.setError("root", { message: profileError.message });
+                      return;
+                    }
+
+                    const role = (profile as { role?: string } | null)?.role;
+                    const isAdmin = role === "admin";
+
+                    // If they were navigating to a specific page, keep that.
+                    // Otherwise route admins directly to the admin dashboard.
+                    const destination = from === "/profile" && isAdmin ? "/admin" : from;
+                    navigate(destination, { replace: true });
                   } finally {
                     setSubmitting(false);
                   }
