@@ -154,6 +154,10 @@ const Profile = () => {
                     </Button>
                   </div>
 
+                  <Button asChild variant="outline" className="w-full border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground">
+                    <Link to="/dashboard">Go to Dashboard</Link>
+                  </Button>
+
                   {isAdmin ? (
                     <Button asChild className="w-full bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
                       <Link to="/admin">Go to Admin</Link>
