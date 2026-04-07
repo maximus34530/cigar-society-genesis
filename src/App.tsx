@@ -14,6 +14,15 @@ const CigarsV1 = lazy(() => import("./pages/CigarsV1"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Events = lazy(() => import("./pages/Events"));
 const Contact = lazy(() => import("./pages/Contact"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Profile = lazy(() => import("./pages/Profile"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
+const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
+const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
+const AdminBookings = lazy(() => import("./pages/admin/AdminBookings"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -44,6 +53,16 @@ const App = () => {
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminOverview />} />
+                  <Route path="sessions" element={<AdminSessions />} />
+                  <Route path="clients" element={<AdminClients />} />
+                  <Route path="bookings" element={<AdminBookings />} />
+                </Route>
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />

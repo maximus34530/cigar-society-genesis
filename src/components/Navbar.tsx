@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ProfileMenu } from "@/components/ProfileMenu";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -15,6 +17,7 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     setOpen(false);
@@ -27,7 +30,8 @@ const Navbar = () => {
           <BrandLogo />
         </Link>
 
-        <ul className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-6">
+          <ul className="flex items-center gap-8">
           {navLinks.map((link) => (
             <li key={link.path}>
               <Link
@@ -40,7 +44,26 @@ const Navbar = () => {
               </Link>
             </li>
           ))}
-        </ul>
+          </ul>
+          {user ? (
+            <ProfileMenu />
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link
+                to="/login"
+                className="text-sm font-body tracking-widest uppercase text-foreground/70 hover:text-primary transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/signup"
+                className="text-sm font-body tracking-widest uppercase text-primary hover:text-primary/90 transition-colors"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
+        </div>
 
         <button
           type="button"
@@ -76,6 +99,39 @@ const Navbar = () => {
                 </Link>
               </li>
             ))}
+            <li className="mt-3 px-6">
+              <div className="h-px bg-border/70" />
+            </li>
+            {user ? (
+              <li className="px-3 pt-4">
+                <ProfileMenu className="w-full justify-start px-3" />
+              </li>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className={`flex min-h-[44px] items-center px-6 py-3 text-sm tracking-widest uppercase transition-colors touch-manipulation hover:text-primary hover:bg-muted ${
+                      location.pathname === "/login" ? "text-primary" : "text-foreground/70"
+                    }`}
+                  >
+                    Log In
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/signup"
+                    onClick={() => setOpen(false)}
+                    className={`flex min-h-[44px] items-center px-6 py-3 text-sm tracking-widest uppercase transition-colors touch-manipulation hover:text-primary hover:bg-muted ${
+                      location.pathname === "/signup" ? "text-primary" : "text-foreground/70"
+                    }`}
+                  >
+                    Sign Up
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}
