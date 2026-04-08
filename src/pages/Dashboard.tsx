@@ -19,7 +19,8 @@ import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { CalendarDays, ChevronRight, PartyPopper, Bell, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 type BookingRow = {
   id: string;
@@ -49,6 +50,7 @@ function embeddedEvent(row: BookingRow) {
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
@@ -80,6 +82,46 @@ const Dashboard = () => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    const checkout = searchParams.get("checkout");
+    if (checkout !== "success") return;
+
+    const sessionId = searchParams.get("session_id");
+    const bookingId = searchParams.get("booking_id");
+
+    (async () => {
+      try {
+        // Best-effort finalize: if the webhook is delayed/misconfigured, we can still
+        // confirm the payment by asking Stripe for the session.
+        if (sessionId) {
+          const { error: finalizeError } = await supabase.functions.invoke("finalize-checkout-session", {
+            body: { session_id: sessionId },
+          });
+          if (finalizeError) throw finalizeError;
+        }
+
+        toast({
+          title: "Payment confirmed",
+          description: bookingId ? "Your ticket purchase was saved to your account." : "Your ticket purchase was saved to your account.",
+        });
+      } catch (e) {
+        toast({
+          title: "Payment received, syncing…",
+          description: e instanceof Error ? e.message : "We’re still confirming your payment. Refresh in a moment.",
+        });
+      } finally {
+        // Refresh data and remove query params so refresh doesn't re-toast.
+        await load();
+        searchParams.delete("checkout");
+        searchParams.delete("session_id");
+        searchParams.delete("booking_id");
+        setSearchParams(searchParams, { replace: true });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, searchParams, setSearchParams]);
 
   const upcoming = useMemo(() => {
     const now = new Date();
