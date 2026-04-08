@@ -114,7 +114,7 @@ const Login = () => {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="w-full bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm shadow-gold hover:opacity-90"
+                  className="btn-gold-shimmer w-full bg-gold-gradient font-body text-sm uppercase tracking-wider text-primary-foreground shadow-gold hover:opacity-90"
                 >
                   {submitting ? "Logging in..." : "Log in"}
                 </Button>

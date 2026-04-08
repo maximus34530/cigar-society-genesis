@@ -2,8 +2,17 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import { business } from "@/lib/business";
 import { CategorizedGallerySection } from "@/components/CategorizedGallerySection";
+import { useFadeInOnScroll } from "@/hooks/useFadeInOnScroll";
+import { useHeroParallax } from "@/hooks/useHeroParallax";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { cn } from "@/lib/utils";
 
 const Gallery = () => {
+  const { sectionRef, layerRef } = useHeroParallax();
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const { ref: introRef, visible: introVisible } = useFadeInOnScroll<HTMLElement>();
+  const { ref: gridRef, visible: gridVisible } = useFadeInOnScroll<HTMLElement>();
+
   return (
     <Layout>
       <Seo
@@ -12,18 +21,39 @@ const Gallery = () => {
         path="/gallery"
       />
 
-      <section className="relative border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40 overflow-hidden">
-        <div className="absolute inset-0 -z-10 pointer-events-none" aria-hidden>
-          <img
-            src="/images/cigar-lounge-bg.jpg"
-            alt=""
-            className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
-            decoding="async"
-          />
+      <section
+        ref={sectionRef}
+        className="relative border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40 overflow-hidden"
+      >
+        <div
+          ref={layerRef}
+          className={cn(
+            "absolute inset-0 -z-10 pointer-events-none h-[118%] w-full min-h-full -top-[9%] min-w-full",
+            !prefersReducedMotion && "will-change-transform",
+          )}
+          aria-hidden
+        >
+          <picture className="contents">
+            <source srcSet="/images/cigar-lounge-bg.webp" type="image/webp" />
+            <img
+              src="/images/cigar-lounge-bg.jpg"
+              alt=""
+              className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
+              decoding="async"
+              fetchPriority="high"
+              loading="eager"
+            />
+          </picture>
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.375)] to-[rgba(0,0,0,0.45)]" />
         </div>
         <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]" />
-        <div className="container mx-auto section-padding text-center relative z-10 max-w-3xl">
+        <div
+          ref={introRef}
+          className={cn(
+            "fade-in-scroll-target container mx-auto section-padding text-center relative z-10 max-w-3xl",
+            introVisible && "is-visible",
+          )}
+        >
           <p className="text-primary font-body text-xs tracking-[0.35em] uppercase mb-4">Sociedad del cigarro</p>
           <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground tracking-tight text-balance mb-6">
             Gallery
@@ -36,7 +66,9 @@ const Gallery = () => {
         </div>
       </section>
 
-      <CategorizedGallerySection />
+      <div ref={gridRef} className={cn("fade-in-scroll-target", gridVisible && "is-visible")}>
+        <CategorizedGallerySection />
+      </div>
     </Layout>
   );
 };

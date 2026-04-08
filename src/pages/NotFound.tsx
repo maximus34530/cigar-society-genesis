@@ -15,7 +15,7 @@ const NotFound = () => (
       <div className="text-center max-w-md">
         <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground mb-2">404</h1>
         <p className="text-lg text-muted-foreground mb-8">This page doesn’t exist or has moved.</p>
-        <Button asChild className="bg-gold-gradient text-primary-foreground font-body uppercase tracking-wider">
+        <Button asChild className="btn-gold-shimmer bg-gold-gradient font-body uppercase tracking-wider text-primary-foreground">
           <Link to="/">Return home</Link>
         </Button>
       </div>

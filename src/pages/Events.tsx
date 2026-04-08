@@ -108,15 +108,29 @@ const Events = () => {
         description="See what’s happening at Cigar Society in Pharr, TX — live music, comedy nights, and more in the Rio Grande Valley."
         path="/events"
       />
-      <section className="relative flex h-[50vh] items-center justify-center overflow-hidden border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40">
-        <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-          <img
-            src={eventsHeroImg}
-            alt=""
-            className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
-            decoding="async"
-            fetchPriority="high"
-          />
+      <section
+        ref={sectionRef}
+        className="relative flex h-[50vh] items-center justify-center overflow-hidden border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40"
+      >
+        <div
+          ref={layerRef}
+          className={cn(
+            "pointer-events-none absolute inset-0 -z-10 h-[118%] w-full min-h-full -top-[9%] min-w-full",
+            !prefersReducedMotion && "will-change-transform",
+          )}
+          aria-hidden
+        >
+          <picture className="contents">
+            <source srcSet={eventsHeroWebp} type="image/webp" />
+            <img
+              src={eventsHeroImg}
+              alt=""
+              className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
+              decoding="async"
+              fetchPriority="high"
+              loading="eager"
+            />
+          </picture>
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.45)] to-[rgba(0,0,0,0.55)]" />
         </div>
         <div
@@ -130,7 +144,10 @@ const Events = () => {
       </section>
 
       <section className="section-padding border-y border-border/40 bg-muted/80">
-        <div className="container mx-auto">
+        <div
+          ref={fadeRef}
+          className={cn("fade-in-scroll-target container mx-auto", fadeVisible && "is-visible")}
+        >
           <SectionHeading
             title="Live events calendar"
             subtitle="See what’s on at the lounge. For last-minute updates, follow us on Instagram."
@@ -168,21 +185,23 @@ const Events = () => {
                   )}
                 >
                   {event.image_path || event.image_url ? (
-                    <img
-                      src={
-                        event.image_path
-                          ? supabase.storage.from("event-images").getPublicUrl(event.image_path).data.publicUrl
-                          : event.image_url ?? undefined
-                      }
-                      alt=""
-                      className="h-44 w-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    <div className="relative h-44 w-full shrink-0 overflow-hidden">
+                      <img
+                        src={
+                          event.image_path
+                            ? supabase.storage.from("event-images").getPublicUrl(event.image_path).data.publicUrl
+                            : event.image_url ?? undefined
+                        }
+                        alt=""
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
                   ) : null}
-                  <CardHeader>
-                    <CardTitle className="font-heading text-lg">{event.name}</CardTitle>
-                    <p className="font-body text-sm text-muted-foreground">
+                  <div className="flex flex-1 flex-col p-6">
+                    <h2 className="font-heading text-lg text-foreground">{event.name}</h2>
+                    <p className="mt-1 font-body text-sm text-muted-foreground">
                       {event.date} • {event.time} {event.price != null ? `• $${event.price}` : ""}
                     </p>
                   </CardHeader>
@@ -220,7 +239,7 @@ const Events = () => {
                 Follow for updates
               </a>
             </Button>
-            <p className="mt-6 font-body text-sm text-muted-foreground">
+            <p className="mt-6 max-w-full px-1 font-body text-sm text-muted-foreground break-words">
               Prefer the phone?{" "}
               <Link
                 to="/contact"

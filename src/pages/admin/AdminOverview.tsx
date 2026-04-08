@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useCountUpOnView } from "@/hooks/useCountUpOnView";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { ArrowRight, CalendarDays, ChevronDown, PartyPopper, PoundSterling, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { NavLink } from "react-router-dom";
 
 type Counts = {
@@ -14,7 +15,7 @@ type Counts = {
 };
 
 export default function AdminOverview() {
-  const [counts, setCounts] = useState<Counts>({ events: 0, clients: 0, bookings: 0 });
+  const [counts, setCounts] = useState<Counts | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,7 +44,7 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+          <Button className="btn-gold-shimmer bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
             Quick Action
           </Button>
           <DropdownMenu>
@@ -63,10 +64,25 @@ export default function AdminOverview() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <StatCard title="Total Revenue" value="—" hint="Payments not enabled yet." icon={PoundSterling} />
-        <StatCard title="Client Base" value={`${counts.clients}`} hint="Total clients in your database." icon={Users} />
-        <StatCard title="Active Events" value={`${counts.events}`} hint="Events currently in your calendar." icon={PartyPopper} />
-        <StatCard title="Pending Actions" value={`${counts.bookings}`} hint="Bookings requiring review." icon={CalendarDays} />
+        {!counts ? (
+          <>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="h-[118px] animate-pulse rounded-2xl border-border/40 bg-card/15" />
+            ))}
+          </>
+        ) : (
+          <>
+            <StatCard title="Total Revenue" value="—" hint="Payments not enabled yet." icon={PoundSterling} />
+            <StatCardMetric title="Client Base" value={counts.clients} hint="Total clients in your database." icon={Users} />
+            <StatCardMetric title="Active Events" value={counts.events} hint="Events currently in your calendar." icon={PartyPopper} />
+            <StatCardMetric
+              title="Pending Actions"
+              value={counts.bookings}
+              hint="Bookings requiring review."
+              icon={CalendarDays}
+            />
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -141,6 +157,32 @@ export default function AdminOverview() {
   );
 }
 
+function StatCardMetric({
+  title,
+  value,
+  hint,
+  icon: Icon,
+}: {
+  title: string;
+  value: number;
+  hint: string;
+  icon: ComponentType<{ className?: string }>;
+}) {
+  const { ref, display } = useCountUpOnView(value);
+  return (
+    <Card ref={ref} className="bg-card/25 border-border/60 rounded-2xl">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="font-heading text-sm text-foreground/90">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-foreground/50" />
+      </CardHeader>
+      <CardContent>
+        <p className="font-heading text-2xl text-foreground">{display}</p>
+        <p className="mt-1 font-body text-xs text-muted-foreground">{hint}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function StatCard({
   title,
   value,
@@ -150,7 +192,7 @@ function StatCard({
   title: string;
   value: string;
   hint: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }) {
   return (
     <Card className="bg-card/25 border-border/60 rounded-2xl">
@@ -165,4 +207,3 @@ function StatCard({
     </Card>
   );
 }
-

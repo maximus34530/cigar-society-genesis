@@ -167,4 +167,112 @@ h2.find-us-section-title {
         hsl(var(--background) / 0.72) 100%
       );
   }
+
+  .fade-in-scroll-target {
+    @apply transition-[opacity,transform] duration-700 ease-out;
+  }
+
+  .fade-in-scroll-target.is-visible {
+    @apply translate-y-0 opacity-100;
+  }
+
+  .fade-in-scroll-target:not(.is-visible) {
+    @apply translate-y-6 opacity-0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in-scroll-target,
+    .fade-in-scroll-target:not(.is-visible) {
+      @apply translate-y-0 opacity-100 transition-none;
+    }
+  }
+
+  .btn-gold-shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-gold-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 40%,
+      hsl(var(--gold-light) / 0.45) 50%,
+      transparent 60%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  @keyframes gold-shimmer-sweep {
+    to {
+      transform: translateX(120%);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .btn-gold-shimmer:hover::after {
+      animation: gold-shimmer-sweep 0.65s ease-out forwards;
+    }
+  }
+
+  .event-card-premium {
+    @apply relative overflow-hidden rounded-xl border border-border/60 bg-card/40 transition-[transform,border-color] duration-300 ease-out;
+  }
+
+  @keyframes event-border-shimmer-gold {
+    0%,
+    100% {
+      border-color: hsl(var(--border) / 0.6);
+      box-shadow: var(--shadow-card);
+    }
+    40% {
+      border-color: hsl(var(--gold) / 0.55);
+      box-shadow:
+        0 0 0 1px hsl(var(--gold) / 0.25),
+        0 0 28px hsl(var(--gold) / 0.12),
+        var(--shadow-card-hover);
+    }
+    60% {
+      border-color: hsl(var(--gold-light) / 0.65);
+      box-shadow:
+        0 0 0 1px hsl(var(--gold-light) / 0.35),
+        0 0 36px hsl(var(--gold) / 0.18),
+        var(--shadow-card-hover);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .event-card-premium:hover {
+      @apply -translate-y-1;
+      animation: event-border-shimmer-gold 1.25s ease-in-out infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .event-card-premium:hover {
+      @apply -translate-y-1 border-primary/35 shadow-card-hover;
+    }
+  }
+
+  .gallery-tile-reveal {
+    @apply opacity-0 translate-y-4 transition-[opacity,transform] duration-500 ease-out;
+  }
+
+  .gallery-tile-reveal.is-revealed {
+    @apply translate-y-0 opacity-100;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery-tile-reveal {
+      @apply translate-y-0 opacity-100 transition-none;
+    }
+  }
+
+  .gallery-marquee-scroll {
+    will-change: scroll-position;
+  }
 }

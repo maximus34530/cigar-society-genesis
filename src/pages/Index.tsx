@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
@@ -5,8 +6,13 @@ import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { List, MapPin, Star } from "lucide-react";
 import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
+import liveEventsWebp from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.webp";
 import spiritsBarImg from "@/assets/spirits-bar.png";
+import spiritsBarWebp from "@/assets/spirits-bar.webp";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
+import communityHospitalityWebp from "@/assets/community-hospitality.webp";
+import { useHeroParallax } from "@/hooks/useHeroParallax";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
@@ -15,6 +21,7 @@ type LoungeHighlight = {
   title: string;
   description: string;
   image: string;
+  webp: string;
   alt: string;
 };
 
@@ -24,18 +31,21 @@ const highlights: LoungeHighlight[] = [
     description:
       "Comedy nights, live concerts, watch parties, ladies nights and more — something's always happening at Cigar Society.",
     image: liveEventsImg,
+    webp: liveEventsWebp,
     alt: "Acoustic performer under the spotlight at Cigar Society — singer with guitar and microphone in blue and warm lounge lighting",
   },
   {
     title: "Spirits & refreshments",
     description: "Bourbon, beer, and mixed drinks in a relaxed lounge built for conversation and unwinding.",
     image: spiritsBarImg,
+    webp: spiritsBarWebp,
     alt: "Full bar with premium spirits at Cigar Society",
   },
   {
     title: "South Texas hospitality",
     description: "Located in Pharr with easy access from across the Rio Grande Valley—your destination for an elevated evening out.",
     image: communityHospitalityImg,
+    webp: communityHospitalityWebp,
     alt: "Guests together at Cigar Society in front of the lounge backdrop",
   },
 ];
@@ -113,7 +123,7 @@ const heroCtaBase =
 
 const heroPrimaryCta = cn(
   heroCtaBase,
-  "!bg-gold-gradient text-primary-foreground shadow-gold hover:!brightness-110 hover:!bg-gold-gradient focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "btn-gold-shimmer !bg-gold-gradient text-primary-foreground shadow-gold hover:!brightness-110 hover:!bg-gold-gradient focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
 );
 
 const heroSecondaryCta = cn(
@@ -123,21 +133,68 @@ const heroSecondaryCta = cn(
 
 const Index = () => {
   const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
+  const [loadVideo, setLoadVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { sectionRef, layerRef } = useHeroParallax();
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setLoadVideo(true);
+    }
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const section = sectionRef.current;
+    if (!section) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setLoadVideo(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "100px 0px", threshold: 0.01 },
+    );
+    io.observe(section);
+    return () => io.disconnect();
+  }, [prefersReducedMotion]); // eslint-disable-line react-hooks/exhaustive-deps -- sectionRef stable from useHeroParallax
+
+  useEffect(() => {
+    if (!loadVideo) return;
+    const v = videoRef.current;
+    if (!v) return;
+    void v.play().catch(() => {});
+  }, [loadVideo]);
 
   return (
   <Layout>
     <Seo title="Cigar Society — Premium Cigar Lounge in Pharr, TX" description={HOME_DESCRIPTION} path="/" />
-    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 h-full w-full object-cover"
-        aria-label="Cigar Society lounge cinematic background"
+    <section
+      ref={sectionRef}
+      className="relative flex h-screen w-full items-center justify-center overflow-hidden"
+    >
+      <div
+        ref={layerRef}
+        className={cn(
+          "absolute inset-0 h-[118%] w-full min-h-full -top-[9%] min-w-full overflow-hidden",
+          !prefersReducedMotion && "will-change-transform",
+        )}
       >
-        <source src={heroVideoPath} type="video/mp4" />
-      </video>
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload={loadVideo ? "metadata" : "none"}
+          className="h-full w-full object-cover"
+          aria-label="Cigar Society lounge cinematic background"
+        >
+          {loadVideo && heroVideoPath ? <source src={heroVideoPath} type="video/mp4" /> : null}
+        </video>
+      </div>
       <div className="absolute inset-0 hero-overlay" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 pb-12 text-center animate-fade-in sm:pb-16">
@@ -194,13 +251,16 @@ const Index = () => {
                 className="bg-card rounded-xl border border-border/70 overflow-hidden shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card-hover group"
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                  <img
-                    src={item.image}
-                    alt={item.alt}
-                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                    decoding="async"
-                    loading="lazy"
-                  />
+                  <picture className="contents">
+                    <source srcSet={item.webp} type="image/webp" />
+                    <img
+                      src={item.image}
+                      alt={item.alt}
+                      className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      decoding="async"
+                      loading="lazy"
+                    />
+                  </picture>
                 </div>
                 <div className="p-6">
                   <h3 className="font-heading text-lg font-semibold text-foreground mb-2">{item.title}</h3>
@@ -269,6 +329,7 @@ const Index = () => {
       display: flex;
       width: max-content;
       animation: marquee 120s linear infinite;
+      will-change: transform;
     }
   `}</style>
 

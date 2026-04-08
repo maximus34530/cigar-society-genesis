@@ -9,10 +9,13 @@ import { MapPin, Phone, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
+import { useFadeInOnScroll } from "@/hooks/useFadeInOnScroll";
+import { cn } from "@/lib/utils";
 
 const Contact = () => {
   const { toast } = useToast();
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const { ref: sectionRef, visible } = useFadeInOnScroll<HTMLElement>();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +34,11 @@ const Contact = () => {
         description="Contact Cigar Society in Pharr, TX — phone, directions, hours, and a message form. Visit our Rio Grande Valley cigar lounge."
         path="/contact"
       />
-      <section className="section-padding">
-        <div className="container mx-auto">
+      <section className="section-padding overflow-x-hidden">
+        <div ref={sectionRef} className={cn("fade-in-scroll-target container mx-auto", visible && "is-visible")}>
           <SectionHeading title="Contact Us" subtitle="Call or visit us in Pharr—or leave a note while we finish online messaging." />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto min-w-0">
             <form onSubmit={handleSubmit} className="space-y-6">
               <p className="text-sm text-muted-foreground font-body leading-relaxed border border-border/60 rounded-lg p-4 bg-card/50">
                 The form below does not send messages to our team yet. For reservations or questions, please call{" "}
@@ -66,7 +69,7 @@ const Contact = () => {
                 <label htmlFor="message" className="text-sm font-body text-muted-foreground mb-1 block">Message</label>
                 <Textarea id="message" rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required className="bg-card border-border" />
               </div>
-              <Button type="submit" size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 shadow-gold hover:opacity-90 w-full">
+              <Button type="submit" size="lg" className="btn-gold-shimmer w-full bg-gold-gradient px-8 font-body text-sm uppercase tracking-wider text-primary-foreground shadow-gold hover:opacity-90">
                 Send Message
               </Button>
             </form>

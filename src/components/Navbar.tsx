@@ -16,6 +16,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
 
@@ -23,8 +24,21 @@ const Navbar = () => {
     setOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/80 shadow-nav">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 border-b transition-[background-color,backdrop-filter,box-shadow,border-color] duration-300 ${
+        scrolled
+          ? "border-border/80 bg-background/90 shadow-nav backdrop-blur-md"
+          : "border-transparent bg-transparent shadow-none backdrop-blur-none"
+      }`}
+    >
       <div className="container mx-auto flex items-center justify-between h-20 px-4">
         <Link to="/" className="inline-flex items-center touch-manipulation">
           <BrandLogo />

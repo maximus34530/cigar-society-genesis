@@ -88,7 +88,7 @@ export default function AdminSessionsDeprecated() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+            <Button className="btn-gold-shimmer bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
               New session
             </Button>
           </DialogTrigger>
@@ -187,7 +187,7 @@ export default function AdminSessionsDeprecated() {
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                  <Button type="submit" className="btn-gold-shimmer bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
                     Save
                   </Button>
                 </DialogFooter>
