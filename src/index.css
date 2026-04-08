@@ -81,6 +81,23 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
     text-rendering: optimizeLegibility;
+    position: relative;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   h4,
@@ -134,7 +151,8 @@ h2.find-us-section-title {
   }
 
   .gold-divider {
-    @apply w-24 h-px mx-auto rounded-full;
+    @apply h-px mx-auto rounded-full;
+    width: 48px;
     background: linear-gradient(
       90deg,
       transparent,
@@ -143,6 +161,7 @@ h2.find-us-section-title {
       hsl(var(--gold) / 0.35) 85%,
       transparent
     );
+    animation: gold-divider-breathe 3s ease-in-out infinite;
   }
 
   .find-us-gold-accent {
@@ -168,111 +187,190 @@ h2.find-us-section-title {
       );
   }
 
-  .fade-in-scroll-target {
-    @apply transition-[opacity,transform] duration-700 ease-out;
+  /* --- Premium: section warm radial (alternate with plain bg-background) --- */
+  .section-warm-radial {
+    background: radial-gradient(ellipse at center, hsl(var(--gold) / 0.04) 0%, transparent 70%);
   }
 
-  .fade-in-scroll-target.is-visible {
-    @apply translate-y-0 opacity-100;
+  /* --- Premium: card hover glow (use with existing border) --- */
+  .premium-card-hover {
+    transition: box-shadow 300ms ease, border-color 300ms ease;
   }
 
-  .fade-in-scroll-target:not(.is-visible) {
-    @apply translate-y-6 opacity-0;
+  .premium-card-hover:hover {
+    border-color: hsl(var(--border) / 0.35);
+    box-shadow:
+      0 0 0 1px hsl(var(--gold) / 0.3),
+      0 4px 24px hsl(var(--gold) / 0.08);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .fade-in-scroll-target,
-    .fade-in-scroll-target:not(.is-visible) {
-      @apply translate-y-0 opacity-100 transition-none;
-    }
+  .hero-heading-glow {
+    text-shadow: 0 2px 40px hsl(var(--gold) / 0.2);
+  }
+}
+
+/* ========== Premium: keyframes ========== */
+
+@keyframes gold-divider-breathe {
+  0%,
+  100% {
+    width: 48px;
   }
 
-  .btn-gold-shimmer {
-    @apply relative overflow-hidden;
+  50% {
+    width: 64px;
+  }
+}
+
+@keyframes gold-button-shimmer {
+  from {
+    transform: translateX(-100%);
   }
 
-  .btn-gold-shimmer::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-120%);
-    background: linear-gradient(
-      105deg,
-      transparent 0%,
-      transparent 40%,
-      hsl(var(--gold-light) / 0.45) 50%,
-      transparent 60%,
-      transparent 100%
-    );
-    pointer-events: none;
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes dialog-premium-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
   }
 
-  @keyframes gold-shimmer-sweep {
-    to {
-      transform: translateX(120%);
-    }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dialog-bottom-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0);
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .btn-gold-shimmer:hover::after {
-      animation: gold-shimmer-sweep 0.65s ease-out forwards;
-    }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ========== Premium: scrollbar ========== */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--gold) / 0.45) hsl(var(--background));
+}
+
+html::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+html::-webkit-scrollbar-thumb {
+  background: hsl(var(--gold) / 0.45);
+  border-radius: 9999px;
+}
+
+/* ========== Premium: gold gradient button shimmer ========== */
+
+button.bg-gold-gradient,
+a.bg-gold-gradient {
+  position: relative;
+  overflow: hidden;
+}
+
+button.bg-gold-gradient::after,
+a.bg-gold-gradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    hsl(0 0% 100% / 0.15) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+}
+
+button.bg-gold-gradient:hover::after,
+a.bg-gold-gradient:hover::after {
+  opacity: 1;
+  animation: gold-button-shimmer 600ms ease-out forwards;
+}
+
+/* ========== Premium: gallery dialog (center desktop, bottom sheet mobile) ========== */
+
+.dialog-gallery-inner {
+  animation: dialog-premium-enter 200ms ease-out both;
+  transform-origin: center center;
+}
+
+@media (max-width: 767px) {
+  .dialog-gallery-inner {
+    animation: none;
   }
 
-  .event-card-premium {
-    @apply relative overflow-hidden rounded-xl border border-border/60 bg-card/40 transition-[transform,border-color] duration-300 ease-out;
+  .dialog-gallery-content[data-state="open"] {
+    animation: dialog-bottom-sheet-enter 220ms ease-out both !important;
   }
 
-  @keyframes event-border-shimmer-gold {
-    0%,
-    100% {
-      border-color: hsl(var(--border) / 0.6);
-      box-shadow: var(--shadow-card);
-    }
-    40% {
-      border-color: hsl(var(--gold) / 0.55);
-      box-shadow:
-        0 0 0 1px hsl(var(--gold) / 0.25),
-        0 0 28px hsl(var(--gold) / 0.12),
-        var(--shadow-card-hover);
-    }
-    60% {
-      border-color: hsl(var(--gold-light) / 0.65);
-      box-shadow:
-        0 0 0 1px hsl(var(--gold-light) / 0.35),
-        0 0 36px hsl(var(--gold) / 0.18),
-        var(--shadow-card-hover);
-    }
+  .dialog-gallery-content {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    transform: translate3d(0, 0, 0) !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ========== Premium: footer top gradient edge ========== */
+
+.footer-border-glow {
+  border-top: none;
+}
+
+.footer-border-glow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 720px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.2), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-divider {
+    animation: none;
+    width: 56px;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .event-card-premium:hover {
-      @apply -translate-y-1;
-      animation: event-border-shimmer-gold 1.25s ease-in-out infinite;
-    }
+  button.bg-gold-gradient:hover::after,
+  a.bg-gold-gradient:hover::after {
+    animation: none;
+    opacity: 0;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .event-card-premium:hover {
-      @apply -translate-y-1 border-primary/35 shadow-card-hover;
-    }
+  .dialog-gallery-inner {
+    animation: none;
   }
 
-  .gallery-tile-reveal {
-    @apply opacity-0 translate-y-4 transition-[opacity,transform] duration-500 ease-out;
-  }
-
-  .gallery-tile-reveal.is-revealed {
-    @apply translate-y-0 opacity-100;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .gallery-tile-reveal {
-      @apply translate-y-0 opacity-100 transition-none;
-    }
-  }
-
-  .gallery-marquee-scroll {
-    will-change: scroll-position;
+  .dialog-gallery-content[data-state="open"] {
+    animation: none;
   }
 }

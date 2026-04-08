@@ -5,7 +5,7 @@ import { useCountUpOnView } from "@/hooks/useCountUpOnView";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { ArrowRight, CalendarDays, ChevronDown, PartyPopper, PoundSterling, Users } from "lucide-react";
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 type Counts = {
@@ -15,7 +15,7 @@ type Counts = {
 };
 
 export default function AdminOverview() {
-  const [counts, setCounts] = useState<Counts | null>(null);
+  const [counts, setCounts] = useState<Counts>({ events: 0, clients: 0, bookings: 0 });
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +44,7 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <Button className="btn-gold-shimmer bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+          <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
             Quick Action
           </Button>
           <DropdownMenu>
@@ -64,29 +64,14 @@ export default function AdminOverview() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        {!counts ? (
-          <>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="h-[118px] animate-pulse rounded-2xl border-border/40 bg-card/15" />
-            ))}
-          </>
-        ) : (
-          <>
-            <StatCard title="Total Revenue" value="—" hint="Payments not enabled yet." icon={PoundSterling} />
-            <StatCardMetric title="Client Base" value={counts.clients} hint="Total clients in your database." icon={Users} />
-            <StatCardMetric title="Active Events" value={counts.events} hint="Events currently in your calendar." icon={PartyPopper} />
-            <StatCardMetric
-              title="Pending Actions"
-              value={counts.bookings}
-              hint="Bookings requiring review."
-              icon={CalendarDays}
-            />
-          </>
-        )}
+        <StatCard title="Total Revenue" value="—" hint="Payments not enabled yet." icon={PoundSterling} />
+        <StatCard title="Client Base" value={counts.clients} hint="Total clients in your database." icon={Users} />
+        <StatCard title="Active Events" value={counts.events} hint="Events currently in your calendar." icon={PartyPopper} />
+        <StatCard title="Pending Actions" value={counts.bookings} hint="Bookings requiring review." icon={CalendarDays} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <Card className="bg-card/25 border-border/60 rounded-2xl">
+        <Card className="bg-card/25 border-border/60 rounded-2xl premium-card-hover">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="font-heading">Upcoming</CardTitle>
@@ -131,7 +116,7 @@ export default function AdminOverview() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card/25 border-border/60 rounded-2xl">
+        <Card className="bg-card/25 border-border/60 rounded-2xl premium-card-hover">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-heading">Recent activity</CardTitle>
             <Button asChild variant="ghost" className="text-foreground/70 hover:bg-muted/50">
@@ -157,29 +142,12 @@ export default function AdminOverview() {
   );
 }
 
-function StatCardMetric({
-  title,
-  value,
-  hint,
-  icon: Icon,
-}: {
-  title: string;
-  value: number;
-  hint: string;
-  icon: ComponentType<{ className?: string }>;
-}) {
-  const { ref, display } = useCountUpOnView(value);
+function StatCardNumeric({ target }: { target: number }) {
+  const { ref, display } = useCountUpOnView(target);
   return (
-    <Card ref={ref} className="bg-card/25 border-border/60 rounded-2xl">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="font-heading text-sm text-foreground/90">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-foreground/50" />
-      </CardHeader>
-      <CardContent>
-        <p className="font-heading text-2xl text-foreground">{display}</p>
-        <p className="mt-1 font-body text-xs text-muted-foreground">{hint}</p>
-      </CardContent>
-    </Card>
+    <p className="font-heading text-2xl text-foreground tabular-nums">
+      <span ref={ref}>{display}</span>
+    </p>
   );
 }
 
@@ -190,20 +158,27 @@ function StatCard({
   icon: Icon,
 }: {
   title: string;
-  value: string;
+  value: string | number;
   hint: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }>;
 }) {
+  const isDash = value === "—";
+
   return (
-    <Card className="bg-card/25 border-border/60 rounded-2xl">
+    <Card className="bg-card/25 border-border/60 rounded-2xl premium-card-hover">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="font-heading text-sm text-foreground/90">{title}</CardTitle>
         <Icon className="h-4 w-4 text-foreground/50" />
       </CardHeader>
       <CardContent>
-        <p className="font-heading text-2xl text-foreground">{value}</p>
+        {isDash ? (
+          <p className="font-heading text-2xl text-foreground">—</p>
+        ) : (
+          <StatCardNumeric target={typeof value === "number" ? value : 0} />
+        )}
         <p className="mt-1 font-body text-xs text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>
   );
 }
+

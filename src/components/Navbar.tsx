@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -25,7 +26,9 @@ const Navbar = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 60);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -33,11 +36,12 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 border-b transition-[background-color,backdrop-filter,box-shadow,border-color] duration-300 ${
-        scrolled
-          ? "border-border/80 bg-background/90 shadow-nav backdrop-blur-md"
-          : "border-transparent bg-transparent shadow-none backdrop-blur-none"
-      }`}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 ease-out",
+        scrolled || open
+          ? "bg-background/90 backdrop-blur-md border-b border-border/40 shadow-nav"
+          : "bg-transparent border-b border-transparent",
+      )}
     >
       <div className="container mx-auto flex items-center justify-between h-20 px-4">
         <Link to="/" className="inline-flex items-center touch-manipulation">

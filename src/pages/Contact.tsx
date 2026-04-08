@@ -7,15 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useFadeInOnScroll } from "@/hooks/useFadeInOnScroll";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
-import { useFadeInOnScroll } from "@/hooks/useFadeInOnScroll";
 import { cn } from "@/lib/utils";
 
 const Contact = () => {
   const { toast } = useToast();
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
-  const { ref: sectionRef, visible } = useFadeInOnScroll<HTMLElement>();
+  const headingFade = useFadeInOnScroll(0);
+  const formFade = useFadeInOnScroll(80);
+  const infoFade = useFadeInOnScroll(160);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,23 +36,30 @@ const Contact = () => {
         description="Contact Cigar Society in Pharr, TX — phone, directions, hours, and a message form. Visit our Rio Grande Valley cigar lounge."
         path="/contact"
       />
-      <section className="section-padding overflow-x-hidden">
-        <div ref={sectionRef} className={cn("fade-in-scroll-target container mx-auto", visible && "is-visible")}>
-          <SectionHeading title="Contact Us" subtitle="Call or visit us in Pharr—or leave a note while we finish online messaging." />
+      <section className="section-warm-radial section-padding">
+        <div className="container mx-auto min-w-0">
+          <div ref={headingFade.ref} style={headingFade.style} className={cn(headingFade.className)}>
+            <SectionHeading title="Contact Us" subtitle="Call or visit us in Pharr—or leave a note while we finish online messaging." />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto min-w-0">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              ref={formFade.ref}
+              style={formFade.style}
+              onSubmit={handleSubmit}
+              className={cn("space-y-6 min-w-0", formFade.className)}
+            >
               <p className="text-sm text-muted-foreground font-body leading-relaxed border border-border/60 rounded-lg p-4 bg-card/50">
                 The form below does not send messages to our team yet. For reservations or questions, please call{" "}
                 {business.phoneDisplay} or stop by during business hours.
               </p>
               <div>
                 <label htmlFor="name" className="text-sm font-body text-muted-foreground mb-1 block">Name</label>
-                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-card border-border" />
+                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-card border-border max-w-full" />
               </div>
               <div>
                 <label htmlFor="email" className="text-sm font-body text-muted-foreground mb-1 block">Email</label>
-                <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="bg-card border-border" />
+                <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="bg-card border-border max-w-full" />
               </div>
               <div>
                 <label htmlFor="phone" className="text-sm font-body text-muted-foreground mb-1 block">Phone</label>
@@ -62,20 +71,19 @@ const Contact = () => {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   required
-                  className="bg-card border-border"
+                  className="bg-card border-border max-w-full"
                 />
               </div>
               <div>
                 <label htmlFor="message" className="text-sm font-body text-muted-foreground mb-1 block">Message</label>
-                <Textarea id="message" rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required className="bg-card border-border" />
+                <Textarea id="message" rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required className="bg-card border-border max-w-full" />
               </div>
-              <Button type="submit" size="lg" className="btn-gold-shimmer w-full bg-gold-gradient px-8 font-body text-sm uppercase tracking-wider text-primary-foreground shadow-gold hover:opacity-90">
+              <Button type="submit" size="lg" className="bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm px-8 shadow-gold hover:opacity-90 w-full sm:w-auto">
                 Send Message
               </Button>
             </form>
 
-            {/* Info */}
-            <div className="space-y-8">
+            <div ref={infoFade.ref} style={infoFade.style} className={cn("space-y-8 min-w-0", infoFade.className)}>
               <div>
                 <h3 className="font-heading text-xl text-foreground mb-4">Visit Our Lounge</h3>
                 <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -83,7 +91,7 @@ const Contact = () => {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full sm:w-auto"
                   >
                     <a
                       href={`tel:${business.phoneE164}`}
@@ -96,7 +104,7 @@ const Contact = () => {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full sm:w-auto"
                   >
                     <a
                       href={business.mapUrl}
@@ -132,13 +140,13 @@ const Contact = () => {
                 </ul>
               </div>
 
-              <div className="overflow-hidden rounded-lg border border-border shadow-card">
+              <div className="overflow-hidden rounded-lg border border-border shadow-card max-w-full">
                 <iframe
                   title={`${business.name} location`}
                   src={business.mapEmbedSrc}
                   width="100%"
                   height="250"
-                  className="w-full border-0"
+                  className="w-full max-w-full border-0"
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"

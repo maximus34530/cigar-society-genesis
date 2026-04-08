@@ -166,7 +166,7 @@ export default function AdminEvents() {
               }}
             >
               <DialogTrigger asChild>
-                <Button className="btn-gold-shimmer bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
                   New event
                 </Button>
               </DialogTrigger>
@@ -397,7 +397,7 @@ export default function AdminEvents() {
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" className="btn-gold-shimmer bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                  <Button type="submit" className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
                     Save
                   </Button>
                 </DialogFooter>

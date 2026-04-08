@@ -108,45 +108,34 @@ const Events = () => {
         description="See what’s happening at Cigar Society in Pharr, TX — live music, comedy nights, and more in the Rio Grande Valley."
         path="/events"
       />
-      <section
-        ref={sectionRef}
-        className="relative flex h-[50vh] items-center justify-center overflow-hidden border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40"
-      >
-        <div
-          ref={layerRef}
-          className={cn(
-            "pointer-events-none absolute inset-0 -z-10 h-[118%] w-full min-h-full -top-[9%] min-w-full",
-            !prefersReducedMotion && "will-change-transform",
-          )}
-          aria-hidden
-        >
-          <picture className="contents">
-            <source srcSet={eventsHeroWebp} type="image/webp" />
-            <img
-              src={eventsHeroImg}
-              alt=""
-              className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
-              decoding="async"
-              fetchPriority="high"
-              loading="eager"
-            />
-          </picture>
-          <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.45)] to-[rgba(0,0,0,0.55)]" />
+      <section className="relative flex h-[50vh] items-center justify-center overflow-hidden border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40">
+        <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+          <img
+            src={eventsHeroImg}
+            alt=""
+            className="h-full w-full min-h-full min-w-full object-cover object-center blur-[0.8px] scale-[1.02]"
+            decoding="async"
+            fetchPriority="high"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.225)] to-[rgba(0,0,0,0.275)]" />
         </div>
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]"
+          className="pointer-events-none absolute inset-0 opacity-[0.035] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]"
           aria-hidden
         />
-        <div className="relative z-10 animate-fade-in px-4 text-center">
-          <h1 className="!font-heading text-4xl font-bold text-foreground md:text-6xl">Events</h1>
+        <div className="relative z-10 animate-fade-in px-4 text-center max-w-[min(100%,40rem)] mx-auto">
+          <h1 className="hero-heading-glow !font-heading font-bold text-foreground text-[clamp(1.85rem,5vw+0.5rem,3.75rem)] md:text-[clamp(2.5rem,4vw+1rem,3.75rem)]">
+            Events
+          </h1>
           <div className="gold-divider mt-6" />
         </div>
       </section>
 
-      <section className="section-padding border-y border-border/40 bg-muted/80">
+      <section className="section-warm-radial section-padding border-y border-border/40 bg-muted/80">
         <div
-          ref={fadeRef}
-          className={cn("fade-in-scroll-target container mx-auto", fadeVisible && "is-visible")}
+          ref={calendarFade.ref}
+          style={calendarFade.style}
+          className={cn("container mx-auto", calendarFade.className)}
         >
           <SectionHeading
             title="Live events calendar"
@@ -185,23 +174,21 @@ const Events = () => {
                   )}
                 >
                   {event.image_path || event.image_url ? (
-                    <div className="relative h-44 w-full shrink-0 overflow-hidden">
-                      <img
-                        src={
-                          event.image_path
-                            ? supabase.storage.from("event-images").getPublicUrl(event.image_path).data.publicUrl
-                            : event.image_url ?? undefined
-                        }
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
+                    <img
+                      src={
+                        event.image_path
+                          ? supabase.storage.from("event-images").getPublicUrl(event.image_path).data.publicUrl
+                          : event.image_url ?? undefined
+                      }
+                      alt=""
+                      className="h-44 w-full max-w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : null}
-                  <div className="flex flex-1 flex-col p-6">
-                    <h2 className="font-heading text-lg text-foreground">{event.name}</h2>
-                    <p className="mt-1 font-body text-sm text-muted-foreground">
+                  <CardHeader>
+                    <CardTitle className="font-heading text-lg">{event.name}</CardTitle>
+                    <p className="font-body text-sm text-muted-foreground">
                       {event.date} • {event.time} {event.price != null ? `• $${event.price}` : ""}
                     </p>
                   </CardHeader>
@@ -239,7 +226,7 @@ const Events = () => {
                 Follow for updates
               </a>
             </Button>
-            <p className="mt-6 max-w-full px-1 font-body text-sm text-muted-foreground break-words">
+            <p className="mt-6 font-body text-sm text-muted-foreground">
               Prefer the phone?{" "}
               <Link
                 to="/contact"

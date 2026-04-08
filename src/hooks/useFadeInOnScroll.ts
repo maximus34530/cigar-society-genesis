@@ -1,31 +1,58 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, RefObject } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
-const IO_OPTIONS: IntersectionObserverInit = {
-  threshold: 0.15,
-  rootMargin: "0px 0px -32px 0px",
+const THRESHOLD = 0.15;
+
+export type FadeInOnScrollResult = {
+  ref: RefObject<HTMLDivElement>;
+  style: CSSProperties;
+  className: string;
+  visible: boolean;
 };
 
 /**
- * Fades in and slides content up 24px when the element crosses the visibility threshold.
+ * Fades in and slides up when the element crosses the viewport threshold.
+ * Optional stagger delay (ms) for list items after the element becomes visible.
  */
-export function useFadeInOnScroll<T extends HTMLElement = HTMLElement>() {
-  const ref = useRef<T | null>(null);
+export function useFadeInOnScroll(staggerDelayMs = 0): FadeInOnScrollResult {
+  const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting) {
-        setVisible(true);
-        io.disconnect();
-      }
-    }, IO_OPTIONS);
+    if (prefersReducedMotion) {
+      setVisible(true);
+      return;
+    }
 
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { threshold: THRESHOLD },
+    );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [prefersReducedMotion]);
 
-  return { ref, visible };
+  const delay = visible ? staggerDelayMs : 0;
+
+  return {
+    ref,
+    visible,
+    className: "fade-in-scroll-target",
+    style: {
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0)" : "translateY(24px)",
+      transition: "opacity 600ms ease-out, transform 600ms ease-out",
+      transitionDelay: `${delay}ms`,
+    },
+  };
 }

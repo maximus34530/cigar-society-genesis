@@ -6,7 +6,7 @@ import { trackEvent } from "@/lib/analytics";
 
 const Footer = () => {
   return (
-    <footer className="bg-muted/90 border-t border-border/80 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <footer className="footer-border-glow relative bg-muted/90 shadow-[inset_0_1px_0_hsl(var(--gold)/0.12)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="container mx-auto section-padding">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>

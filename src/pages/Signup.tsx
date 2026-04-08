@@ -108,7 +108,7 @@ const Signup = () => {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="btn-gold-shimmer w-full bg-gold-gradient font-body text-sm uppercase tracking-wider text-primary-foreground shadow-gold hover:opacity-90"
+                  className="w-full bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm shadow-gold hover:opacity-90"
                 >
                   {submitting ? "Creating..." : "Sign up"}
                 </Button>

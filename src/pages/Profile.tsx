@@ -159,7 +159,7 @@ const Profile = () => {
                   </Button>
 
                   {isAdmin ? (
-                    <Button asChild className="btn-gold-shimmer w-full bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                    <Button asChild className="w-full bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
                       <Link to="/admin">Go to Admin</Link>
                     </Button>
                   ) : null}

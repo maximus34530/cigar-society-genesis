@@ -1,6 +1,5 @@
 import { useEffect, useId, useState } from "react";
 import loungeImg from "@/assets/lounge-seating.jpg";
-import loungeWebp from "@/assets/lounge-seating.webp";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,18 +39,14 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
   return (
     <div className="fixed inset-0 z-[200] flex min-h-[100dvh] items-center justify-center">
-      <picture className="absolute inset-0 block h-full w-full" aria-hidden>
-        <source srcSet={loungeWebp} type="image/webp" />
-        <img
-          src={loungeImg}
-          alt=""
-          aria-hidden
-          className="h-full w-full object-cover object-center"
-          decoding="async"
-          fetchPriority="high"
-          loading="eager"
-        />
-      </picture>
+      <img
+        src={loungeImg}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 h-full w-full object-cover object-center"
+        decoding="async"
+        fetchPriority="high"
+      />
       <div className="absolute inset-0 bg-[hsl(0_0%_0%_/0.45)]" aria-hidden />
       <div
         role="dialog"
