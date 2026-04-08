@@ -136,9 +136,8 @@ const Index = () => {
           muted
           loop
           playsInline
-          preload="none"
-          poster="/images/cigar-lounge-bg.webp"
-          className="absolute inset-0 h-full w-full object-cover"
+          preload="auto"
+          className="absolute inset-0 h-full w-full object-cover bg-background"
           aria-label="Cigar Society lounge cinematic background"
         >
           <source src={heroVideoPath} type="video/mp4" />
