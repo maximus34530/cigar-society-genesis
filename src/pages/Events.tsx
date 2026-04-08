@@ -132,11 +132,7 @@ const Events = () => {
       </section>
 
       <section className="section-warm-radial section-padding border-y border-border/40 bg-muted/80">
-        <div
-          ref={calendarFade.ref}
-          style={calendarFade.style}
-          className={cn("container mx-auto", calendarFade.className)}
-        >
+        <div className="container mx-auto">
           <SectionHeading
             title="Live events calendar"
             subtitle="See what’s on at the lounge. For last-minute updates, follow us on Instagram."
