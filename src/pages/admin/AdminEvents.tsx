@@ -28,6 +28,7 @@ type EventRow = {
   date: string;
   time: string;
   price: number | null;
+  capacity_total: number | null;
   description: string | null;
   image_url: string | null;
   image_path: string | null;
@@ -43,6 +44,10 @@ const schema = z.object({
     .string()
     .optional()
     .refine((v) => !v || Number.isFinite(Number(v)), "Enter a number"),
+  capacityTotal: z
+    .string()
+    .optional()
+    .refine((v) => !v || (Number.isInteger(Number(v)) && Number(v) >= 0), "Enter a whole number (0 or higher)"),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
 });
@@ -85,6 +90,7 @@ export default function AdminEvents() {
       date: "",
       time: "",
       price: "",
+      capacityTotal: "",
       description: "",
       isActive: true,
     },
@@ -97,7 +103,7 @@ export default function AdminEvents() {
     try {
       const base = supabase
         .from("events")
-        .select("id,name,date,time,price,description,image_url,image_path,is_active,created_at,deleted_at")
+        .select("id,name,date,time,price,capacity_total,description,image_url,image_path,is_active,created_at,deleted_at")
         .order("date", { ascending: true })
         .order("time", { ascending: true });
 
@@ -159,6 +165,7 @@ export default function AdminEvents() {
                     date: "",
                     time: "",
                     price: "",
+                    capacityTotal: "",
                     description: "",
                     isActive: true,
                   });
@@ -184,6 +191,7 @@ export default function AdminEvents() {
                     date: values.date,
                     time: values.time,
                     price: values.price ? Number(values.price) : null,
+                    capacity_total: values.capacityTotal?.trim() ? Number(values.capacityTotal) : null,
                     description: values.description?.trim() ? values.description.trim() : null,
                     is_active: values.isActive,
                   };
@@ -285,6 +293,25 @@ export default function AdminEvents() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="capacityTotal"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Capacity cap</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          inputMode="numeric"
+                          className="bg-card border-border"
+                          placeholder="Leave blank for unlimited"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField
@@ -482,6 +509,7 @@ export default function AdminEvents() {
                             date: row.date,
                             time: row.time,
                             price: row.price?.toString() ?? "",
+                            capacityTotal: row.capacity_total != null ? String(row.capacity_total) : "",
                             description: row.description ?? "",
                             isActive: row.is_active ?? true,
                           });
