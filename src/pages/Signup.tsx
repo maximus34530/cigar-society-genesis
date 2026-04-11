@@ -40,7 +40,7 @@ const Signup = () => {
 
   return (
     <Layout>
-      <Seo title="Sign Up" description="Create your Cigar Society account." path="/signup" />
+      <Seo title="Sign Up" description="Create your Cigar Society account." path="/signup" noIndex />
       <section className="section-padding">
         <div className="container mx-auto max-w-lg">
           <SectionHeading title="Create your account" subtitle="Sign up to view your profile and event bookings." />

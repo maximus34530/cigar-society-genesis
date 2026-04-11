@@ -39,7 +39,7 @@ const Login = () => {
 
   return (
     <Layout>
-      <Seo title="Log In" description="Log in to your Cigar Society account." path="/login" />
+      <Seo title="Log In" description="Log in to your Cigar Society account." path="/login" noIndex />
       <section className="section-padding">
         <div className="container mx-auto max-w-lg">
           <SectionHeading title="Log in" subtitle="Access your profile and bookings." />

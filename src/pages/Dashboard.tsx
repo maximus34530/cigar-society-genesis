@@ -198,7 +198,7 @@ const Dashboard = () => {
   return (
     <RequireAuth>
       <Layout>
-        <Seo title="Dashboard" description="Your account dashboard." path="/dashboard" />
+        <Seo title="Dashboard" description="Your account dashboard." path="/dashboard" noIndex />
         <section className="section-padding">
           <div className="container mx-auto max-w-5xl">
             <SectionHeading

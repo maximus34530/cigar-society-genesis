@@ -108,7 +108,7 @@ const Profile = () => {
   return (
     <RequireAuth>
       <Layout>
-        <Seo title="Profile" description="Your Cigar Society profile." path="/profile" />
+        <Seo title="Profile" description="Your Cigar Society profile." path="/profile" noIndex />
         <section className="section-padding">
           <div className="container mx-auto max-w-4xl">
             <SectionHeading title="Profile" subtitle="Manage your account and view your event bookings." />

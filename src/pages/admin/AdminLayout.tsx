@@ -17,7 +17,7 @@ export default function AdminLayout() {
   return (
     <RequireAdmin>
       <Layout>
-        <Seo title="Admin" description="Admin dashboard." path="/admin" />
+        <Seo title="Admin" description="Admin dashboard." path="/admin" noIndex />
         <section className="section-padding">
           <div className="container mx-auto">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr] min-w-0">
