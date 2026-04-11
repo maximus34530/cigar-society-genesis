@@ -362,7 +362,11 @@ const Index = () => {
                 >
                   Apple Maps
                 </a>
-                . You can also jump to our <Link to="/#find-us" className="text-primary underline-offset-4 hover:underline">Find Us</Link> section on this page.
+                . You can also jump to our{" "}
+                <a href="#find-us" className="text-primary underline-offset-4 hover:underline">
+                  Find Us
+                </a>{" "}
+                section on this page.
               </p>
             </div>
           </div>
