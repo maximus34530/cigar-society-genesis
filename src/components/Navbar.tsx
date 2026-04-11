@@ -43,56 +43,62 @@ const Navbar = () => {
           : "bg-transparent border-b border-transparent",
       )}
     >
-      <div className="container mx-auto flex items-center justify-between h-20 px-4">
-        <Link to="/" className="inline-flex items-center touch-manipulation">
-          <BrandLogo />
-        </Link>
-
-        <div className="hidden lg:flex items-center gap-6">
-          <ul className="flex items-center gap-8">
-          {navLinks.map((link) => (
-            <li key={link.path}>
-              <Link
-                to={link.path}
-                className={`relative pb-0.5 text-sm font-body tracking-widest uppercase transition-colors duration-200 hover:text-primary after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full ${
-                  location.pathname === link.path ? "text-primary after:w-full" : "text-foreground/70"
-                }`}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-          </ul>
-          {user ? (
-            <ProfileMenu />
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                to="/login"
-                className="text-sm font-body tracking-widest uppercase text-foreground/70 hover:text-primary transition-colors"
-              >
-                Log In
-              </Link>
-              <Link
-                to="/signup"
-                className="text-sm font-body tracking-widest uppercase text-primary hover:text-primary/90 transition-colors"
-              >
-                Sign Up
-              </Link>
-            </div>
-          )}
+      <div className="container mx-auto grid h-20 grid-cols-[1fr_auto] items-center px-4 lg:grid-cols-[1fr_auto_1fr]">
+        <div className="flex min-w-0 justify-start">
+          <Link to="/" className="inline-flex shrink-0 items-center touch-manipulation">
+            <BrandLogo />
+          </Link>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          className="lg:hidden text-foreground min-h-[44px] min-w-[44px] inline-flex items-center justify-center touch-manipulation rounded-md"
-          aria-label="Toggle menu"
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="hidden min-w-0 justify-center lg:flex">
+          <ul className="flex items-center justify-center gap-5 xl:gap-7">
+            {navLinks.map((link) => (
+              <li key={link.path}>
+                <Link
+                  to={link.path}
+                  className={`relative pb-0.5 text-sm font-body tracking-widest uppercase transition-colors duration-200 hover:text-primary after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full ${
+                    location.pathname === link.path ? "text-primary after:w-full" : "text-foreground/70"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex min-w-0 items-center justify-end gap-2">
+          <div className="hidden items-center gap-3 lg:flex">
+            {user ? (
+              <ProfileMenu />
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-body tracking-widest uppercase text-foreground/70 transition-colors hover:text-primary"
+                >
+                  Log In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="text-sm font-body tracking-widest uppercase text-primary transition-colors hover:text-primary/90"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-foreground touch-manipulation lg:hidden"
+            aria-label="Toggle menu"
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {open && (
