@@ -101,7 +101,7 @@ flowchart TD
 
 2. **Authentication → Providers**  
    - **Email** — confirm email **ON** (matches locked decision).  
-   - **Google** — enable; paste **Web client ID** + **secret** from [Google Cloud Console](https://console.cloud.google.com/) (OAuth consent screen + OAuth 2.0 Client IDs, type **Web application**). Authorized redirect URI must include Supabase’s callback URL shown in the Supabase Google provider settings.  
+   - **Google** — enable; paste **Web client ID** + **secret** from [Google Cloud Console](https://console.cloud.google.com/). Full click-by-click list is in **Appendix — Google Sign-In** below (do when ready; code-side OAuth is already implemented).  
    - **Apple** — enable; complete **Services ID**, **Secret Key (.p8)**, **Key ID**, **Team ID** per Supabase docs (Apple Developer → Certificates, Identifiers & Profiles).
 
 3. **Authentication → Email templates** — optional branding for confirm signup.
@@ -134,6 +134,74 @@ flowchart TD
 | `VITE_SUPABASE_URL` | Project URL. |
 | `VITE_SUPABASE_ANON_KEY` or `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Client key. |
 | `VITE_SITE_ORIGIN` | Optional; used in **`oauthSignIn`** only if `window` is missing (SSR/build edge cases). Prefer real browser **`window.location.origin`** for OAuth redirect. |
+
+---
+
+## Appendix — Google Sign-In (step-by-step, manual — do when ready)
+
+**Why this is “later work”:** The app code is already in place (`signInWithOAuth`, `/auth/callback`, PKCE). Turning Google **on** means creating an OAuth client in **Google Cloud**, pasting **Client ID** + **Client secret** into **Supabase**, and aligning **redirect allow lists**. That is all **outside** the repo (no MCP shortcut for Google’s console).
+
+**Callback URL to register in Google (always use the value from your project):**  
+In Supabase → **Authentication** → **Providers** → **Google**, copy **Callback URL (for OAuth)**. It has the form:
+
+`https://<project-ref>.supabase.co/auth/v1/callback`
+
+Do not guess `<project-ref>` — use **Copy** in the Supabase UI.
+
+### 1. Supabase — allow your app origins
+
+1. **Authentication** → **URL configuration**.
+2. **Redirect URLs** — add at least:
+   - `http://localhost:8080/**` (match your Vite dev port if different)
+   - `http://127.0.0.1:8080/**` (optional)
+   - Production: `https://YOURDOMAIN.com/**`
+   - Preview (if needed): e.g. `https://*.vercel.app/**`
+3. **Site URL** — your primary user-facing origin (production), or `http://localhost:8080` while testing only locally.
+
+### 2. Google Cloud — OAuth consent screen
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → select or create a **project**.
+2. **APIs & Services** → **OAuth consent screen**.
+3. User type: **External** (typical) → complete app name, support email, developer contact, and save.
+
+### 3. Google Cloud — OAuth 2.0 Web client
+
+1. **APIs & Services** → **Credentials** → **Create credentials** → **OAuth client ID**.
+2. Application type: **Web application**.
+3. **Authorized JavaScript origins** — add every origin users hit in the browser, e.g.:
+   - `http://localhost:8080`
+   - `https://YOURDOMAIN.com`
+4. **Authorized redirect URIs** — add **exactly one** URI for this flow (from Supabase Google provider, step above):
+
+   `https://<project-ref>.supabase.co/auth/v1/callback`
+
+5. Create → copy **Client ID** and **Client secret**.
+
+### 4. Supabase — enable Google provider
+
+1. **Authentication** → **Providers** → **Google**.
+2. Turn **Enable Sign in with Google** **On**.
+3. **Client IDs** — paste the **Client ID** (one is enough).
+4. **Client Secret (for OAuth)** — paste the **Client secret**.
+5. Leave **Skip nonce checks** and **Allow users without an email** **Off** unless you have a documented reason.
+6. **Save**.
+
+**Security note:** Keep the **Client secret** in Supabase only — do **not** add it to `VITE_*` or ship it in the frontend bundle.
+
+### 5. Smoke test
+
+1. `npm run dev` → open **Log in** or **Sign up** → **Continue with Google**.
+2. Expected: Google account chooser → redirect → your app **`/auth/callback`** → then **Dashboard** or the preserved **`from`** path (e.g. Events reserve).
+
+### Troubleshooting (Google only)
+
+| Symptom | Likely fix |
+|--------|------------|
+| `redirect_uri_mismatch` | In **Google** credentials, **Authorized redirect URIs** must match Supabase’s callback **character-for-character** (scheme, host, path, no wrong slash). |
+| Error right after Google, before your app | **Supabase → URL configuration → Redirect URLs** must include your app (`http://localhost:8080/**`, production `https://…/**`). |
+| Works in prod, not local | Add `http://localhost:8080` to **Authorized JavaScript origins** and use the same port as Vite. |
+
+**Apple:** Same idea (Services ID, return URLs, key, Team ID) but more moving parts — add a sibling appendix when you pick that up; Supabase **Apple** provider panel lists the exact fields.
 
 ---
 
