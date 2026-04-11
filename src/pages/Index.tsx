@@ -297,6 +297,85 @@ const Index = () => {
         </div>
       </section>
 
+      <section id="faq" className="section-padding scroll-mt-24 border-t border-border/40 bg-muted/40">
+        <div className="container mx-auto max-w-3xl">
+          <SectionHeading
+            title="Common questions"
+            subtitle="Quick answers before you visit. For anything else, call us or stop by during business hours."
+          />
+          <div className="space-y-10 text-left">
+            <div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-3">What are your hours?</h3>
+              <p className="text-muted-foreground font-body text-sm leading-relaxed sm:text-base">
+                We&apos;re open {business.hoursText}. Holiday hours can differ—call {business.phoneDisplay} if you want
+                to double-check before you head over.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-3">Is there an age requirement?</h3>
+              <p className="text-muted-foreground font-body text-sm leading-relaxed sm:text-base">
+                Yes. Cigar Society is <span className="text-foreground/90">21+ to enter</span>, consistent with our
+                lounge policies. Please bring a valid government-issued ID.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-3">Do you allow BYOB?</h3>
+              <p className="text-muted-foreground font-body text-sm leading-relaxed sm:text-base">
+                We serve bourbon, beer, and mixed drinks at the bar. Outside bottles and BYOB rules can change with
+                events and staffing—call {business.phoneDisplay} before your visit and our team will share the current
+                policy.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-3">Do you host private events?</h3>
+              <p className="text-muted-foreground font-body text-sm leading-relaxed sm:text-base">
+                We&apos;re happy to talk through private events, celebrations, and group visits. Reach us at{" "}
+                <a href={`tel:${business.phoneE164}`} className="text-primary underline-offset-4 hover:underline">
+                  {business.phoneDisplay}
+                </a>{" "}
+                or visit during business hours so we can help with availability and details.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-3">
+                Where are you located, and is there parking?
+              </h3>
+              <p className="text-muted-foreground font-body text-sm leading-relaxed sm:text-base">
+                You&apos;ll find us at {business.address} in the Rio Grande Valley. Street and nearby lot parking is
+                typically available around our block; for the most up-to-date map and walking directions, use{" "}
+                <a
+                  href={business.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                  onClick={() => trackEvent("Directions", { location: "home-faq", target: "google-maps" })}
+                >
+                  Google Maps
+                </a>{" "}
+                or{" "}
+                <a
+                  href={business.appleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                  onClick={() => trackEvent("Directions", { location: "home-faq", target: "apple-maps" })}
+                >
+                  Apple Maps
+                </a>
+                . You can also jump to our <Link to="/#find-us" className="text-primary underline-offset-4 hover:underline">Find Us</Link> section on this page.
+              </p>
+            </div>
+          </div>
+          <p className="mt-12 text-center text-sm text-muted-foreground font-body">
+            More ways to reach us:{" "}
+            <Link to="/contact" className="text-primary underline-offset-4 hover:underline">
+              Contact
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       <section id="find-us" className="section-padding scroll-mt-24 bg-muted">
         <div className="container mx-auto">
           <SectionHeading
