@@ -37,6 +37,7 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 
 ## Project docs
 
+- [`cursor-agent-bundle/GUIDES/login_signup_auth.md`](./cursor-agent-bundle/GUIDES/login_signup_auth.md) — Supabase auth, OAuth (Google/Apple), return-to-intent, MCP notes
 - `IMPLEMENTATION_PLAN.md` — Phases and scope
 - `Phase_2_implementation_plan.md` — Phase 2 epics, order, and hold areas
 - `GITHUB_ISSUES_GUIDE.md` — Issue workflow

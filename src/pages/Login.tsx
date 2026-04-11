@@ -1,12 +1,17 @@
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_POST_AUTH_PATH, resolvePostLoginPath } from "@/lib/authRouting";
+import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -14,7 +19,7 @@ import { z } from "zod";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type Values = z.infer<typeof schema>;
@@ -24,10 +29,12 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const from = useMemo(() => {
     const state = location.state as { from?: string } | null;
-    return state?.from ?? "/profile";
+    return state?.from ?? DEFAULT_POST_AUTH_PATH;
   }, [location.state]);
 
   const form = useForm<Values>({
@@ -43,7 +50,58 @@ const Login = () => {
       <section className="section-padding">
         <div className="container mx-auto max-w-lg">
           <SectionHeading title="Log in" subtitle="Access your profile and bookings." />
-          <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8">
+          <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8 space-y-6">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-border/80 bg-background/50 font-body text-sm"
+                disabled={oauthBusy !== null}
+                aria-busy={oauthBusy === "google"}
+                onClick={async () => {
+                  form.clearErrors("root");
+                  setOauthBusy("google");
+                  try {
+                    await signInWithOAuthProvider("google", from);
+                  } catch (e) {
+                    const msg = e instanceof Error ? e.message : "Google sign-in failed.";
+                    form.setError("root", { message: msg });
+                  } finally {
+                    setOauthBusy(null);
+                  }
+                }}
+              >
+                {oauthBusy === "google" ? "Redirecting…" : "Continue with Google"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-border/80 bg-background/50 font-body text-sm"
+                disabled={oauthBusy !== null}
+                aria-busy={oauthBusy === "apple"}
+                onClick={async () => {
+                  form.clearErrors("root");
+                  setOauthBusy("apple");
+                  try {
+                    await signInWithOAuthProvider("apple", from);
+                  } catch (e) {
+                    const msg = e instanceof Error ? e.message : "Apple sign-in failed.";
+                    form.setError("root", { message: msg });
+                  } finally {
+                    setOauthBusy(null);
+                  }
+                }}
+              >
+                {oauthBusy === "apple" ? "Redirecting…" : "Continue with Apple"}
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Separator className="flex-1 bg-border/60" />
+              <span className="text-xs uppercase tracking-widest text-muted-foreground font-body">or</span>
+              <Separator className="flex-1 bg-border/60" />
+            </div>
+
             <Form {...form}>
               <form
                 className="space-y-5"
@@ -69,10 +127,7 @@ const Login = () => {
 
                     const role = (profile as { role?: string } | null)?.role;
                     const isAdmin = role === "admin";
-
-                    // If they were navigating to a specific page, keep that.
-                    // Otherwise route admins directly to the admin dashboard.
-                    const destination = from === "/profile" && isAdmin ? "/admin" : from;
+                    const destination = resolvePostLoginPath(from, isAdmin);
                     navigate(destination, { replace: true });
                   } finally {
                     setSubmitting(false);
@@ -99,7 +154,22 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" autoComplete="current-password" className="bg-card border-border" />
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            className="bg-card border-border pr-11"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((v) => !v)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-2 text-muted-foreground hover:text-foreground"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -107,16 +177,20 @@ const Login = () => {
                 />
 
                 {form.formState.errors.root?.message ? (
-                  <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+                  <Alert variant="destructive">
+                    <AlertTitle>Sign-in</AlertTitle>
+                    <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+                  </Alert>
                 ) : null}
 
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={submitting}
+                  disabled={submitting || oauthBusy !== null}
+                  aria-busy={submitting}
                   className="w-full bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm shadow-gold hover:opacity-90"
                 >
-                  {submitting ? "Logging in..." : "Log in"}
+                  {submitting ? "Logging in…" : "Log in"}
                 </Button>
 
                 <p className="text-sm text-muted-foreground font-body text-center">
@@ -135,4 +209,3 @@ const Login = () => {
 };
 
 export default Login;
-

@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { isAgeVerified, setAgeVerified } from "@/lib/ageGateStorage";
+import { PostAuthEmailConfirmRedirect } from "@/components/PostAuthEmailConfirmRedirect";
 import { PageLoadingFallback } from "./components/PageLoadingFallback";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -27,6 +28,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 
 const App = () => {
   const [ageVerified, setAgeVerifiedState] = useState(() => isAgeVerified());
@@ -46,6 +48,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Suspense fallback={<PageLoadingFallback />}>
+              <PostAuthEmailConfirmRedirect />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/about" element={<About />} />
@@ -56,6 +59,7 @@ const App = () => {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminLayout />}>

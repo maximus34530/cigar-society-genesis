@@ -6,7 +6,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/profile" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
 
