@@ -1,5 +1,6 @@
 # User & Admin Dashboard / Auth — UI/UX Implementation Plan (Phase 2)
 
+Issue: **[#114](https://github.com/maximus34530/cigar-society-genesis/issues/114)** (closed — doc delivered; use file reminder for next brainstorm)  
 **Companion docs:** [`Phase_2_implementation_plan.md`](./Phase_2_implementation_plan.md) (epics A–D), [`BRANDING_STYLES.md`](./BRANDING_STYLES.md), [`GITHUB_ISSUES_GUIDE.md`](./GITHUB_ISSUES_GUIDE.md)  
 **Related open issues (auth polish):** [#107](https://github.com/maximus34530/cigar-society-genesis/issues/107), [#108](https://github.com/maximus34530/cigar-society-genesis/issues/108)  
 **Scope:** Customer **Dashboard** & **Profile**, **Login** / **Signup**, **Navbar** account affordances, **Admin** shell + key screens — what exists today vs what Phase 2 still implies.  
