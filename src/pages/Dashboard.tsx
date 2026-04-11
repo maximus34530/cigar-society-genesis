@@ -3,6 +3,8 @@ import { RequireAuth } from "@/components/RequireAuth";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { useAuth } from "@/hooks/useAuth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,10 +17,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { bookingStatusLabel } from "@/lib/bookingStatus";
+import { business } from "@/lib/business";
+import { createCheckoutSessionUrl } from "@/lib/checkout";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
-import { CalendarDays, ChevronRight, PartyPopper, Bell, XCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, CheckCircle2, ChevronRight, Loader2, PartyPopper, Bell, XCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
@@ -26,6 +31,9 @@ type BookingRow = {
   id: string;
   tickets: number;
   total_paid: number;
+  status: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   created_at: string;
   events: { id: string; name: string; date: string; time: string } | { id: string; name: string; date: string; time: string }[] | null;
 };
@@ -56,6 +64,9 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [confirmCancel, setConfirmCancel] = useState<BookingRow | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [checkoutSuccessBanner, setCheckoutSuccessBanner] = useState(false);
+  const [resumingId, setResumingId] = useState<string | null>(null);
+  const bookingsSectionRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
     if (!user) return;
@@ -63,7 +74,9 @@ const Dashboard = () => {
     setError(null);
     const { data, error: err } = await supabase
       .from("bookings")
-      .select("id,tickets,total_paid,created_at,events(id,name,date,time)")
+      .select(
+        "id,tickets,total_paid,status,stripe_checkout_session_id,stripe_payment_intent_id,created_at,events(id,name,date,time)",
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -89,12 +102,10 @@ const Dashboard = () => {
     if (checkout !== "success") return;
 
     const sessionId = searchParams.get("session_id");
-    const bookingId = searchParams.get("booking_id");
 
     (async () => {
+      let showSuccessBanner = false;
       try {
-        // Best-effort finalize: if the webhook is delayed/misconfigured, we can still
-        // confirm the payment by asking Stripe for the session.
         if (sessionId) {
           const { error: finalizeError } = await supabase.functions.invoke("finalize-checkout-session", {
             body: { session_id: sessionId },
@@ -104,20 +115,28 @@ const Dashboard = () => {
 
         toast({
           title: "Payment confirmed",
-          description: bookingId ? "Your ticket purchase was saved to your account." : "Your ticket purchase was saved to your account.",
+          description: "Your ticket purchase was saved to your account.",
         });
+        showSuccessBanner = true;
       } catch (e) {
         toast({
           title: "Payment received, syncing…",
           description: e instanceof Error ? e.message : "We’re still confirming your payment. Refresh in a moment.",
         });
+        showSuccessBanner = false;
       } finally {
-        // Refresh data and remove query params so refresh doesn't re-toast.
         await load();
-        searchParams.delete("checkout");
-        searchParams.delete("session_id");
-        searchParams.delete("booking_id");
-        setSearchParams(searchParams, { replace: true });
+        if (showSuccessBanner) setCheckoutSuccessBanner(true);
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete("checkout");
+            next.delete("session_id");
+            next.delete("booking_id");
+            return next;
+          },
+          { replace: true },
+        );
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -193,6 +212,46 @@ const Dashboard = () => {
               </div>
             ) : null}
 
+            {checkoutSuccessBanner ? (
+              <Alert className="mb-6 border-primary/30 bg-primary/5">
+                <CheckCircle2 className="h-4 w-4 text-primary" aria-hidden />
+                <AlertTitle className="font-heading">You’re all set</AlertTitle>
+                <AlertDescription className="font-body text-sm text-muted-foreground">
+                  <ul className="mt-2 list-inside list-disc space-y-1">
+                    <li>Show your booking confirmation at the door if asked.</li>
+                    <li>Check your email for your receipt (may take a minute).</li>
+                    <li>
+                      <a
+                        href={business.googleDirectionsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline underline-offset-2 hover:text-primary/90"
+                      >
+                        Get directions
+                      </a>{" "}
+                      to the lounge.
+                    </li>
+                  </ul>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                      onClick={() => {
+                        bookingsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        setCheckoutSuccessBanner(false);
+                      }}
+                    >
+                      View my bookings
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" className="border-border/70" onClick={() => setCheckoutSuccessBanner(false)}>
+                      Dismiss
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Card className="bg-card/40 border-border/60">
                 <CardHeader>
@@ -232,7 +291,7 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <div ref={bookingsSectionRef} className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
               <Card className="bg-card/40 border-border/60">
                 <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
@@ -275,18 +334,57 @@ const Dashboard = () => {
                             const ev = embeddedEvent(b);
                             return (
                           <div className="min-w-0">
-                            <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
+                              <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
+                                {bookingStatusLabel(b.status)}
+                              </Badge>
+                            </div>
                             <p className="mt-1 font-body text-sm text-muted-foreground">
                               {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
                             </p>
                             <p className="mt-2 font-body text-xs text-muted-foreground/80">
                               {b.tickets} tickets {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
                             </p>
+                            {b.status === "pending_payment" ? (
+                              <p className="mt-2 font-body text-xs text-muted-foreground">
+                                Payment not completed yet. You can finish checkout when you are ready.
+                              </p>
+                            ) : null}
                           </div>
                             );
                           })()}
 
                           <div className="flex flex-col gap-2 sm:flex-row">
+                            {b.status === "pending_payment" ? (
+                              <Button
+                                type="button"
+                                className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                                disabled={!!resumingId}
+                                onClick={async () => {
+                                  setResumingId(b.id);
+                                  try {
+                                    const url = await createCheckoutSessionUrl(b.id);
+                                    window.location.href = url;
+                                  } catch (e) {
+                                    toast({
+                                      title: "Couldn’t resume checkout",
+                                      description: e instanceof Error ? e.message : "Please try again.",
+                                    });
+                                    setResumingId(null);
+                                  }
+                                }}
+                              >
+                                {resumingId === b.id ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                                    Opening…
+                                  </>
+                                ) : (
+                                  "Complete payment"
+                                )}
+                              </Button>
+                            ) : null}
                             <Button type="button" variant="outline" className="border-border/70" asChild>
                               <Link to="/events">View events</Link>
                             </Button>

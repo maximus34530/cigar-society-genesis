@@ -6,6 +6,20 @@ Stack: React (Vite) + Supabase (DB/Auth/Edge Functions) + Stripe Checkout.
 
 ---
 
+## Checkout UX — what we’re improving (summary)
+
+We are keeping the **same technical architecture** (booking row → Edge Function → Stripe Checkout → webhook → dashboard finalize), but tightening the **front-of-house** so checkout feels like a premium venue, not a prototype:
+
+- **Clarity before commitment**: on the event, the user always sees what they’re buying (when, where, price, tickets, 21+ if applicable, capacity).
+- **Short linear flow**: **Tickets → Attendee details → Pay** (two or three steps max on mobile), with a **persistent order summary** so the user never loses context.
+- **Trust at payment**: totals and fees before “Continue to payment”; calm loading states so users don’t double-submit; Apple/Google Pay surfaced when Stripe offers them.
+- **Smooth auth handoff**: if login is required, return the user to the **same event** and **resume the same checkout intent** (already a goal of this plan—UX copy and layout should make that obvious).
+- **Confident completion**: after pay, land on **Dashboard** with a clear **paid** confirmation, refresh bookings, and optional next actions (view booking, directions) without changing backend truth (webhook remains primary).
+
+Visual and tone details should stay aligned with **`BRANDING_STYLES.md`** (gold accents, dark surfaces, restrained copy).
+
+---
+
 ## Desired outcome
 
 ### User experience (smooth + modern)
@@ -15,6 +29,7 @@ Stack: React (Vite) + Supabase (DB/Auth/Edge Functions) + Stripe Checkout.
 - If Stripe webhook is delayed, the UI still confirms payment via a **redirect finalize fallback** and refreshes the booking list.
 - Admin can optionally **cap event capacity** and the system prevents overselling.
 - Receipts are sent via a **fully custom n8n email** triggered server-side after payment confirmation.
+- **Checkout feels “guided”**: the user always knows which step they’re on, what they’re paying for, and what happens next—without extra marketing noise inside the payment path.
 
 ### Backend truth
 For each paid checkout, the matching `bookings` row in Supabase is updated with:
@@ -64,13 +79,19 @@ For each paid checkout, the matching `bookings` row in Supabase is updated with:
 ### What the user sees
 1. User opens **Events** page and clicks **Reserve / Buy tickets** on an event.
 2. If not logged in, user is sent to **Login / Signup**.
-3. After login/signup, user is sent back to the same event and fills out:
-   - First name, last name, phone, email, number of tickets
-4. User clicks **Continue to payment**.
-5. Stripe Checkout opens (card / Apple Pay / Google Pay).
-6. User pays successfully.
-7. User is redirected to **Dashboard** with a **thank you / payment confirmed** message.
-8. User can always see their ticket booking(s) on **Dashboard** and **Profile**.
+3. After login/signup, user is sent back to the same event and enters checkout:
+   - **Step A — Tickets**: choose ticket quantity; see **subtotal**, **per-ticket price**, and (if capped) **spots remaining** before continuing.
+   - **Step B — Details**: first name, last name, phone, email (only fields required for door check-in + receipt); each field has a **one-line “why we ask”** hint where helpful.
+   - **Step C — Pay**: user reviews an **order summary** (event title, date/time, ticket count, total); clicks **Continue to payment** once.
+4. Stripe Checkout opens (card / Apple Pay / Google Pay).
+5. User pays successfully.
+6. User is redirected to **Dashboard** with a **thank you / payment confirmed** message.
+7. User can always see their ticket booking(s) on **Dashboard** and **Profile**.
+
+**UX guardrails (non-negotiables for “professional”)**
+- **No surprise totals**: if there are fees/taxes, they must be visible **before** Stripe Checkout (even if $0 fees, say “Fees included” when true).
+- **No double-submit**: disable the primary button while `create-checkout-session` is running; show a lightweight spinner/skeleton on the CTA.
+- **Context never disappears**: keep a compact **event header** (thumbnail optional, title, date/time) visible at the top of each checkout step.
 
 ### How the data moves (visual)
 
@@ -117,6 +138,35 @@ Use a small, explicit set of values for `bookings.status`:
 
 ## Frontend implementation details (what we want)
 
+### UX shell — how the checkout UI should feel (layout + flow)
+
+**Recommended presentation (mobile-first)**  
+- Prefer a **full-screen checkout sheet** or a **dedicated checkout route** (ex: `/events/:id/checkout`) over a cramped modal once the user is collecting PII + paying.  
+- If you keep a modal for step A only, **promote** to full-screen at step B/C on small breakpoints.
+
+**Step chrome**  
+- Add a simple **step indicator**: `Tickets → Details → Pay` (text is fine; no need for heavy UI).  
+- Keep a **sticky summary**:
+  - Desktop: summary column on the right.
+  - Mobile: collapsible **“Order summary”** panel pinned above the primary button.
+
+**Event card / pre-checkout (Events list)**  
+Before opening checkout, each event card should answer at a glance:
+- **When** (local time + timezone if you ever expand beyond local)
+- **Where** (lounge address or “on-site”)
+- **Price** (per ticket + total estimate when quantity selected)
+- **Policy hooks** (21+ if applicable; refunds link to a short policy page)
+- **Capacity** (if capped): “X spots left” + disabled CTA when full
+
+**Attendee form UX**  
+- Use large tap targets, correct `autocomplete`, and **inline validation** (errors adjacent to fields).  
+- Avoid asking for anything you won’t use on the receipt or at the door.
+
+**Handoff to Stripe**  
+- Button copy: **“Continue to secure payment”** (more trustworthy than “Pay”).  
+- Secondary text (small): “You’ll complete payment on Stripe.”  
+- After redirect, the app should tolerate slow returns: the plan’s **finalize fallback** covers this—UI should say “Finalizing payment…” if needed.
+
 ### A) Reserve modal → Checkout
 - On “Continue to payment”:
   - Insert booking row with `tickets`, attendee info, etc.
@@ -124,23 +174,38 @@ Use a small, explicit set of values for `bookings.status`:
   - Invoke `create-checkout-session` with `booking_id`
   - Redirect to returned `checkout_url`
   - If the event is capacity-capped, the UI should show “X spots left” and block booking when full.
+- **UX additions (same flow, better execution)**:
+  - Split the current “single modal dump” into the **step flow** described above (tickets → details → pay).
+  - Add **explicit empty/error states**:
+    - Event inactive / not purchasable
+    - Sold out / not enough seats for requested tickets
+    - Network failure calling Edge Functions (retry + support hint)
+  - If the user backs out of Stripe Checkout, keep the booking in `pending_payment` and make “Resume payment” obvious (see section D).
 
 ### B) Success redirect UX (`/dashboard?checkout=success&booking_id=...&session_id=...`)
 - Show a **success toast/banner** (“Payment confirmed”).
 - Immediately refresh bookings list.
 - Best-effort: call `finalize-checkout-session` if `session_id` exists.
 - Remove query params after processing to avoid re-running on refresh.
+- **Optional premium touches (still compatible with this plan)**:
+  - A short **“What’s next”** list: “Show this confirmation at the door” / “Check your email for receipt” (n8n) / “Add to calendar” (link)
+  - A primary button: **“View my booking”** (scroll to the row / open detail)
 
 ### C) Cancel redirect UX (`/events?checkout=cancelled`)
 - Show a toast/banner:
   - “Checkout cancelled — your reservation is saved but unpaid.”
 - Optionally offer a “Resume payment” button that reuses the existing booking (see next section).
+- **UX additions**:
+  - If they land on `/events`, **scroll to the same event card** when possible (deep link hash or query), so they don’t feel “lost”.
 
 ### D) Resume payment (recommended next UX)
 If a booking is `pending_payment`, allow user to:
 - Open booking detail (dashboard/profile)
 - Click “Complete payment”
 - Call `create-checkout-session` again for that `booking_id`
+- **UX additions**:
+  - Show a **time-sensitive hint** if you later add “hold windows” (optional): “Your seats are reserved for X minutes.”  
+  - If you don’t implement holds yet, avoid implying a hold—keep copy honest: “Payment not completed yet.”
 
 ---
 
@@ -261,6 +326,12 @@ In Stripe Dashboard → Developers → Webhooks:
   - Booking remains `pending_payment` (or moves to `payment_cancelled` if implemented)
   - UI shows helpful message and allows retry
 
+### UX / interaction
+- **Mobile**: verify keyboard doesn’t cover inputs; primary CTA remains reachable; step indicator doesn’t wrap awkwardly.
+- **Auth return**: start checkout logged out → login/signup → confirm user returns to the **same event** with **form state preserved** (or clearly re-opened) before payment.
+- **Double-click protection**: rapid taps on “Continue to payment” must not create duplicate bookings (disable + spinner).
+- **Sold out / not enough seats**: verify messaging is specific (“Only 2 seats left”) vs generic errors.
+
 ### Reliability
 - Close tab immediately after paying (don’t return to success URL) and verify:
   - Webhook still marks booking `paid`
@@ -292,9 +363,14 @@ In Stripe Dashboard → Developers → Webhooks:
   - Paid / Pending payment / Cancelled
 - Add “Complete payment” for `pending_payment` bookings.
 - Admin: show payment status + Stripe IDs in `AdminBookings`.
+- **Checkout UX polish (matches “professional + easy” goals)**:
+  - Step indicator + sticky/collapsible order summary
+  - “Continue to secure payment” CTA pattern + non-deceptive microcopy
+  - Strong empty/error states for capacity + checkout creation failures
+  - Optional post-pay “What’s next” panel on Dashboard success state
 
 ---
 
 ## Questions (quick answers will tighten the plan)
-1. **Refunds**: For Phase 2, do you want refunds (admin-triggered) or only record payments?
+1. **Refunds**: For Phase 2, do you want refunds (admin-triggered) or only record payments?- Admin triggered
 

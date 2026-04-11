@@ -1,0 +1,13 @@
+# https://supabase.com/docs/guides/cli/config
+# Project ref is set when linking `supabase link`.
+
+# ES256 user JWTs from Auth can be rejected by the Edge gateway when verify_jwt is true
+# (see supabase/supabase#44530). These handlers already validate Authorization via getUser().
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.finalize-checkout-session]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false

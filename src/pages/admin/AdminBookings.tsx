@@ -11,9 +11,17 @@ type BookingRow = {
   phone: string;
   tickets: number;
   total_paid: number;
+  status: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   created_at: string;
   events: { name: string; date: string; time: string } | null;
 };
+
+function truncateId(id: string | null | undefined, len = 14) {
+  if (!id) return "—";
+  return id.length <= len ? id : `${id.slice(0, len)}…`;
+}
 
 export default function AdminBookings() {
   const [rows, setRows] = useState<BookingRow[]>([]);
@@ -25,7 +33,9 @@ export default function AdminBookings() {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id,name,email,phone,tickets,total_paid,created_at,events(name,date,time)")
+        .select(
+          "id,name,email,phone,tickets,total_paid,status,stripe_checkout_session_id,stripe_payment_intent_id,created_at,events(name,date,time)",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       setRows((data as BookingRow[]) ?? []);
@@ -91,7 +101,11 @@ export default function AdminBookings() {
                   </p>
                   <p className="mt-2 font-body text-xs text-muted-foreground/80">
                     {row.events ? `${row.events.name} • ${row.events.date} ${row.events.time}` : "No event linked"} •{" "}
-                    {row.tickets} tickets • ${row.total_paid}
+                    {row.tickets} tickets • ${row.total_paid} • status: {row.status ?? "—"}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground/70 break-all">
+                    Session: {truncateId(row.stripe_checkout_session_id, 18)} · PI:{" "}
+                    {truncateId(row.stripe_payment_intent_id, 18)}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">

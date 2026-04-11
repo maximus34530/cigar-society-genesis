@@ -27,3 +27,12 @@ dist-ssr
 .cursor/mcp.json
 .env.local
 .vercel
+
+# MCP deploy helper output (regenerate with `node scripts/build-mcp-edge-bundles.mjs`)
+scripts/.mcp-edge-bundles/
+
+# Local MCP / CLI deploy scratch payloads (do not commit)
+.tmp-*.json
+
+# Supabase CLI local cache
+supabase/.temp/

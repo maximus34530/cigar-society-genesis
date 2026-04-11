@@ -3,9 +3,11 @@ import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { RequireAuth } from "@/components/RequireAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,9 +18,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { bookingStatusLabel } from "@/lib/bookingStatus";
+import { createCheckoutSessionUrl } from "@/lib/checkout";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
-import { CalendarDays, XCircle } from "lucide-react";
+import { CalendarDays, Loader2, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -26,6 +30,7 @@ type BookingRow = {
   id: string;
   tickets: number;
   total_paid: number;
+  status: string | null;
   created_at: string;
   events: { id: string; name: string; date: string; time: string } | { id: string; name: string; date: string; time: string }[] | null;
 };
@@ -55,6 +60,7 @@ const Profile = () => {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [confirmCancel, setConfirmCancel] = useState<BookingRow | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [resumingId, setResumingId] = useState<string | null>(null);
 
   const loadBookings = async () => {
     if (!user) return;
@@ -63,7 +69,7 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id,tickets,total_paid,created_at,events(id,name,date,time)")
+        .select("id,tickets,total_paid,status,created_at,events(id,name,date,time)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -193,24 +199,66 @@ const Profile = () => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {upcoming.map((b) => (
+                      {upcoming.map((b) => {
+                        const ev = embeddedEvent(b);
+                        return (
                         <div
                           key={b.id}
                           className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/30 p-4 md:flex-row md:items-center md:justify-between"
                         >
                           <div className="min-w-0">
-                            <p className="font-heading text-base text-foreground">{b.events?.name ?? "Event"}</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
+                              <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
+                                {bookingStatusLabel(b.status)}
+                              </Badge>
+                            </div>
                             <p className="mt-1 font-body text-sm text-muted-foreground">
                               <span className="inline-flex items-center gap-2">
                                 <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
-                                {b.events ? `${b.events.date} • ${b.events.time}` : "Event details unavailable"}
+                                {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
                               </span>
                             </p>
                             <p className="mt-2 font-body text-xs text-muted-foreground/80">
-                              {b.tickets} ticket {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
+                              {b.tickets} ticket{b.tickets === 1 ? "" : "s"}{" "}
+                              {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
                             </p>
+                            {b.status === "pending_payment" ? (
+                              <p className="mt-2 font-body text-xs text-muted-foreground">
+                                Payment not completed yet.
+                              </p>
+                            ) : null}
                           </div>
                           <div className="flex flex-col gap-2 sm:flex-row">
+                            {b.status === "pending_payment" ? (
+                              <Button
+                                type="button"
+                                className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                                disabled={!!resumingId}
+                                onClick={async () => {
+                                  setResumingId(b.id);
+                                  try {
+                                    const url = await createCheckoutSessionUrl(b.id);
+                                    window.location.href = url;
+                                  } catch (e) {
+                                    toast({
+                                      title: "Couldn’t resume checkout",
+                                      description: e instanceof Error ? e.message : "Please try again.",
+                                    });
+                                    setResumingId(null);
+                                  }
+                                }}
+                              >
+                                {resumingId === b.id ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                                    Opening…
+                                  </>
+                                ) : (
+                                  "Complete payment"
+                                )}
+                              </Button>
+                            ) : null}
                             <Button type="button" variant="outline" className="border-border/70" onClick={() => void loadBookings()}>
                               Refresh
                             </Button>
@@ -226,7 +274,8 @@ const Profile = () => {
                             </Button>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>

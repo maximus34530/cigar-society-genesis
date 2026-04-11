@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 const schema = z.object({
@@ -23,14 +23,20 @@ type Values = z.infer<typeof schema>;
 const Signup = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
+
+  const from = useMemo(() => {
+    const state = location.state as { from?: string } | null;
+    return state?.from ?? "/profile";
+  }, [location.state]);
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { fullName: "", email: "", password: "" },
   });
 
-  if (user) return <Navigate to="/profile" replace />;
+  if (user) return <Navigate to={from} replace />;
 
   return (
     <Layout>
@@ -54,7 +60,7 @@ const Signup = () => {
                       form.setError("root", { message: error.message });
                       return;
                     }
-                    navigate("/profile", { replace: true });
+                    navigate(from, { replace: true });
                   } finally {
                     setSubmitting(false);
                   }

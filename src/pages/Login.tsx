@@ -35,7 +35,7 @@ const Login = () => {
     defaultValues: { email: "", password: "" },
   });
 
-  if (user) return <Navigate to="/profile" replace />;
+  if (user) return <Navigate to={from} replace />;
 
   return (
     <Layout>
@@ -121,7 +121,7 @@ const Login = () => {
 
                 <p className="text-sm text-muted-foreground font-body text-center">
                   Don’t have an account?{" "}
-                  <Link to="/signup" className="text-primary underline underline-offset-4 hover:text-primary/90">
+                  <Link to="/signup" state={{ from }} className="text-primary underline underline-offset-4 hover:text-primary/90">
                     Sign up
                   </Link>
                 </p>
