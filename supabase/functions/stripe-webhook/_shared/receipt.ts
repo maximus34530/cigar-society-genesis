@@ -1,5 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+type EventEmbed = {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  price: number | null;
+  capacity_total: number | null;
+  description: string | null;
+  image_url: string | null;
+  is_active: boolean | null;
+};
+
 type BookingReceiptRow = {
   id: string;
   name: string;
@@ -10,13 +22,10 @@ type BookingReceiptRow = {
   receipt_sent_at: string | null;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
-  events:
-    | { id: string; name: string; date: string; time: string }
-    | { id: string; name: string; date: string; time: string }[]
-    | null;
+  events: EventEmbed | EventEmbed[] | null;
 };
 
-function embeddedEvent(row: BookingReceiptRow) {
+function embeddedEvent(row: BookingReceiptRow): EventEmbed | null {
   if (!row.events) return null;
   return Array.isArray(row.events) ? row.events[0] ?? null : row.events;
 }
@@ -32,7 +41,7 @@ export async function sendReceiptEmail(admin: SupabaseClient, bookingId: string)
   const { data: row, error } = await admin
     .from("bookings")
     .select(
-      "id,name,email,phone,tickets,total_paid,receipt_sent_at,stripe_checkout_session_id,stripe_payment_intent_id,events(id,name,date,time)",
+      "id,name,email,phone,tickets,total_paid,receipt_sent_at,stripe_checkout_session_id,stripe_payment_intent_id,events(id,name,date,time,price,capacity_total,description,image_url,is_active)",
     )
     .eq("id", bookingId)
     .maybeSingle();
@@ -53,6 +62,19 @@ export async function sendReceiptEmail(admin: SupabaseClient, bookingId: string)
     event_name: event?.name ?? null,
     event_date: event?.date ?? null,
     event_time: event?.time ?? null,
+    event: event
+      ? {
+          id: event.id,
+          name: event.name,
+          date: event.date,
+          time: event.time,
+          price: event.price,
+          capacity_total: event.capacity_total,
+          description: event.description,
+          image_url: event.image_url,
+          is_active: event.is_active,
+        }
+      : null,
     attendee_name: typed.name,
     attendee_email: typed.email,
     attendee_phone: typed.phone,

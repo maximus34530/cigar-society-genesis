@@ -60,8 +60,8 @@ For each paid checkout, the matching `bookings` row in Supabase is updated with:
   - Returns `checkout_url`
   - Success redirect includes `booking_id` and (now) `session_id={CHECKOUT_SESSION_ID}`
 - **`stripe-webhook`**
-  - Intended to process Stripe events (ex: `checkout.session.completed`) and mark bookings paid
-  - Was observed returning **400** in logs; needs end-to-end verification (see “Remaining work”)
+  - Processes `checkout.session.completed`, marks bookings `paid`, calls n8n receipt webhook
+  - **Ops:** ensure Stripe dashboard endpoint + `STRIPE_WEBHOOK_SECRET` match so logs show **200** (finalize fallback still covers slow webhooks)
 - **`finalize-checkout-session`**
   - UX safety net on redirect
   - Given a `session_id` (and a signed-in user JWT), retrieves session from Stripe
@@ -345,32 +345,97 @@ In Stripe Dashboard → Developers → Webhooks:
 
 ## Remaining work (next steps)
 
-### Must-do (to finish payments)
-- Fix/verify `stripe-webhook` end-to-end:
-  - Confirm Stripe endpoint URL matches Supabase function path
-  - Confirm `STRIPE_WEBHOOK_SECRET` matches that endpoint’s signing secret
-  - Confirm webhook returns **200** for `checkout.session.completed`
-- Add event capacity support:
-  - Add `events.capacity_total`
-  - Add admin UI field (“Capacity cap”) + display spots remaining
-  - Enforce in `create-checkout-session`
-- Add server-side n8n receipt webhook:
-  - Configure `N8N_RECEIPT_WEBHOOK_URL` secret
-  - Trigger from `stripe-webhook` (and optionally `finalize-checkout-session`)
+### Ops / hardening (keep verifying)
+- **Stripe webhook**: Stripe Dashboard shows **200** for `checkout.session.completed` on the Supabase `…/functions/v1/stripe-webhook` URL; `STRIPE_WEBHOOK_SECRET` matches that endpoint’s signing secret (test vs live keys consistent).
+- **Production**: repeat smoke test on live mode before marketing pushes.
 
-### Should-do (polish)
-- Add UI labels for bookings:
-  - Paid / Pending payment / Cancelled
-- Add “Complete payment” for `pending_payment` bookings.
-- Admin: show payment status + Stripe IDs in `AdminBookings`.
-- **Checkout UX polish (matches “professional + easy” goals)**:
+### Shipped (Phase 2 payments core — for reference)
+- Capacity: `capacity_total`, admin field, Events UI, enforcement in `create-checkout-session`
+- Paid receipts: `N8N_RECEIPT_WEBHOOK_URL`, `stripe-webhook` + `finalize-checkout-session`, payload includes nested **`event`** (full listing fields) plus flat `event_*` keys
+- Dashboard/Profile: status labels, complete payment, post-checkout finalize + banner
+- Admin bookings: status + truncated Stripe session / payment intent ids
+
+### Should-do (polish — optional follow-ups)
+- **Checkout UX polish** (if you want it even closer to the “premium venue” bar in this doc):
   - Step indicator + sticky/collapsible order summary
-  - “Continue to secure payment” CTA pattern + non-deceptive microcopy
-  - Strong empty/error states for capacity + checkout creation failures
-  - Optional post-pay “What’s next” panel on Dashboard success state
+  - “Continue to secure payment” CTA pattern + microcopy pass
+  - Stronger empty/error states for edge cases
+  - Richer post-pay “What’s next” panel on Dashboard
+- **Refunds** (product decision in “Questions” below): admin-triggered refund flow + Stripe + DB sync when you’re ready
+
+### Phase 2 outside this payment slice (see `Phase_2_implementation_plan.md`)
+- Open GitHub issues **#107** (signup rate limit / confirm UX) and **#108** (magic link demo) — not Stripe-specific
 
 ---
 
 ## Questions (quick answers will tighten the plan)
 1. **Refunds**: For Phase 2, do you want refunds (admin-triggered) or only record payments?- Admin triggered
+
+
+
+
+My Personal Summary
+Big picture
+Think of it as three rooms: the website (front end) where people tap buttons, Supabase (back end + database) where the truth about bookings lives, Stripe where the card money happens, and n8n as the messenger that sends emails or other automations when the system says it’s allowed.
+
+Guest: from “I want to go” to “I’m paid”
+1. Browsing (front end)
+On Events, the site asks Supabase for the list of events (name, date, time, price, how many seats exist, etc.) and shows them in cards. That’s just reading data — like looking at a printed calendar, not buying yet.
+
+2. “Reserve my spot” — step one: tickets (front end)
+They pick an event and open the booking flow. Step “tickets” is: how many seats? They see capacity hints (how full it is) so they don’t get surprised later.
+
+3. Step two: details (front end)
+Step “details” collects the stuff you need at the door and for receipts: name, phone, email, etc. Still no money — they’re filling out the guest list.
+
+4. Step three: pay — splits into two paths (front + back)
+A) Free event (price is zero / free listing)
+
+Front end: When they confirm, the app writes a row in Supabase (bookings) as confirmed/free.
+Front end: It can ping n8n using the public webhook URL you put in Vite env (free reservations only — safe because there’s no payment to fake).
+Back end: Supabase rules (RLS) still control who can insert what so random people can’t mess with other people’s rows.
+B) Paid event
+
+Front end: When they’re ready to pay, the app calls your Edge Function create-checkout-session with “here’s my logged-in user + this booking id.”
+Back end (Edge): That function checks: Are they really logged in? Does this booking belong to them? Is it still unpaid? Is there room? Then it asks Stripe for a Checkout link and saves the booking as something like “waiting on payment” with Stripe’s session id attached.
+Front end: The user is sent to Stripe’s page (not your site) to enter the card. Your site doesn’t see the card number.
+5. After the card (Stripe + back end + front end)
+When Stripe says paid, two things can happen (you built both on purpose):
+
+Stripe → your stripe-webhook Edge Function (back end)
+Stripe knocks on your door: “Payment finished.” The function checks Stripe’s signature so it’s not a faker, updates the booking to paid in the database, then can call n8n using the secret URL you put in Supabase (N8N_RECEIPT_WEBHOOK_URL) — only after money is real.
+
+User lands on Dashboard (front end)
+The return URL includes a session id. The Dashboard calls finalize-checkout-session (back end): “Double-check this Stripe session is paid and attach it to the right user/booking.” That also triggers the same kind of n8n receipt logic if the webhook was slow — so the user isn’t stuck staring at “processing” forever.
+
+So for paid tickets, n8n is not trusted from the browser; it’s triggered from Supabase Edge after payment is confirmed.
+
+6. What the guest sees after (front end)
+They see confirmation on Dashboard (and similar info on Profile): paid vs waiting to pay, upcoming event, “check your email” style copy. Email / fancy automation is whatever n8n does with the JSON payload (ticket_receipt_paid, etc.).
+
+Admin: what they see and what “really” happened
+Front end (admin UI)
+An admin goes to the admin bookings screen. It reads from Supabase the same bookings table (with event info): who booked, how many tickets, status, payment-related ids if you surface them there. They’re basically looking at the ledger your app and Stripe already agreed on.
+
+Back end (what they’re trusting)
+Bookings live in Postgres behind Supabase.
+Paid is not “the user said they paid”; it’s “Stripe webhook and/or finalize updated the row to paid with real session/payment data.”
+Receipt / post-payment n8n runs from Edge with the secret n8n URL — so a random person in the browser can’t fire “paid receipt” for someone else’s booking.
+One sentence per “actor”
+Piece	In dummy terms
+Events page
+Window shopping → pick seats → fill details → either save free booking or jump to Stripe for paid.
+Supabase
+The notebook that remembers every booking and who owns it.
+Edge Functions
+Bouncers + cashiers: verify the user, talk to Stripe, update the notebook, call n8n when rules say so.
+Stripe
+The actual card machine; your site never holds the card.
+n8n (paid)
+The backstage crew that sends the “you’re in” email after the server knows payment succeeded.
+n8n (free)
+Can be pinged from the browser after a free reservation is saved — different URL, different risk profile.
+Admin
+Reads the same notebook to see who’s coming and in what state.
+That’s the full loop: click event → steps → database row → (if paid) Stripe → webhooks/finalize update truth → n8n from the server → guest sees Dashboard + email from n8n → admin sees bookings in the admin UI.
 
