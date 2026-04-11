@@ -2,6 +2,10 @@
 const GOOGLE_MAPS_PLACE =
   "Cigar Society Lounge and Bar, 116 W State Ave, Pharr, TX 78577" as const;
 
+/** Canonical GBP / Google Maps place page — keep in sync with `LocalBusiness.sameAs` in `index.html`. */
+const GOOGLE_MAPS_PLACE_PAGE_URL =
+  "https://www.google.com/maps/place/Cigar+Society+Lounge+and+Bar/@26.1959365,-98.1871253,17z/data=!4m6!3m5!1s0x8665a15ba2993d4b:0xbd01be9230522f42!8m2!3d26.1959365!4d-98.184545!16s%2Fg%2F11xkd76kh7?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D" as const;
+
 export const business = {
   name: "Cigar Society, LLC",
   /** Customer-facing venue name (footer heading, marketing). Legal entity is {@link business.name}. */
@@ -31,11 +35,10 @@ export const business = {
   mapEmbedSrc: `https://www.google.com/maps?q=${encodeURIComponent(
     "116 W State Ave, Pharr, TX 78577",
   )}&output=embed`,
-  /** Full listing in Google Maps (embed above uses main-branch address-only `output=embed` URL). */
-  mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
-  /** Stable Google Maps place URL (About “Get directions” and similar). */
-  googleMapsPlacePageUrl:
-    "https://www.google.com/maps/place/Cigar+Society+Lounge+and+Bar/@26.1959365,-98.184545,17z/data=!3m1!4b1!4m6!3m5!1s0x8665a15ba2993d4b:0xbd01be9230522f42!8m2!3d26.1959365!4d-98.184545!16s%2Fg%2F11xkd76kh7?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D" as const,
+  /** Google Maps place listing (hero CTAs, Contact, FAQ — same URL as About / JSON-LD `sameAs`). */
+  mapUrl: GOOGLE_MAPS_PLACE_PAGE_URL,
+  /** Same as {@link business.mapUrl}; kept for call sites that reference the place page explicitly. */
+  googleMapsPlacePageUrl: GOOGLE_MAPS_PLACE_PAGE_URL,
   googleDirectionsUrl: `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(GOOGLE_MAPS_PLACE)}`,
   /** Apple Maps place listing (official place id). */
   appleMapsUrl:
