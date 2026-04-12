@@ -22,69 +22,21 @@ import { bookingStatusLabel } from "@/lib/bookingStatus";
 import { createCheckoutSessionUrl } from "@/lib/checkout";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { embeddedEvent, errorMessage, parseEventDateTime, type UserBookingRow } from "@/lib/bookingUtils";
+import { userBookingsQueryKey, useUserBookings } from "@/hooks/queries/useUserBookings";
 import { CalendarDays, Loader2, XCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-
-type BookingRow = {
-  id: string;
-  tickets: number;
-  total_paid: number;
-  status: string | null;
-  created_at: string;
-  events: { id: string; name: string; date: string; time: string } | { id: string; name: string; date: string; time: string }[] | null;
-};
-
-function errorMessage(value: unknown, fallback: string) {
-  if (value instanceof Error) return value.message;
-  if (typeof value === "object" && value && "message" in value && typeof (value as { message?: unknown }).message === "string") {
-    return (value as { message: string }).message;
-  }
-  return fallback;
-}
-
-function parseEventDateTime(date: string, time: string) {
-  const d = new Date(`${date}T${time}`);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function embeddedEvent(row: BookingRow) {
-  if (!row.events) return null;
-  return Array.isArray(row.events) ? row.events[0] ?? null : row.events;
-}
+import { useQueryClient } from "@tanstack/react-query";
 
 const Profile = () => {
   const { user, profile, isAdmin, refreshProfile } = useAuth();
-  const [loadingBookings, setLoadingBookings] = useState(true);
-  const [bookingsError, setBookingsError] = useState<string | null>(null);
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [confirmCancel, setConfirmCancel] = useState<BookingRow | null>(null);
+  const queryClient = useQueryClient();
+  const { data: bookings = [], isPending: loadingBookings, isError, error, refetch } = useUserBookings(user?.id);
+  const bookingsError = isError ? errorMessage(error, "Failed to load bookings") : null;
+  const [confirmCancel, setConfirmCancel] = useState<UserBookingRow | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [resumingId, setResumingId] = useState<string | null>(null);
-
-  const loadBookings = async () => {
-    if (!user) return;
-    setLoadingBookings(true);
-    setBookingsError(null);
-    try {
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("id,tickets,total_paid,status,created_at,events(id,name,date,time)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      setBookings(((data as unknown) as BookingRow[]) ?? []);
-    } catch (e) {
-      setBookingsError(errorMessage(e, "Failed to load bookings"));
-    } finally {
-      setLoadingBookings(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
 
   const upcoming = useMemo(() => {
     const now = new Date();
@@ -148,6 +100,9 @@ const Profile = () => {
                     >
                       Refresh profile
                     </Button>
+                    <Button asChild variant="outline" className="border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground">
+                      <Link to="/account/profile">Account settings</Link>
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
@@ -160,7 +115,7 @@ const Profile = () => {
                     </Button>
                   </div>
 
-                  <Button asChild variant="outline" className="w-full border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground">
+                  <Button asChild variant="outline" className="w-full border-border/70">
                     <Link to="/dashboard">Go to Dashboard</Link>
                   </Button>
 
@@ -202,78 +157,76 @@ const Profile = () => {
                       {upcoming.map((b) => {
                         const ev = embeddedEvent(b);
                         return (
-                        <div
-                          key={b.id}
-                          className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/30 p-4 md:flex-row md:items-center md:justify-between"
-                        >
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
-                              <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
-                                {bookingStatusLabel(b.status)}
-                              </Badge>
-                            </div>
-                            <p className="mt-1 font-body text-sm text-muted-foreground">
-                              <span className="inline-flex items-center gap-2">
-                                <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
-                                {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
-                              </span>
-                            </p>
-                            <p className="mt-2 font-body text-xs text-muted-foreground/80">
-                              {b.tickets} ticket{b.tickets === 1 ? "" : "s"}{" "}
-                              {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
-                            </p>
-                            {b.status === "pending_payment" ? (
-                              <p className="mt-2 font-body text-xs text-muted-foreground">
-                                Payment not completed yet.
+                          <div
+                            key={b.id}
+                            className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/30 p-4 md:flex-row md:items-center md:justify-between"
+                          >
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
+                                <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
+                                  {bookingStatusLabel(b.status)}
+                                </Badge>
+                              </div>
+                              <p className="mt-1 font-body text-sm text-muted-foreground">
+                                <span className="inline-flex items-center gap-2">
+                                  <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
+                                  {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
+                                </span>
                               </p>
-                            ) : null}
-                          </div>
-                          <div className="flex flex-col gap-2 sm:flex-row">
-                            {b.status === "pending_payment" ? (
+                              <p className="mt-2 font-body text-xs text-muted-foreground/80">
+                                {b.tickets} ticket{b.tickets === 1 ? "" : "s"}{" "}
+                                {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
+                              </p>
+                              {b.status === "pending_payment" ? (
+                                <p className="mt-2 font-body text-xs text-muted-foreground">Payment not completed yet.</p>
+                              ) : null}
+                            </div>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                              {b.status === "pending_payment" ? (
+                                <Button
+                                  type="button"
+                                  className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                                  disabled={!!resumingId}
+                                  onClick={async () => {
+                                    setResumingId(b.id);
+                                    try {
+                                      const url = await createCheckoutSessionUrl(b.id);
+                                      window.location.href = url;
+                                    } catch (e) {
+                                      toast({
+                                        title: "Couldn’t resume checkout",
+                                        description: e instanceof Error ? e.message : "Please try again.",
+                                      });
+                                      setResumingId(null);
+                                    }
+                                  }}
+                                >
+                                  {resumingId === b.id ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                                      Opening…
+                                    </>
+                                  ) : (
+                                    "Complete payment"
+                                  )}
+                                </Button>
+                              ) : null}
+                              <Button type="button" variant="outline" className="border-border/70" onClick={() => void refetch()}>
+                                Refresh
+                              </Button>
                               <Button
                                 type="button"
-                                className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
-                                disabled={!!resumingId}
-                                onClick={async () => {
-                                  setResumingId(b.id);
-                                  try {
-                                    const url = await createCheckoutSessionUrl(b.id);
-                                    window.location.href = url;
-                                  } catch (e) {
-                                    toast({
-                                      title: "Couldn’t resume checkout",
-                                      description: e instanceof Error ? e.message : "Please try again.",
-                                    });
-                                    setResumingId(null);
-                                  }
-                                }}
+                                variant="destructive"
+                                className={cn(cancelling ? "opacity-80" : "")}
+                                disabled={cancelling}
+                                onClick={() => setConfirmCancel(b)}
                               >
-                                {resumingId === b.id ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                                    Opening…
-                                  </>
-                                ) : (
-                                  "Complete payment"
-                                )}
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Cancel
                               </Button>
-                            ) : null}
-                            <Button type="button" variant="outline" className="border-border/70" onClick={() => void loadBookings()}>
-                              Refresh
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              className={cn(cancelling ? "opacity-80" : "")}
-                              disabled={cancelling}
-                              onClick={() => setConfirmCancel(b)}
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Cancel
-                            </Button>
+                            </div>
                           </div>
-                        </div>
                         );
                       })}
                     </div>
@@ -299,14 +252,18 @@ const Profile = () => {
               onClick={async () => {
                 const row = confirmCancel;
                 setConfirmCancel(null);
-                if (!row) return;
+                if (!row || !user) return;
                 setCancelling(true);
                 try {
-                  const { error } = await supabase.from("bookings").delete().eq("id", row.id);
-                  if (error) throw error;
-                  await loadBookings();
+                  const { error: delErr } = await supabase.from("bookings").delete().eq("id", row.id);
+                  if (delErr) throw delErr;
+                  await queryClient.invalidateQueries({ queryKey: userBookingsQueryKey(user.id) });
                 } catch (e) {
-                  setBookingsError(errorMessage(e, "Could not cancel booking"));
+                  toast({
+                    title: "Could not cancel booking",
+                    description: errorMessage(e, "Please try again."),
+                    variant: "destructive",
+                  });
                 } finally {
                   setCancelling(false);
                 }
@@ -322,4 +279,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

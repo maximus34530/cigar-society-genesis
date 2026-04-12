@@ -1,22 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { adminBookingsListQueryKey, useAdminBookingsList } from "@/hooks/queries/useAdminBookingsList";
+import { adminOverviewQueryKey } from "@/hooks/queries/useAdminOverviewData";
 import { supabase } from "@/lib/supabase";
-import { useEffect, useMemo, useState } from "react";
-
-type BookingRow = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  tickets: number;
-  total_paid: number;
-  status: string | null;
-  stripe_checkout_session_id: string | null;
-  stripe_payment_intent_id: string | null;
-  created_at: string;
-  events: { name: string; date: string; time: string } | null;
-};
+import { useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 
 function truncateId(id: string | null | undefined, len = 14) {
   if (!id) return "—";
@@ -24,29 +13,9 @@ function truncateId(id: string | null | undefined, len = 14) {
 }
 
 export default function AdminBookings() {
-  const [rows, setRows] = useState<BookingRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: rows = [], isPending: loading, refetch } = useAdminBookingsList();
   const [query, setQuery] = useState("");
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("bookings")
-        .select(
-          "id,name,email,phone,tickets,total_paid,status,stripe_checkout_session_id,stripe_payment_intent_id,created_at,events(name,date,time)",
-        )
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      setRows((data as BookingRow[]) ?? []);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -114,7 +83,11 @@ export default function AdminBookings() {
                     variant="destructive"
                     onClick={async () => {
                       const { error } = await supabase.from("bookings").delete().eq("id", row.id);
-                      if (!error) await load();
+                      if (!error) {
+                        await queryClient.invalidateQueries({ queryKey: adminBookingsListQueryKey });
+                        await queryClient.invalidateQueries({ queryKey: adminOverviewQueryKey });
+                        void refetch();
+                      }
                     }}
                   >
                     Delete
@@ -128,4 +101,3 @@ export default function AdminBookings() {
     </Card>
   );
 }
-

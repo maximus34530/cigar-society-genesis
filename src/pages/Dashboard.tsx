@@ -19,82 +19,28 @@ import {
 } from "@/components/ui/alert-dialog";
 import { bookingStatusLabel } from "@/lib/bookingStatus";
 import { business } from "@/lib/business";
+import { embeddedEvent, errorMessage, parseEventDateTime, type UserBookingRow } from "@/lib/bookingUtils";
 import { createCheckoutSessionUrl } from "@/lib/checkout";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { userBookingsQueryKey, useUserBookings } from "@/hooks/queries/useUserBookings";
 import { CalendarDays, CheckCircle2, ChevronRight, Loader2, PartyPopper, Bell, XCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-
-type BookingRow = {
-  id: string;
-  tickets: number;
-  total_paid: number;
-  status: string | null;
-  stripe_checkout_session_id: string | null;
-  stripe_payment_intent_id: string | null;
-  created_at: string;
-  events: { id: string; name: string; date: string; time: string } | { id: string; name: string; date: string; time: string }[] | null;
-};
-
-function errorMessage(value: unknown, fallback: string) {
-  if (value instanceof Error) return value.message;
-  if (typeof value === "object" && value && "message" in value && typeof (value as { message?: unknown }).message === "string") {
-    return (value as { message: string }).message;
-  }
-  return fallback;
-}
-
-function parseEventDateTime(date: string, time: string) {
-  const d = new Date(`${date}T${time}`);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function embeddedEvent(row: BookingRow) {
-  if (!row.events) return null;
-  return Array.isArray(row.events) ? row.events[0] ?? null : row.events;
-}
+import { useQueryClient } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [confirmCancel, setConfirmCancel] = useState<BookingRow | null>(null);
+  const { data: bookings = [], isPending: loading, isError, error } = useUserBookings(user?.id);
+  const loadError = isError ? errorMessage(error, "Failed to load") : null;
+  const [confirmCancel, setConfirmCancel] = useState<UserBookingRow | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [checkoutSuccessBanner, setCheckoutSuccessBanner] = useState(false);
   const [resumingId, setResumingId] = useState<string | null>(null);
   const bookingsSectionRef = useRef<HTMLDivElement>(null);
-
-  const load = async () => {
-    if (!user) return;
-    setLoading(true);
-    setError(null);
-    const { data, error: err } = await supabase
-      .from("bookings")
-      .select(
-        "id,tickets,total_paid,status,stripe_checkout_session_id,stripe_payment_intent_id,created_at,events(id,name,date,time)",
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (err) {
-      setError(err.message);
-      setBookings([]);
-      setLoading(false);
-      return;
-    }
-
-    setBookings(((data as unknown) as BookingRow[]) ?? []);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -125,7 +71,7 @@ const Dashboard = () => {
         });
         showSuccessBanner = false;
       } finally {
-        await load();
+        await queryClient.invalidateQueries({ queryKey: userBookingsQueryKey(user.id) });
         if (showSuccessBanner) setCheckoutSuccessBanner(true);
         setSearchParams(
           (prev) => {
@@ -140,7 +86,7 @@ const Dashboard = () => {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, searchParams, setSearchParams]);
+  }, [user?.id, searchParams, setSearchParams, queryClient]);
 
   const upcoming = useMemo(() => {
     const now = new Date();
@@ -206,9 +152,9 @@ const Dashboard = () => {
               subtitle="Manage your event bookings and stay up to date with what’s happening at the lounge."
             />
 
-            {error ? (
+            {loadError ? (
               <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-                <p className="font-body text-sm text-destructive">Couldn’t load your dashboard: {error}</p>
+                <p className="font-body text-sm text-destructive">Couldn’t load your dashboard: {loadError}</p>
               </div>
             ) : null}
 
@@ -333,25 +279,25 @@ const Dashboard = () => {
                           {(() => {
                             const ev = embeddedEvent(b);
                             return (
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
-                              <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
-                                {bookingStatusLabel(b.status)}
-                              </Badge>
-                            </div>
-                            <p className="mt-1 font-body text-sm text-muted-foreground">
-                              {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
-                            </p>
-                            <p className="mt-2 font-body text-xs text-muted-foreground/80">
-                              {b.tickets} tickets {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
-                            </p>
-                            {b.status === "pending_payment" ? (
-                              <p className="mt-2 font-body text-xs text-muted-foreground">
-                                Payment not completed yet. You can finish checkout when you are ready.
-                              </p>
-                            ) : null}
-                          </div>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="font-heading text-base text-foreground">{ev?.name ?? "Event"}</p>
+                                  <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
+                                    {bookingStatusLabel(b.status)}
+                                  </Badge>
+                                </div>
+                                <p className="mt-1 font-body text-sm text-muted-foreground">
+                                  {ev ? `${ev.date} • ${ev.time}` : "Event details unavailable"}
+                                </p>
+                                <p className="mt-2 font-body text-xs text-muted-foreground/80">
+                                  {b.tickets} tickets {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
+                                </p>
+                                {b.status === "pending_payment" ? (
+                                  <p className="mt-2 font-body text-xs text-muted-foreground">
+                                    Payment not completed yet. You can finish checkout when you are ready.
+                                  </p>
+                                ) : null}
+                              </div>
                             );
                           })()}
 
@@ -413,9 +359,9 @@ const Dashboard = () => {
                             {(() => {
                               const ev = embeddedEvent(b);
                               return (
-                            <p className="font-body text-sm text-foreground/80">
-                              {ev?.name ?? "Booking"} • {ev ? `${ev.date} ${ev.time}` : "No event linked"}
-                            </p>
+                                <p className="font-body text-sm text-foreground/80">
+                                  {ev?.name ?? "Booking"} • {ev ? `${ev.date} ${ev.time}` : "No event linked"}
+                                </p>
                               );
                             })()}
                           </div>
@@ -470,14 +416,18 @@ const Dashboard = () => {
               onClick={async () => {
                 const row = confirmCancel;
                 setConfirmCancel(null);
-                if (!row) return;
+                if (!row || !user) return;
                 setCancelling(true);
                 try {
                   const { error: err } = await supabase.from("bookings").delete().eq("id", row.id);
                   if (err) throw err;
-                  await load();
+                  await queryClient.invalidateQueries({ queryKey: userBookingsQueryKey(user.id) });
                 } catch (e) {
-                  setError(errorMessage(e, "Could not cancel booking"));
+                  toast({
+                    title: "Could not cancel booking",
+                    description: errorMessage(e, "Please try again."),
+                    variant: "destructive",
+                  });
                 } finally {
                   setCancelling(false);
                 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useState } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AgeGate } from "@/components/AgeGate";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -25,6 +25,9 @@ const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
 const AdminBookings = lazy(() => import("./pages/admin/AdminBookings"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
+const AccountProfilePage = lazy(() => import("./pages/account/AccountProfilePage"));
+const AccountBookingsPage = lazy(() => import("./pages/account/AccountBookingsPage"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -62,6 +65,11 @@ const App = () => {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/account" element={<AccountLayout />}>
+                  <Route index element={<Navigate to="/account/profile" replace />} />
+                  <Route path="profile" element={<AccountProfilePage />} />
+                  <Route path="bookings" element={<AccountBookingsPage />} />
+                </Route>
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminOverview />} />
                   <Route path="events" element={<AdminEvents />} />

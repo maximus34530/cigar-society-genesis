@@ -1,83 +1,107 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCountUpOnView } from "@/hooks/useCountUpOnView";
+import { useAdminOverviewData, type AdminOverviewBookingPreview } from "@/hooks/queries/useAdminOverviewData";
+import { bookingStatusLabel } from "@/lib/bookingStatus";
+import { parseEventDateTime } from "@/lib/bookingUtils";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
-import { ArrowRight, CalendarDays, ChevronDown, PartyPopper, PoundSterling, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, CalendarDays, DollarSign, PartyPopper, Users } from "lucide-react";
+import { useMemo } from "react";
 import { NavLink } from "react-router-dom";
 
-type Counts = {
-  events: number;
-  clients: number;
-  bookings: number;
-};
+function upcomingBookings(rows: AdminOverviewBookingPreview[]) {
+  const now = new Date();
+  return rows
+    .filter((r) => {
+      const ev = r.events;
+      if (!ev) return false;
+      const dt = parseEventDateTime(ev.date, ev.time);
+      return dt ? dt >= now : true;
+    })
+    .sort((a, b) => {
+      const ae = a.events;
+      const be = b.events;
+      if (!ae || !be) return 0;
+      const ad = parseEventDateTime(ae.date, ae.time)?.getTime() ?? Number.POSITIVE_INFINITY;
+      const bd = parseEventDateTime(be.date, be.time)?.getTime() ?? Number.POSITIVE_INFINITY;
+      return ad - bd;
+    })
+    .slice(0, 5);
+}
+
+function activityFromBookings(rows: AdminOverviewBookingPreview[]) {
+  return [...rows]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5)
+    .map((r) => {
+      const evName = r.events?.name ?? "Event";
+      const status = bookingStatusLabel(r.status);
+      return {
+        title: `Booking • ${evName}`,
+        subtitle: `${r.name} • ${status} • ${r.tickets} ticket${r.tickets === 1 ? "" : "s"}`,
+      };
+    });
+}
 
 export default function AdminOverview() {
-  const [counts, setCounts] = useState<Counts>({ events: 0, clients: 0, bookings: 0 });
+  const { data, isPending, isError } = useAdminOverviewData();
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const [sessions, clients, bookings] = await Promise.all([
-        supabase.from("events").select("id", { count: "exact", head: true }),
-        supabase.from("clients").select("id", { count: "exact", head: true }),
-        supabase.from("bookings").select("id", { count: "exact", head: true }),
-      ]);
+  const counts = useMemo(
+    () => ({
+      events: data?.eventCount ?? 0,
+      clients: data?.clientCount ?? 0,
+      bookings: data?.bookingCount ?? 0,
+    }),
+    [data],
+  );
 
-      if (cancelled) return;
+  const paidRevenue = data?.paidRevenue ?? 0;
+  const revenueLabel =
+    paidRevenue > 0
+      ? `$${paidRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+      : "—";
 
-      setCounts({
-        events: sessions.count ?? 0,
-        clients: clients.count ?? 0,
-        bookings: bookings.count ?? 0,
-      });
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const upcoming = data?.recentBookings ? upcomingBookings(data.recentBookings) : [];
+  const activity = data?.recentBookings ? activityFromBookings(data.recentBookings) : [];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
-            Quick Action
+        <div className="flex flex-wrap gap-2">
+          <Button asChild className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+            <NavLink to="/admin/events">Manage events</NavLink>
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="border-border/70">
-                All time <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem>Today</DropdownMenuItem>
-              <DropdownMenuItem>Last 7 days</DropdownMenuItem>
-              <DropdownMenuItem>Last 30 days</DropdownMenuItem>
-              <DropdownMenuItem>All time</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button asChild variant="outline" className="border-border/70">
+            <NavLink to="/admin/bookings">All bookings</NavLink>
+          </Button>
+          <Button asChild variant="outline" className="border-border/70">
+            <NavLink to="/admin/clients">Clients</NavLink>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <StatCard title="Total Revenue" value="—" hint="Payments not enabled yet." icon={PoundSterling} />
-        <StatCard title="Client Base" value={counts.clients} hint="Total clients in your database." icon={Users} />
-        <StatCard title="Active Events" value={counts.events} hint="Events currently in your calendar." icon={PartyPopper} />
-        <StatCard title="Pending Actions" value={counts.bookings} hint="Bookings requiring review." icon={CalendarDays} />
+        <StatCard
+          title="Ticket revenue (paid)"
+          value={revenueLabel}
+          hint="Sum of paid booking totals. Stripe fees and refunds are not shown here."
+          icon={DollarSign}
+        />
+        <StatCard title="Client base" value={counts.clients} hint="Total clients in your database." icon={Users} />
+        <StatCard title="Active events" value={counts.events} hint="Events currently in your calendar." icon={PartyPopper} />
+        <StatCard title="Total bookings" value={counts.bookings} hint="All ticket reservations in your database." icon={CalendarDays} />
       </div>
+
+      {isError ? (
+        <p className="font-body text-sm text-destructive">Couldn’t load overview data. Refresh the page.</p>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Card className="bg-card/25 border-border/60 rounded-2xl premium-card-hover">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="font-heading">Upcoming</CardTitle>
-              <p className="mt-1 font-body text-sm text-muted-foreground">
-                Bookings and sessions will appear here.
-              </p>
+              <p className="mt-1 font-body text-sm text-muted-foreground">Bookings for future events (from recent data).</p>
             </div>
             <Button asChild variant="outline" className="border-border/70">
               <NavLink to="/admin/bookings">
@@ -86,33 +110,38 @@ export default function AdminOverview() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              { title: "Example booking", subtitle: "Awaiting payment • 2 tickets" },
-              { title: "Example booking", subtitle: "Confirmed • 4 tickets" },
-              { title: "Example booking", subtitle: "Needs review • Missing phone" },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-card/30 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="font-heading text-sm text-foreground">{item.title}</p>
-                  <p className="mt-0.5 font-body text-xs text-muted-foreground">{item.subtitle}</p>
-                </div>
-                <span
-                  className={cn(
-                    "rounded-full border px-2 py-0.5 text-xs font-body",
-                    idx === 0
-                      ? "border-primary/30 bg-primary/10 text-primary"
-                      : idx === 1
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                        : "border-amber-500/30 bg-amber-500/10 text-amber-300",
-                  )}
-                >
-                  {idx === 0 ? "Pending" : idx === 1 ? "Confirmed" : "Review"}
-                </span>
+            {isPending ? (
+              <p className="font-body text-sm text-muted-foreground">Loading…</p>
+            ) : upcoming.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-6 text-center">
+                <p className="font-body text-sm text-muted-foreground">No upcoming bookings in the latest snapshot.</p>
               </div>
-            ))}
+            ) : (
+              upcoming.map((r) => {
+                const ev = r.events;
+                const label = bookingStatusLabel(r.status);
+                const tone =
+                  r.status === "pending_payment"
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : r.status === "paid"
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                      : "border-border/60 bg-muted/30 text-foreground/80";
+                return (
+                  <div
+                    key={r.id}
+                    className="flex items-center justify-between rounded-xl border border-border/60 bg-card/30 px-4 py-3 gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-heading text-sm text-foreground truncate">{ev?.name ?? "Event"}</p>
+                      <p className="mt-0.5 font-body text-xs text-muted-foreground truncate">
+                        {r.name} • {r.tickets} tickets • {ev ? `${ev.date} ${ev.time}` : "—"}
+                      </p>
+                    </div>
+                    <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-xs font-body", tone)}>{label}</span>
+                  </div>
+                );
+              })
+            )}
           </CardContent>
         </Card>
 
@@ -124,17 +153,20 @@ export default function AdminOverview() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              { title: "New booking request", subtitle: "Waiting for payment confirmation." },
-              { title: "Client updated", subtitle: "Phone number changed." },
-              { title: "Session created", subtitle: "New category added." },
-              { title: "Booking cancelled", subtitle: "Marked as cancelled by admin." },
-            ].map((item, idx) => (
-              <div key={idx} className="rounded-xl border border-border/60 bg-card/30 px-4 py-3">
-                <p className="font-heading text-sm text-foreground">{item.title}</p>
-                <p className="mt-0.5 font-body text-xs text-muted-foreground">{item.subtitle}</p>
+            {isPending ? (
+              <p className="font-body text-sm text-muted-foreground">Loading…</p>
+            ) : activity.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-6 text-center">
+                <p className="font-body text-sm text-muted-foreground">No recent bookings yet.</p>
               </div>
-            ))}
+            ) : (
+              activity.map((item, idx) => (
+                <div key={idx} className="rounded-xl border border-border/60 bg-card/30 px-4 py-3">
+                  <p className="font-heading text-sm text-foreground">{item.title}</p>
+                  <p className="mt-0.5 font-body text-xs text-muted-foreground">{item.subtitle}</p>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
@@ -163,6 +195,7 @@ function StatCard({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   const isDash = value === "—";
+  const isNumeric = typeof value === "number";
 
   return (
     <Card className="bg-card/25 border-border/60 rounded-2xl premium-card-hover">
@@ -173,12 +206,13 @@ function StatCard({
       <CardContent>
         {isDash ? (
           <p className="font-heading text-2xl text-foreground">—</p>
+        ) : isNumeric ? (
+          <StatCardNumeric target={value} />
         ) : (
-          <StatCardNumeric target={typeof value === "number" ? value : 0} />
+          <p className="font-heading text-2xl text-foreground tabular-nums">{value}</p>
         )}
         <p className="mt-1 font-body text-xs text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>
   );
 }
-

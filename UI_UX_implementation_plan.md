@@ -6,22 +6,22 @@ Issue: **[#114](https://github.com/maximus34530/cigar-society-genesis/issues/114
 **Scope:** Customer **Dashboard** & **Profile**, **Login** / **Signup**, **Navbar** account affordances, **Admin** shell + key screens — what exists today vs what Phase 2 still implies.  
 **Stack:** React 18 (Vite) + React Router v6 + shadcn/ui + Tailwind + **Supabase Auth** + `profiles` row (`role`: admin | client | user).
 
-> **When you’re back:** brainstorm concrete UI/UX improvements against this doc (priorities: auth edge cases #107/#108, loading/skeleton polish, Dashboard vs Profile split, admin overview copy, TanStack Query). Capture ideas in a new issue or append a “Brainstorm” subsection below.
+> **When you’re back:** brainstorm further polish (avatar **upload** vs URL-only, admin **breadcrumbs**, richer **notifications**). Capture ideas in a new issue or append a “Brainstorm” subsection below.
 
 ---
 
 ## Account & dashboard UX — what we’re aiming for (summary)
 
-Phase 2 described a **customer “account area”** (bookings, profile, future hooks) and an **admin workspace** (CRUD, overview). What you have now is a **practical first version**: flat routes (`/dashboard`, `/profile`, `/admin/...`), a **single global navbar** with `ProfileMenu` when signed in, **password auth** with **return-to-intent** after login (especially from **Events**), and **role-aware** routing (admins can jump to `/admin` after login). Visual language follows the rest of the site: **dark surfaces**, **gold CTAs**, `Layout` + `section-padding` + cards with `border-border/60` and `bg-card/40`.
+Phase 2 described a **customer “account area”** (bookings, profile, future hooks) and an **admin workspace** (CRUD, overview). What you have now is a **practical first version**: **`/dashboard`**, **`/profile`**, **`/account/*`**, and **`/admin/...`**, a **single global navbar** with `ProfileMenu` when signed in, **password + OAuth** with **return-to-intent** after login (especially from **Events**), and **role-aware** routing (admins can jump to `/admin` after login). Visual language follows the rest of the site: **dark surfaces**, **gold CTAs**, `Layout` + `section-padding` + cards with `border-border/60` and `bg-card/40`.
 
-The next wave of work (this document’s **Remaining work**) is mostly **polish and consistency**: loading states that don’t flash empty content, signup/email edge cases, optional **account sub-layout** (tabs/sidebar), **TanStack Query** when you standardize data fetching, and tightening **admin overview** copy/widgets that are still placeholder-ish.
+Most of that polish is now **implemented in code** (see **Remaining work** below for only small follow-ups). This document still describes IA and patterns for onboarding and future issues (**#107** / **#108** nuances).
 
 ---
 
 ## Desired outcome (Phase 2 alignment)
 
 ### Customer experience
-- Signed-in users have a **clear home for “my stuff”**: **Dashboard** (overview + bookings + post-payment messaging) and **Profile** (account card + bookings list + links).
+- Signed-in users have a **clear home for “my stuff”**: **Dashboard** (overview + bookings + post-payment messaging), **Profile** (account card + upcoming bookings), and **`/account`** (settings + full bookings list).
 - **Log in / Sign up** feel trustworthy: validation, errors, disabled submit while working, and **no dead ends** when email confirmation or rate limits bite (tracked in **#107**).
 - **Reserve flow** from **Events**: if not logged in, user returns to the **same event intent** after auth (`?reserve=` query + `location.state.from`).
 - **Admins** are not confused: after login, **admin role** can land on **`/admin`**; **Profile** shows **Go to Admin** when `isAdmin`.
@@ -44,10 +44,13 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 
 | Route | Purpose | Guard |
 |--------|---------|--------|
-| `/login` | Email + password sign-in | Redirects to `location.state.from` or `/profile` if already signed in; passes `from` to Signup link |
+| `/login` | **Tabs:** password + OAuth, **Magic link (demo)** | Redirects when already signed in; preserves **`from`** for Signup |
 | `/signup` | Full name + email + password sign-up | Same redirect behavior when already signed in |
 | `/profile` | Account summary + **My bookings** | **`RequireAuth`** → unauthenticated users sent to `/login` with `state.from` = current path |
 | `/dashboard` | **Primary** signed-in hub: notifications-style cards, **Upcoming** / **History** bookings, Stripe return handling | **`RequireAuth`** |
+| `/account` | Redirects to **`/account/profile`**; nested **Profile** + **Bookings** under one shell | **`RequireAuth`** (layout) |
+| `/account/profile` | **Profile & security**: edit `full_name`, optional **avatar URL**, **change password** | **`RequireAuth`** |
+| `/account/bookings` | Full **bookings** list (upcoming + past) with same actions as Profile | **`RequireAuth`** |
 | `/admin` | Admin overview (stats cards) | **`RequireAdmin`** |
 | `/admin/events` | Events CRUD + image upload + trash | **`RequireAdmin`** |
 | `/admin/clients` | Clients listing / management UI | **`RequireAdmin`** |
@@ -63,7 +66,7 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 - **`Navbar`** (desktop):
   - Primary marketing links: Home, About, Cigars, Events, Gallery, Contact.
   - **Signed out:** “Log In” + “Sign Up” text links (uppercase, tracking, hover primary).
-  - **Signed in:** **`ProfileMenu`** (avatar + truncated display name on `sm+`).
+  - **Signed in:** **`ProfileMenu`** (avatar + truncated display name on `sm+`): links to **Profile**, **Account settings** (`/account/profile`), **Log out**.
 - **`Navbar`** (mobile): hamburger → full-screen menu; same links + **ProfileMenu** or Log In / Sign Up with **44px min touch targets**; closes on route change and supports **Escape** on the menu container.
 - **Scroll behavior:** navbar gains **backdrop blur + border + shadow** after scroll for readability over hero content.
 - **Age gate:** entire app sits behind **`AgeGate`** until verified (`App.tsx`); independent of auth but part of first-run UX.
@@ -73,7 +76,8 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 
 ### 3. Authentication — data layer & context
 
-- **`AuthProvider`** (`main.tsx` wraps the app):
+- **`QueryClientProvider`** (`@tanstack/react-query`) wraps **`AuthProvider`** in **`main.tsx`** for shared server state (bookings, admin lists, overview).
+- **`AuthProvider`**:
   - **`getSession`** on mount + **`onAuthStateChange`** for live session updates.
   - Loads **`profiles`** row: `id`, `full_name`, `avatar_url`, **`role`** (`admin` | `client` | `user`).
   - Exposes: `loading`, `session`, `user`, `profile`, **`refreshProfile()`**, **`signOut()`**, **`isAdmin`** (`profile?.role === "admin"`).
@@ -85,22 +89,20 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 
 ### 4. Route guards
 
-- **`RequireAuth`**: if `loading` → renders **`null`** (blank) until session resolved; if no `user` → **`<Navigate to="/login" state={{ from: pathname }} />`**.  
-  - **Effect:** deep links to `/profile` or `/dashboard` survive login.
-- **`RequireAdmin`**: if `loading` → **`null`**; if no user → login; if user but not admin → **`/profile`**.  
+- **`RequireAuth`**: if `loading` → **`AuthLoadingFallback`** (branded spinner); if no `user` → **`<Navigate to="/login" state={{ from: pathname }} />`**.  
+  - **Effect:** deep links to `/profile`, `/dashboard`, or `/account/*` survive login.
+- **`RequireAdmin`**: if `loading` → **`AuthLoadingFallback`**; if no user → login with **`state.from`** preserved; if user but not admin → **`/dashboard`**.  
   - **Effect:** customers never see admin chrome; admins never see admin without role.
 
 ---
 
 ### 5. Login page (`/login`)
 
-- **Layout:** `Layout` + `SectionHeading` (“Log in” / “Access your profile and bookings.”) + card with form.
-- **Form:** **React Hook Form + Zod** — email + password (min 6 chars); root-level error for Supabase messages.
-- **Submit:** `signInWithPassword`; then loads **`profiles.role`**; **routing rule:**
-  - If default `from` would be `/profile` **and** user is **admin** → navigate to **`/admin`**.
-  - Else → navigate to **`from`** (e.g. `/events?reserve=…` when coming from Events).
-- **CTA styling:** full-width **gold gradient** button, uppercase tracking; disabled + “Logging in…” while submitting.
-- **Cross-link:** “Don’t have an account?” → **`/signup`** preserving **`state.from`** so signup returns to the same intent.
+- **Layout:** `Layout` + `SectionHeading` + card with **tabs**: **Password** vs **Magic link (demo)**.
+- **OAuth:** **Google** and **Apple** both use **`signInWithOAuthProvider`** + **`/auth/callback`** (same return-path stash as Signup).
+- **Password tab:** **React Hook Form + Zod** — email + password; **`signInWithPassword`**; loads **`profiles.role`**; **`resolvePostLoginPath(from, isAdmin)`** for destination.
+- **Magic link tab:** **Demo only** — email submit shows **“Check your email”** and a **cooldown**; explicitly **does not** call **`signInWithOtp`** until product enables it (**#108**).
+- **Cross-link:** “Don’t have an account?” → **`/signup`** preserving **`state.from`**.
 
 ---
 
@@ -108,8 +110,8 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 
 - **Layout:** same pattern as Login (heading + card).
 - **Form:** full name, email, password (Zod); `signUp` with `options.data.full_name` for Supabase user metadata.
-- **Submit:** on success navigates to **`from`** (same `location.state` pattern as Login).  
-- **Gap (product + UX):** no dedicated **“check your email”** state when Supabase returns **no session** (email confirmation required) — this is explicitly **#107**. No **magic link** mode yet — **#108**.
+- **Submit:** handles **no session** after `signUp` with a **check-email** phase, rate-limit messaging, and cooldown where applicable — see **`Signup.tsx`** and **`authRouting`** (**#107** alignment).  
+- **Magic link** for signup is still password-first; Login hosts the **demo** tab (**#108**).
 
 ---
 
@@ -122,13 +124,14 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
   - **Refresh profile** (calls `refreshProfile()`).
   - **Log out** (direct `signOut`).
   - **Go to Dashboard** (outline, primary border).
+  - **Account settings** → **`/account/profile`** (full editor + password).
   - **Go to Admin** (gold CTA) — **only if `isAdmin`**.
-- **Bookings card:**
+- **Bookings card:** (data via **`useUserBookings`** + TanStack Query; invalidate on cancel.)
   - Loads user’s **`bookings`** with embedded **`events(id,name,date,time)`**.
   - **Loading** and **error** states (destructive-styled error box).
   - **Empty state:** dashed border, “No bookings yet”, **Browse events** CTA.
   - **Rows:** event title, **`bookingStatusLabel`**, date/time, tickets + total; **Pending payment** shows hint + **Complete payment** (re-opens Stripe via `createCheckoutSessionUrl`); **Cancel** opens confirm dialog → **delete** booking.
-- **Gap:** no **inline profile editor** (name/email/password change) in this page — it’s **read-mostly account display** + bookings operations.
+- **Profile editing** lives on **`/account/profile`** (name, avatar URL, password); this page stays a **compact account card** + bookings.
 
 ---
 
@@ -136,8 +139,8 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 
 - **Guard:** `RequireAuth`.
 - **Personalization:** greeting uses `profile.full_name` or “there”.
-- **Post-Stripe return:** reads **`?checkout=success`** + **`session_id`** → invokes **`finalize-checkout-session`** Edge function → toast success vs “syncing…” → **`load()`** bookings → optional **success banner** → **strips query params** with `replace` so refresh doesn’t re-finalize.
-- **Bookings:** same Supabase select pattern as Profile plus **Stripe ids** for support; splits into **Upcoming** vs **History** by parsing `event.date` + `event.time`.
+- **Post-Stripe return:** reads **`?checkout=success`** + **`session_id`** → invokes **`finalize-checkout-session`** Edge function → toast success vs “syncing…” → **`queryClient.invalidateQueries(userBookingsQueryKey)`** → optional **success banner** → **strips query params** with `replace`.
+- **Bookings:** TanStack Query **`useUserBookings`** (shared cache with Profile / Account bookings); splits into **Upcoming** vs **History** by parsing `event.date` + `event.time`.
 - **Notifications strip:** small cards (upcoming event teaser, welcome if empty, phone help) — lightweight “dashboard feel” without a full notification system backend.
 - **Actions:** **Complete payment** for `pending_payment`, **Cancel** with dialog (delete), link to **Events** / **Contact** / **Directions** (`business.mapUrl`) as appropriate in layout.
 - **Scroll affordance:** ref to bookings section for post-checkout UX (anchor behavior in code).
@@ -149,10 +152,10 @@ The next wave of work (this document’s **Remaining work**) is mostly **polish 
 - **`AdminLayout`**: `RequireAdmin` → `Layout` → **two-column grid**: **sticky sidebar** (280px) on large screens + main column.
 - **Sidebar:** **NavLink**s with icons (Overview, Events, Clients, Bookings); active state uses **muted background + primary ring**; horizontal scroll on small screens with **snap** for touch.
 - **Header strip:** “Dashboard Overview” title + subtitle + **`ProfileMenu`** (sign out, etc.).
-- **`AdminOverview`**: “Quick Action” + time-range dropdown (UI only); **stat cards** — pulls **counts** from Supabase (`events`, `clients`, `bookings`); revenue card still **placeholder** (“Payments not enabled yet” copy may be **stale** now that Stripe exists — worth a copy pass). Animated count-up on some stats (`useCountUpOnView`).
+- **`AdminOverview`**: **Nav CTAs** (Manage events / All bookings / Clients); **stat cards** — **`useAdminOverviewData`**: counts for **`events`**, **`clients`**, **`bookings`**; **paid ticket revenue** (sum of `total_paid` where `status === "paid"`) with honest hint about Stripe fees; **Upcoming** + **Recent activity** lists from **real** booking rows (empty states when none). Animated count-up on numeric stats (`useCountUpOnView`).
 - **`AdminEvents`**: full **CRUD** for events (form, image upload to storage, soft delete / trash, restore) — this is the heaviest admin UI; aligns with **Epic B** in Phase 2.
 - **`AdminClients`**: client records UI (wired to `clients` table per project).
-- **`AdminBookings`**: searchable list; shows attendee + event snippet + **status** + **$ total** + **truncated** Stripe session / PI; **Delete** only (no inline edit).
+- **`AdminBookings`**: **`useAdminBookingsList`** (TanStack Query); searchable list; **Delete** invalidates admin list + overview queries.
 
 ---
 
@@ -201,6 +204,7 @@ flowchart TD
   subgraph account [Signed-in account UI]
     D[Dashboard]
     R[Profile]
+    A[Account /account/*]
     M[ProfileMenu in Navbar]
   end
   subgraph staff [Staff]
@@ -212,6 +216,7 @@ flowchart TD
   P --> E
   P --> D
   P --> R
+  P --> A
   P --> M
   P -->|role admin| AD
 ```
@@ -220,22 +225,20 @@ flowchart TD
 
 ## Remaining work (next steps)
 
-### Must-fix / product truth (small but important)
-- [ ] **AdminOverview revenue / “payments not enabled”** copy — update to reflect **Stripe is live** (or gate on env) so staff are not misled.
-- [ ] **Signup confirmation path** — **#107**: when `signUp` returns **no session**, show **success + check email** instead of navigating as if logged in; handle **rate limit** messaging and cooldown.
+### Shipped in repo (high level)
+- [x] **AdminOverview** — real **paid revenue** sum, real **upcoming** / **recent activity** from bookings, **nav CTAs** instead of placeholder Quick Action / time dropdown.
+- [x] **Auth loading** — **`AuthLoadingFallback`** for **`RequireAuth`** / **`RequireAdmin`** (no blank `null`).
+- [x] **TanStack Query** — **`useUserBookings`**, **`useAdminBookingsList`**, **`useAdminOverviewData`**; invalidation on cancel / delete / post-checkout.
+- [x] **`/account`** hub — **`/account/profile`** (edit profile + password), **`/account/bookings`**; **ProfileMenu** + Profile link to settings.
+- [x] **Login** — **Magic link (demo)** tab + **unified OAuth** redirect behavior; password tab unchanged for real sign-in.
+- [x] **Signup** — **#107**-style paths already in **`Signup.tsx`** (check email, rate limits, return path stash).
 
-### Should-do (UX polish — Phase 2 “professional” bar)
-- [ ] **Loading states:** `RequireAuth` / `RequireAdmin` currently render **`null`** while `loading` — consider a **global skeleton** or branded spinner (avoids white flash).
-- [ ] **Account IA:** optional **`/account` hub** with nested routes (`/account/profile`, `/account/bookings`) if you outgrow flat `/profile` vs `/dashboard` split — document decision in an issue.
-- [ ] **Profile editing:** name / phone / avatar upload / password change — form + Supabase updates (likely new issue).
-- [ ] **Magic link demo or real OTP** — **#108** (demo) vs future real SMTP-backed magic link.
-- [ ] **TanStack Query:** Phase 2 plan calls for it on server state; Dashboard/Profile/Admin currently use **`useEffect` + `useState`** — migrate when you start cross-page cache invalidation.
-- [ ] **Admin Overview “Quick Action” / time filters** — wire to real metrics or hide until real.
-
-### Nice-to-have
-- [ ] **Dashboard vs Profile duplication:** both list bookings — decide **single source** (e.g. Dashboard = hub, Profile = account settings only) or differentiate copy (Dashboard = “this week”, Profile = “all”).
-- [ ] **Breadcrumbs** on admin deep pages.
-- [ ] **404 / auth** messaging: friendlier “You need to log in” page instead of instant redirect (optional).
+### Optional follow-ups
+- [ ] **Avatar storage** — optional **Supabase Storage** upload + policies if you outgrow **URL-only** avatars on **`/account/profile`**.
+- [ ] **Real magic link** — enable **`signInWithOtp`** when SMTP/product is ready (**#108**).
+- [ ] **Dashboard vs Profile** — further differentiate copy or consolidate lists if duplication still feels noisy.
+- [ ] **Admin breadcrumbs** on deep pages.
+- [ ] **Dedicated “please log in”** interstitial instead of instant **`Navigate`** (optional).
 
 ---
 
@@ -246,7 +249,8 @@ flowchart TD
 - [ ] **Events reserve:** logged out → login → returns to event with dialog opened.
 - [ ] **Profile:** bookings load; pending payment → complete payment opens Stripe; cancel removes row.
 - [ ] **Dashboard:** post-payment query flow + banner; upcoming/history split sane for past events.
-- [ ] **Admin:** non-admin user hitting `/admin` ends on `/profile`; admin sees sidebar + counts load.
+- [ ] **Admin:** non-admin user hitting `/admin` ends on **`/dashboard`**; admin sees sidebar + overview loads.
+- [ ] **Account:** `/account` redirects to **`/account/profile`**; bookings tab lists past + upcoming; profile save updates **`profiles`** and password uses **`auth.updateUser`**.
 
 ---
 
@@ -273,14 +277,14 @@ Admin: “Where’s work?”
 **`/admin`** is the **office**. Sidebar = **Overview / Events / Clients / Bookings**. They’re editing the **same events** the public sees — the website and the back office share one database truth.
 
 What’s still “Phase 2-ish” but not perfect yet  
-**Signup** can still feel rough if Supabase wants **email confirmation** or throws **rate limits** — that’s **#107**. There’s **no magic-link fantasy** unless you build **#108**. **Admin overview** still talks like **payments aren’t a thing** in one card — that’s just **old words**, not old code. And **loading** sometimes shows a **blank beat** before pages appear — fine for dev, a little **sterile** for a premium brand.
+**Signup** edge cases are largely handled in code (**#107**), and Login includes a **magic-link demo** (**#108**) without enabling OTP yet. **Admin overview** now reflects **paid booking totals** and **live lists**. **Loading** during auth resolution shows a **branded spinner** instead of an empty frame.
 
 One sentence per room  
 
 | Room | Dummy explanation |
 |------|---------------------|
 | **Navbar** | Public menu + either **Log in / Sign up** or your **face in a circle** that opens **Profile / Log out**. |
-| **Login & Signup** | The **bouncer desk**: email + password, checks the list (Supabase), stamps your hand (session), sends you back to **where you were trying to go**. |
+| **Login & Signup** | The **bouncer desk**: password or OAuth, optional **magic-link demo** (no OTP yet), checks Supabase, sends you back to **`from`**. |
 | **Profile** | Your **ID card wall** plus **ticket list** — see bookings, **pay** if you forgot, or **cancel**. |
 | **Dashboard** | The **lobby TV** — “here’s what’s next”, **upcoming vs past**, and **we got your Stripe money** banner. |
 | **Admin** | The **manager’s office** — counts, **events machine**, **bookings ledger**. |
