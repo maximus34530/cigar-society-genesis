@@ -42,6 +42,16 @@ const Login = () => {
     defaultValues: { email: "", password: "" },
   });
 
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/dashboard",
+      },
+    });
+    if (error) console.error(error);
+  };
+
   if (user) return <Navigate to={from} replace />;
 
   return (
@@ -58,18 +68,7 @@ const Login = () => {
                 className="w-full border-border/80 bg-background/50 font-body text-sm"
                 disabled={oauthBusy !== null}
                 aria-busy={oauthBusy === "google"}
-                onClick={async () => {
-                  form.clearErrors("root");
-                  setOauthBusy("google");
-                  try {
-                    await signInWithOAuthProvider("google", from);
-                  } catch (e) {
-                    const msg = e instanceof Error ? e.message : "Google sign-in failed.";
-                    form.setError("root", { message: msg });
-                  } finally {
-                    setOauthBusy(null);
-                  }
-                }}
+                onClick={handleGoogleLogin}
               >
                 {oauthBusy === "google" ? "Redirecting…" : "Continue with Google"}
               </Button>
