@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       .from("bookings")
       .select("tickets")
       .eq("event_id", event.id)
-      .eq("status", "paid");
+      .in("status", ["paid", "pending_payment"]);
 
     if (capErr) return json({ error: capErr.message }, { status: 500 });
 
