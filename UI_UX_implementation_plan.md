@@ -44,7 +44,7 @@ Most of that polish is now **implemented in code** (see **Remaining work** below
 
 | Route | Purpose | Guard |
 |--------|---------|--------|
-| `/login` | **Tabs:** password + OAuth, **Magic link (demo)** | Redirects when already signed in; preserves **`from`** for Signup |
+| `/login` | Email + password + optional OAuth (Google / Apple) | Redirects when already signed in; preserves **`from`** for Signup |
 | `/signup` | Full name + email + password sign-up | Same redirect behavior when already signed in |
 | `/profile` | Account summary + **My bookings** | **`RequireAuth`** → unauthenticated users sent to `/login` with `state.from` = current path |
 | `/dashboard` | **Primary** signed-in hub: notifications-style cards, **Upcoming** / **History** bookings, Stripe return handling | **`RequireAuth`** |
@@ -98,10 +98,9 @@ Most of that polish is now **implemented in code** (see **Remaining work** below
 
 ### 5. Login page (`/login`)
 
-- **Layout:** `Layout` + `SectionHeading` + card with **tabs**: **Password** vs **Magic link (demo)**.
-- **OAuth:** **Google** and **Apple** both use **`signInWithOAuthProvider`** + **`/auth/callback`** (same return-path stash as Signup).
-- **Password tab:** **React Hook Form + Zod** — email + password; **`signInWithPassword`**; loads **`profiles.role`**; **`resolvePostLoginPath(from, isAdmin)`** for destination.
-- **Magic link tab:** **Demo only** — email submit shows **“Check your email”** and a **cooldown**; explicitly **does not** call **`signInWithOtp`** until product enables it (**#108**).
+- **Layout:** `Layout` + `SectionHeading` + card: **OAuth** (Google / Apple) + **email + password** form (no magic-link / OTP login UI).
+- **OAuth:** **Google** and **Apple** use **`signInWithOAuthProvider`** + **`/auth/callback`** (same return-path stash as Signup).
+- **Form:** **React Hook Form + Zod** — email + password; **`signInWithPassword`**; loads **`profiles.role`**; **`resolvePostLoginPath(from, isAdmin)`** for destination.
 - **Cross-link:** “Don’t have an account?” → **`/signup`** preserving **`state.from`**.
 
 ---
@@ -111,7 +110,7 @@ Most of that polish is now **implemented in code** (see **Remaining work** below
 - **Layout:** same pattern as Login (heading + card).
 - **Form:** full name, email, password (Zod); `signUp` with `options.data.full_name` for Supabase user metadata.
 - **Submit:** handles **no session** after `signUp` with a **check-email** phase, rate-limit messaging, and cooldown where applicable — see **`Signup.tsx`** and **`authRouting`** (**#107** alignment).  
-- **Magic link** for signup is still password-first; Login hosts the **demo** tab (**#108**).
+- **Passwordless / magic link** login is **out of scope** for the app UI; see **`UI_UX_implementation_plan_2.0.md`** for the next Events + auth-modal direction.
 
 ---
 
@@ -230,12 +229,12 @@ flowchart TD
 - [x] **Auth loading** — **`AuthLoadingFallback`** for **`RequireAuth`** / **`RequireAdmin`** (no blank `null`).
 - [x] **TanStack Query** — **`useUserBookings`**, **`useAdminBookingsList`**, **`useAdminOverviewData`**; invalidation on cancel / delete / post-checkout.
 - [x] **`/account`** hub — **`/account/profile`** (edit profile + password), **`/account/bookings`**; **ProfileMenu** + Profile link to settings.
-- [x] **Login** — **Magic link (demo)** tab + **unified OAuth** redirect behavior; password tab unchanged for real sign-in.
+- [x] **Login** — **Unified OAuth** + password form (**no** magic-link / OTP tab).
 - [x] **Signup** — **#107**-style paths already in **`Signup.tsx`** (check email, rate limits, return path stash).
 
 ### Optional follow-ups
 - [ ] **Avatar storage** — optional **Supabase Storage** upload + policies if you outgrow **URL-only** avatars on **`/account/profile`**.
-- [ ] **Real magic link** — enable **`signInWithOtp`** when SMTP/product is ready (**#108**).
+- [ ] **(Removed)** Magic-link login — product direction is **email/password + OAuth** only; see **2.0 plan**.
 - [ ] **Dashboard vs Profile** — further differentiate copy or consolidate lists if duplication still feels noisy.
 - [ ] **Admin breadcrumbs** on deep pages.
 - [ ] **Dedicated “please log in”** interstitial instead of instant **`Navigate`** (optional).
@@ -258,7 +257,7 @@ flowchart TD
 
 1. **Dashboard vs Profile:** one mental model for customers (“Dashboard is home” vs “Profile is home”) — drives nav labels and marketing links.
 2. **Admin staffing:** shared admin accounts vs per-staff users (affects invite UX and audit).
-3. **Identity:** stay on **password** only for v1, add **Google OAuth**, or prioritize **magic link** after **#107** SMTP story.
+3. **Identity:** **password + OAuth** for customers; no magic-link login in UI (see **2.0 plan**).
 
 ---
 
@@ -277,14 +276,14 @@ Admin: “Where’s work?”
 **`/admin`** is the **office**. Sidebar = **Overview / Events / Clients / Bookings**. They’re editing the **same events** the public sees — the website and the back office share one database truth.
 
 What’s still “Phase 2-ish” but not perfect yet  
-**Signup** edge cases are largely handled in code (**#107**), and Login includes a **magic-link demo** (**#108**) without enabling OTP yet. **Admin overview** now reflects **paid booking totals** and **live lists**. **Loading** during auth resolution shows a **branded spinner** instead of an empty frame.
+**Signup** edge cases are largely handled in code (**#107**). Login is **password + OAuth** only (no magic-link tab). **Admin overview** reflects **paid booking totals** and **live lists**. **Loading** during auth resolution shows a **branded spinner** instead of an empty frame. Next UX wave: **`UI_UX_implementation_plan_2.0.md`**.
 
 One sentence per room  
 
 | Room | Dummy explanation |
 |------|---------------------|
 | **Navbar** | Public menu + either **Log in / Sign up** or your **face in a circle** that opens **Profile / Log out**. |
-| **Login & Signup** | The **bouncer desk**: password or OAuth, optional **magic-link demo** (no OTP yet), checks Supabase, sends you back to **`from`**. |
+| **Login & Signup** | The **bouncer desk**: password or OAuth, checks Supabase, sends you back to **`from`**. |
 | **Profile** | Your **ID card wall** plus **ticket list** — see bookings, **pay** if you forgot, or **cancel**. |
 | **Dashboard** | The **lobby TV** — “here’s what’s next”, **upcoming vs past**, and **we got your Stripe money** banner. |
 | **Admin** | The **manager’s office** — counts, **events machine**, **bookings ledger**. |

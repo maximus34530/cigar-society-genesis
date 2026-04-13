@@ -175,7 +175,7 @@ const Events = () => {
 
     toast({
       title: "Checkout cancelled",
-      description: "Your reservation is saved but unpaid. Complete payment anytime from your Dashboard.",
+      description: "You can start again from Events when you’re ready. All ticket sales are final and non-refundable.",
     });
 
     requestAnimationFrame(() => {
@@ -403,7 +403,7 @@ const Events = () => {
 
                       <p className="mt-3 font-body text-[11px] text-muted-foreground/80">
                         <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
-                          Event & refund terms
+                          Event ticket terms
                         </Link>
                       </p>
 

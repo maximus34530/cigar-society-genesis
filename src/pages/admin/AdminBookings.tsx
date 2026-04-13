@@ -35,8 +35,8 @@ export default function AdminBookings() {
     <Card className="bg-card/40 border-border/60">
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <CardTitle className="font-heading">Bookings</CardTitle>
-          <p className="mt-1 font-body text-sm text-muted-foreground">View and manage event bookings.</p>
+          <CardTitle className="font-heading">Ticket sales</CardTitle>
+          <p className="mt-1 font-body text-sm text-muted-foreground">View completed ticket purchases (paid only).</p>
         </div>
         <div className="w-full md:w-80">
           <Input
@@ -53,8 +53,8 @@ export default function AdminBookings() {
           <p className="font-body text-sm text-muted-foreground">Loading…</p>
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-8 text-center">
-            <p className="font-heading text-lg text-muted-foreground/90">No bookings yet</p>
-            <p className="mt-2 font-body text-sm text-muted-foreground/70">Bookings will appear here.</p>
+            <p className="font-heading text-lg text-muted-foreground/90">No paid ticket sales yet</p>
+            <p className="mt-2 font-body text-sm text-muted-foreground/70">Completed purchases will appear here.</p>
           </div>
         ) : (
           <div className="space-y-3">

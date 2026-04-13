@@ -18,6 +18,7 @@ export function useUserBookings(userId: string | undefined) {
         .from("bookings")
         .select(USER_BOOKING_SELECT)
         .eq("user_id", userId!)
+        .eq("status", "paid")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as UserBookingRow[];

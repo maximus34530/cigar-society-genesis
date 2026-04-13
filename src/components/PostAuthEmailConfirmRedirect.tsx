@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 /**
- * After email confirmation (or magic link), Supabase establishes a session on first load.
+ * After email confirmation, Supabase may establish a session on first load.
  * Consume the signup-time return path only when it matches the signed-in user's email.
  */
 export function PostAuthEmailConfirmRedirect() {

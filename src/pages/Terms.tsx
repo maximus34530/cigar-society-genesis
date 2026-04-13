@@ -105,7 +105,19 @@ const Terms = () => (
           </p>
         </div>
         <div>
-          <h2 className="font-heading text-2xl text-foreground mb-3">10. Contact</h2>
+          <h2 className="font-heading text-2xl text-foreground mb-3">10. Event tickets purchased through this website</h2>
+          <p>
+            When you purchase tickets for events through this website (including any deposit or ticket fee processed
+            online), <strong className="text-foreground">all ticket sales are final and non-refundable</strong>, except
+            where applicable law requires otherwise. Ticket purchases are not cancelled or modified through the website
+            by customers; questions may be directed to us by phone. Event dates, capacity, and programming may change;
+            we will use reasonable efforts to communicate material changes but{" "}
+            <strong className="text-foreground">non-payment, abandonment of checkout, or failure to attend does not
+            create a refund obligation.</strong>
+          </p>
+        </div>
+        <div>
+          <h2 className="font-heading text-2xl text-foreground mb-3">11. Contact</h2>
           <p>
             Questions about these Terms?{" "}
             <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>

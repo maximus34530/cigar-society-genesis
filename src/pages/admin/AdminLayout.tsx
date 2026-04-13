@@ -10,7 +10,7 @@ const sidebarLinks = [
   { label: "Overview", to: "/admin", icon: LayoutDashboard, end: true },
   { label: "Events", to: "/admin/events", icon: PartyPopper },
   { label: "Clients", to: "/admin/clients", icon: Users },
-  { label: "Bookings", to: "/admin/bookings", icon: CalendarDays },
+  { label: "Ticket sales", to: "/admin/bookings", icon: CalendarDays },
 ];
 
 export default function AdminLayout() {

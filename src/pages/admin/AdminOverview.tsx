@@ -37,7 +37,7 @@ function activityFromBookings(rows: AdminOverviewBookingPreview[]) {
       const evName = r.events?.name ?? "Event";
       const status = bookingStatusLabel(r.status);
       return {
-        title: `Booking • ${evName}`,
+        title: `Ticket sale • ${evName}`,
         subtitle: `${r.name} • ${status} • ${r.tickets} ticket${r.tickets === 1 ? "" : "s"}`,
       };
     });
@@ -50,7 +50,7 @@ export default function AdminOverview() {
     () => ({
       events: data?.eventCount ?? 0,
       clients: data?.clientCount ?? 0,
-      bookings: data?.bookingCount ?? 0,
+      paidTicketSales: data?.paidTicketSalesCount ?? 0,
     }),
     [data],
   );
@@ -72,7 +72,7 @@ export default function AdminOverview() {
             <NavLink to="/admin/events">Manage events</NavLink>
           </Button>
           <Button asChild variant="outline" className="border-border/70">
-            <NavLink to="/admin/bookings">All bookings</NavLink>
+            <NavLink to="/admin/bookings">Ticket sales</NavLink>
           </Button>
           <Button asChild variant="outline" className="border-border/70">
             <NavLink to="/admin/clients">Clients</NavLink>
@@ -84,12 +84,17 @@ export default function AdminOverview() {
         <StatCard
           title="Ticket revenue (paid)"
           value={revenueLabel}
-          hint="Sum of paid booking totals. Stripe fees and refunds are not shown here."
+          hint="Sum of paid ticket totals. Stripe fees not shown; all sales final per Terms."
           icon={DollarSign}
         />
         <StatCard title="Client base" value={counts.clients} hint="Total clients in your database." icon={Users} />
         <StatCard title="Active events" value={counts.events} hint="Events currently in your calendar." icon={PartyPopper} />
-        <StatCard title="Total bookings" value={counts.bookings} hint="All ticket reservations in your database." icon={CalendarDays} />
+        <StatCard
+          title="Paid ticket sales"
+          value={counts.paidTicketSales}
+          hint="Completed purchases only. Unpaid or abandoned checkouts stay in the database but are hidden here for now."
+          icon={CalendarDays}
+        />
       </div>
 
       {isError ? (
@@ -101,7 +106,7 @@ export default function AdminOverview() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="font-heading">Upcoming</CardTitle>
-              <p className="mt-1 font-body text-sm text-muted-foreground">Bookings for future events (from recent data).</p>
+              <p className="mt-1 font-body text-sm text-muted-foreground">Paid tickets for upcoming events (from recent data).</p>
             </div>
             <Button asChild variant="outline" className="border-border/70">
               <NavLink to="/admin/bookings">
@@ -157,7 +162,7 @@ export default function AdminOverview() {
               <p className="font-body text-sm text-muted-foreground">Loading…</p>
             ) : activity.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-6 text-center">
-                <p className="font-body text-sm text-muted-foreground">No recent bookings yet.</p>
+                <p className="font-body text-sm text-muted-foreground">No recent paid ticket sales yet.</p>
               </div>
             ) : (
               activity.map((item, idx) => (

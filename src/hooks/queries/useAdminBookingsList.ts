@@ -26,6 +26,7 @@ export function useAdminBookingsList() {
         .select(
           "id,name,email,phone,tickets,total_paid,status,stripe_checkout_session_id,stripe_payment_intent_id,created_at,events(name,date,time)",
         )
+        .eq("status", "paid")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data as AdminBookingRow[]) ?? [];
