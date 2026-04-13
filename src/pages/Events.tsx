@@ -4,13 +4,14 @@ import { EventCheckoutAuthDialog } from "@/components/EventCheckoutAuthDialog";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import eventsHeroImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
+import logoImg from "@/assets/logo.png";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { business } from "@/lib/business";
@@ -19,7 +20,7 @@ import { trackEvent } from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarDays, ChevronDown, ChevronRight, Loader2, MapPin } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronDown, ChevronRight, Loader2, MapPin } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   clearEventCheckoutAutorun,
@@ -534,6 +535,15 @@ const Events = () => {
                 const sold = soldForEvent(soldByEvent, event.id);
                 const remaining = spotsRemaining(event, sold);
                 const soldOut = isSoldOut(event, sold);
+                const ticketPrice = event.price != null ? Number(event.price) : null;
+                const isEventFree =
+                  ticketPrice == null || !Number.isFinite(ticketPrice) || ticketPrice <= 0;
+                const imageSrc =
+                  event.image_path != null && event.image_path.length > 0
+                    ? supabase.storage.from("event-images").getPublicUrl(event.image_path).data.publicUrl
+                    : event.image_url && event.image_url.length > 0
+                      ? event.image_url
+                      : null;
                 return (
                   <Card
                     key={event.id}
@@ -545,39 +555,51 @@ const Events = () => {
                       if (e.key === "Enter" || e.key === " ") openReservation(event);
                     }}
                     className={cn(
-                      "bg-card/40 border-border/60 overflow-hidden transition-colors",
+                      "flex h-full flex-col overflow-hidden border-primary/30 bg-card/40 shadow-sm transition-colors",
                       soldOut
-                        ? "opacity-60 cursor-not-allowed"
-                        : "hover:border-primary/35 hover:bg-card/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
+                        ? "cursor-not-allowed opacity-60"
+                        : "hover:border-primary/45 hover:bg-card/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
                     )}
                   >
-                    {event.image_path || event.image_url ? (
-                      <img
-                        src={
-                          event.image_path
-                            ? supabase.storage.from("event-images").getPublicUrl(event.image_path).data.publicUrl
-                            : event.image_url ?? undefined
-                        }
-                        alt=""
-                        className="h-44 w-full max-w-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : null}
-                    <CardHeader>
-                      <CardTitle className="font-heading text-lg">{event.name}</CardTitle>
+                    <div className="relative h-44 w-full shrink-0 overflow-hidden bg-muted">
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div
+                          className="relative flex h-full w-full items-center justify-center bg-gradient-to-b from-background to-muted"
+                          aria-hidden
+                        >
+                          <div className="pointer-events-none absolute inset-0 opacity-[0.14] bg-[radial-gradient(ellipse_at_50%_35%,hsl(var(--gold)),transparent_62%)]" />
+                          <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(-32deg,transparent,transparent_10px,hsl(var(--gold)/0.045)_10px,hsl(var(--gold)/0.045)_11px)] opacity-[0.45]" />
+                          <img src={logoImg} alt="" className="relative z-[1] h-[5.25rem] w-auto object-contain opacity-80" />
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader className="shrink-0 pb-3">
+                      <CardTitle className="font-heading text-lg leading-snug">{event.name}</CardTitle>
                       <p className="font-body text-sm text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="h-4 w-4 shrink-0 text-foreground/70" aria-hidden />
                           {event.date} • {event.time}
                         </span>
-                        {event.price != null ? ` • $${event.price} per ticket` : ""}
+                        {!isEventFree && event.price != null ? ` • $${event.price} per ticket` : null}
                       </p>
                       <p className="mt-2 flex flex-wrap items-center gap-2 font-body text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                           {business.address}
                         </span>
+                        {isEventFree ? (
+                          <span className="inline-flex items-center rounded-full bg-gold-gradient px-2.5 py-0.5 font-body text-[10px] font-semibold uppercase tracking-wider text-primary-foreground shadow-gold">
+                            FREE EVENT
+                          </span>
+                        ) : null}
                         <Badge variant="outline" className="border-border/70 text-[10px] uppercase tracking-wide">
                           21+
                         </Badge>
@@ -588,26 +610,36 @@ const Events = () => {
                         ) : null}
                       </p>
                     </CardHeader>
-                    <CardContent>
-                      {event.description ? (
-                        <p className="font-body text-sm text-muted-foreground line-clamp-4">{event.description}</p>
-                      ) : (
-                        <p className="font-body text-sm text-muted-foreground">Details coming soon.</p>
-                      )}
+                    <CardContent className="flex flex-1 flex-col gap-3 pt-0">
+                      <div className="min-h-[5.5rem] flex-1">
+                        {event.description ? (
+                          <p className="font-body text-sm text-muted-foreground line-clamp-4">{event.description}</p>
+                        ) : (
+                          <p className="font-body text-sm text-muted-foreground">Details coming soon.</p>
+                        )}
+                      </div>
 
-                      <p className="mt-3 font-body text-[11px] text-muted-foreground/80">
-                        <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
+                      <p className="font-body text-[11px] text-muted-foreground/80">
+                        <Link
+                          to="/terms"
+                          className="text-primary underline underline-offset-2 hover:text-primary/90"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
                           Event ticket terms
                         </Link>
                       </p>
 
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="font-body text-xs text-muted-foreground">{soldOut ? "Unavailable" : "Reserve"}</p>
-                        <span className="inline-flex items-center gap-1 text-xs font-body text-primary">
-                          {soldOut ? "Sold out" : "Reserve"}{" "}
-                          {!soldOut ? <ChevronRight className="h-4 w-4" aria-hidden /> : null}
-                        </span>
-              </div>
+                      <div
+                        className={cn(
+                          buttonVariants({ variant: "outline", size: "default" }),
+                          "mt-auto w-full justify-between gap-2 font-body text-sm",
+                          soldOut ? "pointer-events-none border-border/50 text-muted-foreground" : "border-primary/35 text-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
+                        )}
+                      >
+                        <span>{soldOut ? "Sold out" : "Reserve"}</span>
+                        {!soldOut ? <ArrowRight className="h-4 w-4 shrink-0 text-primary" aria-hidden /> : null}
+                      </div>
                     </CardContent>
                   </Card>
                 );
