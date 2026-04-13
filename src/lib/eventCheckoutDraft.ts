@@ -73,3 +73,45 @@ export function takeEventCheckoutDraft(): EventCheckoutDraft | null {
   }
   return d;
 }
+
+const AUTORUN_KEY = "cigar_society_event_checkout_autorun";
+const AUTORUN_TTL_MS = 1000 * 60 * 10;
+
+type AutorunPayload = { kind: "free" | "paid"; exp: number };
+
+/** Survives React remounts so post-OAuth resume can still auto-start Stripe / free reserve. */
+export function stashEventCheckoutAutorun(kind: "free" | "paid"): void {
+  try {
+    const payload: AutorunPayload = { kind, exp: Date.now() + AUTORUN_TTL_MS };
+    sessionStorage.setItem(AUTORUN_KEY, JSON.stringify(payload));
+  } catch {
+    /* private mode */
+  }
+}
+
+export function takeEventCheckoutAutorun(): "free" | "paid" | null {
+  try {
+    const raw = sessionStorage.getItem(AUTORUN_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(AUTORUN_KEY);
+    const parsed = JSON.parse(raw) as AutorunPayload;
+    if ((parsed.kind !== "free" && parsed.kind !== "paid") || typeof parsed.exp !== "number") return null;
+    if (Date.now() > parsed.exp) return null;
+    return parsed.kind;
+  } catch {
+    try {
+      sessionStorage.removeItem(AUTORUN_KEY);
+    } catch {
+      /* ignore */
+    }
+    return null;
+  }
+}
+
+export function clearEventCheckoutAutorun(): void {
+  try {
+    sessionStorage.removeItem(AUTORUN_KEY);
+  } catch {
+    /* ignore */
+  }
+}

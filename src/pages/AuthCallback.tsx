@@ -10,6 +10,16 @@ import {
 } from "@/lib/authRouting";
 import { supabase } from "@/lib/supabase";
 
+async function waitForUserSession(maxMs: number): Promise<boolean> {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const { data, error } = await supabase.auth.getSession();
+    if (!error && data.session?.user) return true;
+    await new Promise((r) => setTimeout(r, 120));
+  }
+  return false;
+}
+
 /**
  * OAuth PKCE return target. Supabase redirects here with `?code=`; client exchanges for a session.
  */
@@ -20,17 +30,25 @@ const AuthCallback = () => {
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase.auth.getSession();
+      const ok = await waitForUserSession(8000);
       if (cancelled) return;
 
-      if (error || !data.session?.user) {
+      if (!ok) {
         takeOAuthReturnPath();
         navigate("/login", { replace: true });
         return;
       }
 
       const from = takeOAuthReturnPath() ?? DEFAULT_POST_AUTH_PATH;
-      const destination = await resolvePostLoginPathForUser(from, data.session.user.id);
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id;
+      if (cancelled || !uid) {
+        takeOAuthReturnPath();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const destination = await resolvePostLoginPathForUser(from, uid);
       if (cancelled) return;
       navigate(destination, { replace: true });
     })();

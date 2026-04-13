@@ -4,6 +4,30 @@ import { supabase } from "@/lib/supabase";
 export const DEFAULT_POST_AUTH_PATH = "/dashboard";
 
 const OAUTH_RETURN_PATH_KEY = "cigar_society_oauth_return_path";
+const OAUTH_RETURN_TTL_MS = 1000 * 60 * 30;
+
+type OAuthReturnPayload = { path: string; exp: number };
+
+function parseOAuthReturnRaw(raw: string): string | null {
+  try {
+    const parsed = JSON.parse(raw) as OAuthReturnPayload;
+    if (typeof parsed.path === "string" && typeof parsed.exp === "number") {
+      if (Date.now() > parsed.exp) {
+        try {
+          sessionStorage.removeItem(OAUTH_RETURN_PATH_KEY);
+        } catch {
+          /* ignore */
+        }
+        return null;
+      }
+      return parsed.path;
+    }
+  } catch {
+    /* legacy: plain path string */
+  }
+  if (raw.startsWith("/")) return raw;
+  return null;
+}
 
 export type EmailSignupReturnPayload = {
   path: string;
@@ -29,18 +53,37 @@ export async function resolvePostLoginPathForUser(from: string, userId: string):
 
 export function stashOAuthReturnPath(path: string): void {
   try {
-    sessionStorage.setItem(OAUTH_RETURN_PATH_KEY, path);
+    const payload: OAuthReturnPayload = { path, exp: Date.now() + OAUTH_RETURN_TTL_MS };
+    sessionStorage.setItem(OAUTH_RETURN_PATH_KEY, JSON.stringify(payload));
   } catch {
     /* private mode */
+  }
+}
+
+/** Read stashed post-OAuth route without consuming (e.g. retry / catch-up redirects). */
+export function peekOAuthReturnPath(): string | null {
+  try {
+    const v = sessionStorage.getItem(OAUTH_RETURN_PATH_KEY);
+    if (!v) return null;
+    return parseOAuthReturnRaw(v);
+  } catch {
+    return null;
   }
 }
 
 export function takeOAuthReturnPath(): string | null {
   try {
     const v = sessionStorage.getItem(OAUTH_RETURN_PATH_KEY);
-    if (v) sessionStorage.removeItem(OAUTH_RETURN_PATH_KEY);
-    return v || null;
+    if (!v) return null;
+    const path = parseOAuthReturnRaw(v);
+    sessionStorage.removeItem(OAUTH_RETURN_PATH_KEY);
+    return path;
   } catch {
+    try {
+      sessionStorage.removeItem(OAUTH_RETURN_PATH_KEY);
+    } catch {
+      /* ignore */
+    }
     return null;
   }
 }

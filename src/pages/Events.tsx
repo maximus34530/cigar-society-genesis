@@ -21,7 +21,14 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDays, ChevronDown, ChevronRight, Loader2, MapPin } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { peekEventCheckoutDraft, stashEventCheckoutDraft, takeEventCheckoutDraft } from "@/lib/eventCheckoutDraft";
+import {
+  clearEventCheckoutAutorun,
+  peekEventCheckoutDraft,
+  stashEventCheckoutAutorun,
+  stashEventCheckoutDraft,
+  takeEventCheckoutAutorun,
+  takeEventCheckoutDraft,
+} from "@/lib/eventCheckoutDraft";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -243,6 +250,7 @@ const Events = () => {
         return;
       }
 
+      clearEventCheckoutAutorun();
       setActiveEvent(event);
       setStep("tickets");
       setPaying(false);
@@ -326,6 +334,8 @@ const Events = () => {
     setActiveEvent(ev);
     setStep("confirm");
     setPaying(false);
+    if (draft.pendingAction === "paid_checkout") stashEventCheckoutAutorun("paid");
+    else if (draft.pendingAction === "free_reserve") stashEventCheckoutAutorun("free");
     form.reset({
       firstName: draft.firstName,
       lastName: draft.lastName,
@@ -334,6 +344,13 @@ const Events = () => {
       tickets: draft.tickets,
     });
   }, [loading, events, soldByEvent, searchParams, setSearchParams, form]);
+
+  useEffect(() => {
+    if (!user || !activeEvent || step !== "confirm") return;
+    const kind = takeEventCheckoutAutorun();
+    if (!kind) return;
+    void runCheckoutWithIntent(kind);
+  }, [user, activeEvent, step, runCheckoutWithIntent]);
 
   useEffect(() => {
     const checkout = searchParams.get("checkout");
@@ -631,6 +648,7 @@ const Events = () => {
         open={!!activeEvent}
         onOpenChange={(next) => {
           if (!next) {
+            clearEventCheckoutAutorun();
             checkoutAuthIntentRef.current = null;
             setAuthDialogOpen(false);
             setActiveEvent(null);

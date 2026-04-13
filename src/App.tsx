@@ -5,7 +5,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { isAgeVerified, setAgeVerified } from "@/lib/ageGateStorage";
+import { OAuthReturnCatchUp } from "@/components/OAuthReturnCatchUp";
 import { PostAuthEmailConfirmRedirect } from "@/components/PostAuthEmailConfirmRedirect";
+import { SupabaseOAuthPathNormalizer } from "@/components/SupabaseOAuthPathNormalizer";
 import { PageLoadingFallback } from "./components/PageLoadingFallback";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -51,8 +53,10 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <SupabaseOAuthPathNormalizer />
             <Suspense fallback={<PageLoadingFallback />}>
               <PostAuthEmailConfirmRedirect />
+              <OAuthReturnCatchUp />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/about" element={<About />} />
