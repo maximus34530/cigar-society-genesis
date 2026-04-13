@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       },
     ],
     success_url:
-      `${siteOrigin}/dashboard?checkout=success&booking_id=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
+      `${siteOrigin}/thank-you?checkout=success&booking_id=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteOrigin}/events?checkout=cancelled&event_id=${encodeURIComponent(event.id)}`,
     metadata: {
       booking_id: booking.id,

@@ -32,6 +32,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const ThankYou = lazy(() => import("./pages/ThankYou"));
 
 const App = () => {
   const [ageVerified, setAgeVerifiedState] = useState(() => isAgeVerified());
@@ -65,6 +66,7 @@ const App = () => {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/thank-you" element={<ThankYou />} />
                 <Route path="/account" element={<AccountLayout />}>
                   <Route index element={<Navigate to="/account/profile" replace />} />
                   <Route path="profile" element={<AccountProfilePage />} />

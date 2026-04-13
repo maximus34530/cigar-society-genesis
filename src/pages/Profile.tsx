@@ -7,36 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { bookingStatusLabel } from "@/lib/bookingStatus";
-import { createCheckoutSessionUrl } from "@/lib/checkout";
 import { supabase } from "@/lib/supabase";
-import { cn } from "@/lib/utils";
-import { embeddedEvent, errorMessage, parseEventDateTime, type UserBookingRow } from "@/lib/bookingUtils";
-import { userBookingsQueryKey, useUserBookings } from "@/hooks/queries/useUserBookings";
-import { CalendarDays, Loader2, XCircle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { embeddedEvent, errorMessage, parseEventDateTime } from "@/lib/bookingUtils";
+import { useUserBookings } from "@/hooks/queries/useUserBookings";
+import { CalendarDays } from "lucide-react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 
 const Profile = () => {
   const { user, profile, isAdmin, refreshProfile } = useAuth();
-  const queryClient = useQueryClient();
   const { data: bookings = [], isPending: loadingBookings, isError, error, refetch } = useUserBookings(user?.id);
   const bookingsError = isError ? errorMessage(error, "Failed to load bookings") : null;
-  const [confirmCancel, setConfirmCancel] = useState<UserBookingRow | null>(null);
-  const [cancelling, setCancelling] = useState(false);
-  const [resumingId, setResumingId] = useState<string | null>(null);
 
   const upcoming = useMemo(() => {
     const now = new Date();
@@ -63,7 +45,7 @@ const Profile = () => {
         <Seo title="Profile" description="Your Cigar Society profile." path="/profile" noIndex />
         <section className="section-padding">
           <div className="container mx-auto max-w-4xl">
-            <SectionHeading title="Profile" subtitle="Manage your account and view your event bookings." />
+            <SectionHeading title="Profile" subtitle="Manage your account and view your event tickets." />
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <Card className="md:col-span-1 bg-card/40 border-border/60">
@@ -129,7 +111,7 @@ const Profile = () => {
 
               <Card className="md:col-span-2 bg-card/40 border-border/60">
                 <CardHeader>
-                  <CardTitle className="font-heading">My bookings</CardTitle>
+                  <CardTitle className="font-heading">My tickets</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {bookingsError ? (
@@ -142,7 +124,7 @@ const Profile = () => {
                     <p className="font-body text-sm text-muted-foreground">Loading…</p>
                   ) : upcoming.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border/60 bg-card/30 p-8 text-center">
-                      <p className="font-heading text-lg text-muted-foreground/90">No bookings yet</p>
+                      <p className="font-heading text-lg text-muted-foreground/90">No tickets yet</p>
                       <p className="mt-2 font-body text-sm text-muted-foreground/70">
                         Reserve an event and it will show here.
                       </p>
@@ -178,52 +160,13 @@ const Profile = () => {
                                 {b.tickets} ticket{b.tickets === 1 ? "" : "s"}{" "}
                                 {Number.isFinite(b.total_paid) ? `• $${b.total_paid}` : ""}
                               </p>
-                              {b.status === "pending_payment" ? (
-                                <p className="mt-2 font-body text-xs text-muted-foreground">Payment not completed yet.</p>
-                              ) : null}
                             </div>
                             <div className="flex flex-col gap-2 sm:flex-row">
-                              {b.status === "pending_payment" ? (
-                                <Button
-                                  type="button"
-                                  className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
-                                  disabled={!!resumingId}
-                                  onClick={async () => {
-                                    setResumingId(b.id);
-                                    try {
-                                      const url = await createCheckoutSessionUrl(b.id);
-                                      window.location.href = url;
-                                    } catch (e) {
-                                      toast({
-                                        title: "Couldn’t resume checkout",
-                                        description: e instanceof Error ? e.message : "Please try again.",
-                                      });
-                                      setResumingId(null);
-                                    }
-                                  }}
-                                >
-                                  {resumingId === b.id ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                                      Opening…
-                                    </>
-                                  ) : (
-                                    "Complete payment"
-                                  )}
-                                </Button>
-                              ) : null}
                               <Button type="button" variant="outline" className="border-border/70" onClick={() => void refetch()}>
                                 Refresh
                               </Button>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                className={cn(cancelling ? "opacity-80" : "")}
-                                disabled={cancelling}
-                                onClick={() => setConfirmCancel(b)}
-                              >
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Cancel
+                              <Button type="button" variant="outline" className="border-border/70" asChild>
+                                <Link to="/events">View events</Link>
                               </Button>
                             </div>
                           </div>
@@ -237,43 +180,6 @@ const Profile = () => {
           </div>
         </section>
       </Layout>
-
-      <AlertDialog open={!!confirmCancel} onOpenChange={(next) => (!next ? setConfirmCancel(null) : null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
-            <AlertDialogDescription>This will remove your booking from the system.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={cancelling}>Keep booking</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={cancelling}
-              onClick={async () => {
-                const row = confirmCancel;
-                setConfirmCancel(null);
-                if (!row || !user) return;
-                setCancelling(true);
-                try {
-                  const { error: delErr } = await supabase.from("bookings").delete().eq("id", row.id);
-                  if (delErr) throw delErr;
-                  await queryClient.invalidateQueries({ queryKey: userBookingsQueryKey(user.id) });
-                } catch (e) {
-                  toast({
-                    title: "Could not cancel booking",
-                    description: errorMessage(e, "Please try again."),
-                    variant: "destructive",
-                  });
-                } finally {
-                  setCancelling(false);
-                }
-              }}
-            >
-              Cancel booking
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </RequireAuth>
   );
 };

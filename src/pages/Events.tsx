@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
+import { EventCheckoutAuthDialog } from "@/components/EventCheckoutAuthDialog";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,8 @@ import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDays, ChevronDown, ChevronRight, Loader2, MapPin } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { peekEventCheckoutDraft, stashEventCheckoutDraft, takeEventCheckoutDraft } from "@/lib/eventCheckoutDraft";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -35,7 +37,7 @@ type EventRow = {
   image_path: string | null;
 };
 
-type CheckoutStep = "tickets" | "details" | "pay";
+type CheckoutStep = "tickets" | "details" | "confirm";
 
 function formatUsPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -85,6 +87,9 @@ const Events = () => {
   const [activeEvent, setActiveEvent] = useState<EventRow | null>(null);
   const [step, setStep] = useState<CheckoutStep>("tickets");
   const [paying, setPaying] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const checkoutAuthIntentRef = useRef<"free" | "paid" | null>(null);
+  const authModalConsumedRef = useRef(false);
   const [summaryOpen, setSummaryOpen] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true,
   );
@@ -107,14 +112,128 @@ const Events = () => {
   const unitPrice = activeEvent ? Number(activeEvent.price ?? 0) : 0;
   const isFree = !Number.isFinite(unitPrice) || unitPrice <= 0;
 
-  const openReservation = useCallback(
-    (event: EventRow) => {
-      if (!user) {
-        const next = `/events?reserve=${encodeURIComponent(event.id)}`;
-        navigate("/login", { replace: false, state: { from: next } });
+  const stashCheckoutDraftForResume = useCallback(() => {
+    if (!activeEvent) return;
+    const v = form.getValues();
+    const unit = Number(activeEvent.price ?? 0);
+    const freeEvent = !Number.isFinite(unit) || unit <= 0;
+    stashEventCheckoutDraft({
+      eventId: activeEvent.id,
+      tickets: v.tickets,
+      firstName: v.firstName.trim(),
+      lastName: v.lastName.trim(),
+      email: v.email.trim(),
+      phone: v.phone.trim(),
+      pendingAction: freeEvent ? "free_reserve" : "paid_checkout",
+    });
+  }, [activeEvent, form]);
+
+  const runCheckoutWithIntent = useCallback(
+    async (intent: "free" | "paid" | null) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user?.id;
+      if (!activeEvent || !uid) {
+        toast({ title: "Sign in required", description: "Please sign in to complete your tickets." });
         return;
       }
 
+      const paidFlow = intent === "paid" || (intent === null && !isFree);
+      const values = form.getValues();
+
+      if (paidFlow) {
+        setPaying(true);
+        let newBookingId: string | null = null;
+        try {
+          const payload = {
+            user_id: uid,
+            event_id: activeEvent.id,
+            name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+            email: values.email.trim().toLowerCase(),
+            phone: values.phone.trim(),
+            tickets: values.tickets,
+            total_paid: 0,
+            status: "pending_payment" as const,
+          };
+
+          const { data: inserted, error: insertError } = await supabase.from("bookings").insert(payload).select("id").single();
+          if (insertError || !inserted?.id) throw insertError ?? new Error("Failed to create booking");
+          newBookingId = inserted.id as string;
+
+          const url = await createCheckoutSessionUrl(newBookingId);
+          window.location.href = url;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Could not start checkout";
+          const capacityMiss =
+            msg.toLowerCase().includes("sold out") ||
+            msg.toLowerCase().includes("seat") ||
+            msg.toLowerCase().includes("spots");
+          if (newBookingId && capacityMiss) {
+            await supabase.from("bookings").delete().eq("id", newBookingId);
+          }
+          toast({
+            title: "Couldn’t start checkout",
+            description: capacityMiss ? msg : `${msg} If this keeps happening, call ${business.phoneDisplay}.`,
+          });
+          setPaying(false);
+        }
+      } else {
+        setReserving(true);
+        try {
+          const payload = {
+            user_id: uid,
+            event_id: activeEvent.id,
+            name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+            email: values.email.trim().toLowerCase(),
+            phone: values.phone.trim(),
+            tickets: values.tickets,
+            total_paid: 0,
+            status: "paid" as const,
+          };
+
+          const { data: inserted, error: insertError } = await supabase.from("bookings").insert(payload).select("id").single();
+          if (insertError || !inserted?.id) throw insertError ?? new Error("Failed to create booking");
+
+          if (n8nFreeEventWebhookUrl) {
+            fetch(n8nFreeEventWebhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "event_reservation_free_confirmed",
+                created_at: new Date().toISOString(),
+                booking_id: inserted.id,
+                user_id: uid,
+                event: activeEvent,
+                reservation: values,
+              }),
+            }).catch(() => {});
+          }
+
+          setActiveEvent(null);
+          setStep("tickets");
+          form.reset({ firstName: "", lastName: "", email: "", phone: "", tickets: 1 });
+          navigate("/thank-you?reserved=1");
+        } catch (e) {
+          form.setError("root", {
+            message: e instanceof Error ? e.message : "Could not reserve this event",
+          });
+        } finally {
+          setReserving(false);
+        }
+      }
+    },
+    [activeEvent, isFree, form, navigate, n8nFreeEventWebhookUrl],
+  );
+
+  const handleCheckoutAuthenticated = useCallback(() => {
+    const intent = checkoutAuthIntentRef.current;
+    checkoutAuthIntentRef.current = null;
+    authModalConsumedRef.current = true;
+    setAuthDialogOpen(false);
+    void runCheckoutWithIntent(intent);
+  }, [runCheckoutWithIntent]);
+
+  const openReservation = useCallback(
+    (event: EventRow) => {
       const sold = soldForEvent(soldByEvent, event.id);
       if (isSoldOut(event, sold)) {
         toast({
@@ -127,21 +246,26 @@ const Events = () => {
       setActiveEvent(event);
       setStep("tickets");
       setPaying(false);
-      form.reset({
-        firstName: profile?.full_name?.trim()?.split(" ")?.[0] ?? "",
-        lastName: profile?.full_name?.trim()?.split(" ")?.slice(1).join(" ") ?? "",
-        email: user.email ?? "",
-        phone: "",
-        tickets: 1,
-      });
+      setAuthDialogOpen(false);
+      checkoutAuthIntentRef.current = null;
+      if (user) {
+        form.reset({
+          firstName: profile?.full_name?.trim()?.split(" ")?.[0] ?? "",
+          lastName: profile?.full_name?.trim()?.split(" ")?.slice(1).join(" ") ?? "",
+          email: user.email ?? "",
+          phone: "",
+          tickets: 1,
+        });
+      } else {
+        form.reset({ firstName: "", lastName: "", email: "", phone: "", tickets: 1 });
+      }
     },
-    [user, navigate, soldByEvent, profile, form],
+    [user, soldByEvent, profile, form],
   );
 
   useEffect(() => {
     const reserveId = searchParams.get("reserve");
     if (!reserveId) return;
-    if (!user) return;
     if (loading) return;
 
     const target = events.find((e) => e.id === reserveId);
@@ -156,7 +280,60 @@ const Events = () => {
       },
       { replace: true },
     );
-  }, [user, loading, events, searchParams, setSearchParams, openReservation]);
+  }, [loading, events, searchParams, setSearchParams, openReservation]);
+
+  useEffect(() => {
+    if (searchParams.get("checkout_resume") !== "1") return;
+    if (loading) return;
+
+    if (!peekEventCheckoutDraft()) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("checkout_resume");
+          return next;
+        },
+        { replace: true },
+      );
+      return;
+    }
+
+    if (events.length === 0) return;
+
+    const draft = takeEventCheckoutDraft();
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("checkout_resume");
+        return next;
+      },
+      { replace: true },
+    );
+
+    if (!draft) return;
+    const ev = events.find((e) => e.id === draft.eventId);
+    if (!ev) return;
+
+    const sold = soldForEvent(soldByEvent, ev.id);
+    if (isSoldOut(ev, sold)) {
+      toast({
+        title: "Sold out",
+        description: "This event reached capacity while you were signing in. Pick another night.",
+      });
+      return;
+    }
+
+    setActiveEvent(ev);
+    setStep("confirm");
+    setPaying(false);
+    form.reset({
+      firstName: draft.firstName,
+      lastName: draft.lastName,
+      email: draft.email,
+      phone: draft.phone,
+      tickets: draft.tickets,
+    });
+  }, [loading, events, soldByEvent, searchParams, setSearchParams, form]);
 
   useEffect(() => {
     const checkout = searchParams.get("checkout");
@@ -233,7 +410,7 @@ const Events = () => {
   const stepTitle = (s: CheckoutStep) => {
     if (s === "tickets") return "Tickets";
     if (s === "details") return "Your details";
-    return "Review & pay";
+    return "Confirm";
   };
 
   const orderSummary = activeEvent ? (
@@ -266,7 +443,7 @@ const Events = () => {
 
   const stepIndicator = (
     <div className="flex flex-wrap items-center gap-2 font-body text-xs text-muted-foreground">
-      {(["tickets", "details", "pay"] as const).map((s, i) => (
+      {(["tickets", "details", "confirm"] as const).map((s, i) => (
         <span key={s} className="inline-flex items-center gap-2">
           <span
             className={cn(
@@ -454,6 +631,8 @@ const Events = () => {
         open={!!activeEvent}
         onOpenChange={(next) => {
           if (!next) {
+            checkoutAuthIntentRef.current = null;
+            setAuthDialogOpen(false);
             setActiveEvent(null);
             setReserving(false);
             setStep("tickets");
@@ -555,61 +734,7 @@ const Events = () => {
 
                 {step === "details" && activeEvent ? (
                   <Form {...form}>
-                    <form
-                      className="space-y-4"
-                      onSubmit={form.handleSubmit(async (values) => {
-                        if (!activeEvent || !user) return;
-                        if (!isFree) return;
-                        setReserving(true);
-                        try {
-                          const payload = {
-                            user_id: user.id,
-                            event_id: activeEvent.id,
-                            name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
-                            email: values.email.trim().toLowerCase(),
-                            phone: values.phone.trim(),
-                            tickets: values.tickets,
-                            total_paid: 0,
-                            status: "paid" as const,
-                          };
-
-                          const { data: inserted, error: insertError } = await supabase
-                            .from("bookings")
-                            .insert(payload)
-                            .select("id")
-                            .single();
-                          if (insertError || !inserted?.id) throw insertError ?? new Error("Failed to create booking");
-
-                          if (n8nFreeEventWebhookUrl) {
-                            fetch(n8nFreeEventWebhookUrl, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                type: "event_reservation_free_confirmed",
-                                created_at: new Date().toISOString(),
-                                booking_id: inserted.id,
-                                user_id: user.id,
-                                event: activeEvent,
-                                reservation: values,
-                              }),
-                            }).catch(() => {});
-                          }
-
-                          toast({
-                            title: "Reserved — thank you!",
-                            description: "Your reservation has been confirmed. You can manage it from your Dashboard.",
-                          });
-                          setActiveEvent(null);
-                          navigate("/dashboard?checkout=success");
-                        } catch (e) {
-                          form.setError("root", {
-                            message: e instanceof Error ? e.message : "Could not reserve this event",
-                          });
-                        } finally {
-                          setReserving(false);
-                        }
-                      })}
-                    >
+                    <div className="space-y-4">
                       <p className="font-body text-sm text-muted-foreground">
                         Tickets: <span className="text-foreground/90">{ticketCount}</span>
                         {activeEvent.price != null ? (
@@ -700,50 +825,33 @@ const Events = () => {
                         <Button type="button" variant="outline" onClick={() => setActiveEvent(null)} disabled={reserving}>
                           Cancel
                         </Button>
-                        {isFree ? (
-                          <Button
-                            type="submit"
-                            className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
-                            disabled={reserving}
-                          >
-                            {reserving ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                                Saving…
-                              </>
-                            ) : (
-                              "Confirm reservation"
-                            )}
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
-                            disabled={reserving}
-                            onClick={async () => {
-                              const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);
-                              if (!ok) return;
-                              const sold = soldForEvent(soldByEvent, activeEvent.id);
-                              const rem = spotsRemaining(activeEvent, sold);
-                              const want = form.getValues("tickets");
-                              if (rem != null && want > rem) {
-                                form.setError("tickets", {
-                                  message: `Only ${rem} seat${rem === 1 ? "" : "s"} left.`,
-                                });
-                                return;
-                              }
-                              setStep("pay");
-                            }}
-                          >
-                            Continue to review
-                          </Button>
-                        )}
+                        <Button
+                          type="button"
+                          className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                          disabled={reserving}
+                          onClick={async () => {
+                            const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);
+                            if (!ok) return;
+                            const sold = soldForEvent(soldByEvent, activeEvent.id);
+                            const rem = spotsRemaining(activeEvent, sold);
+                            const want = form.getValues("tickets");
+                            if (rem != null && want > rem) {
+                              form.setError("tickets", {
+                                message: `Only ${rem} seat${rem === 1 ? "" : "s"} left.`,
+                              });
+                              return;
+                            }
+                            setStep("confirm");
+                          }}
+                        >
+                          Continue to review
+                        </Button>
                       </DialogFooter>
-                    </form>
+                    </div>
                   </Form>
                 ) : null}
 
-                {step === "pay" && activeEvent && !isFree ? (
+                {step === "confirm" && activeEvent ? (
                   <div className="space-y-4">
                     <Collapsible open={summaryOpen} onOpenChange={setSummaryOpen} className="lg:hidden">
                       <CollapsibleTrigger asChild>
@@ -762,82 +870,80 @@ const Events = () => {
                       <p className="mt-1 text-xs">{form.getValues("email")}</p>
                       <p className="mt-0.5 text-xs">{form.getValues("phone")}</p>
                       <p className="mt-3 text-xs">
-                        {ticketCount} ticket{ticketCount === 1 ? "" : "s"} • $
-                        {((activeEvent.price ?? 0) * ticketCount).toFixed(2)}
+                        {ticketCount} ticket{ticketCount === 1 ? "" : "s"}
+                        {!isFree ? (
+                          <>
+                            {" "}
+                            • ${((activeEvent.price ?? 0) * ticketCount).toFixed(2)}
+                          </>
+                        ) : null}
                       </p>
                     </div>
 
                     <p className="font-body text-xs text-muted-foreground">
-                      You’ll complete payment on Stripe. Apple Pay and Google Pay appear when your device supports them.
+                      {isFree ? (
+                        <>
+                          By reserving, you agree that all ticket sales are final and non-refundable. See{" "}
+                          <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
+                            Terms
+                          </Link>{" "}
+                          for details.
+                        </>
+                      ) : (
+                        <>
+                          You’ll complete payment on Stripe. Apple Pay and Google Pay appear when your device supports them.
+                          All ticket sales are final and non-refundable — see{" "}
+                          <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
+                            Terms
+                          </Link>
+                          .
+                        </>
+                      )}
                     </p>
 
+                    {form.formState.errors.root?.message ? (
+                      <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+                    ) : null}
+
                     <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-                      <Button type="button" variant="outline" onClick={() => setStep("details")} disabled={paying}>
+                      <Button type="button" variant="outline" onClick={() => setStep("details")} disabled={paying || reserving}>
                         Back
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => setActiveEvent(null)} disabled={paying}>
+                      <Button type="button" variant="outline" onClick={() => setActiveEvent(null)} disabled={paying || reserving}>
                         Cancel
                       </Button>
                       <Button
                         type="button"
                         className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
-                        disabled={paying}
+                        disabled={paying || reserving}
                         onClick={async () => {
-                          if (!activeEvent || !user) return;
-                          const values = form.getValues();
                           const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);
                           if (!ok) return;
-
-                          setPaying(true);
-                          let newBookingId: string | null = null;
-                          try {
-                            const payload = {
-                              user_id: user.id,
-                              event_id: activeEvent.id,
-                              name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
-                              email: values.email.trim().toLowerCase(),
-                              phone: values.phone.trim(),
-                              tickets: values.tickets,
-                              total_paid: 0,
-                              status: "pending_payment" as const,
-                            };
-
-                            const { data: inserted, error: insertError } = await supabase
-                              .from("bookings")
-                              .insert(payload)
-                              .select("id")
-                              .single();
-                            if (insertError || !inserted?.id) {
-                              throw insertError ?? new Error("Failed to create booking");
-                            }
-                            newBookingId = inserted.id as string;
-
-                            const url = await createCheckoutSessionUrl(newBookingId);
-                            window.location.href = url;
-                          } catch (e) {
-                            const msg = e instanceof Error ? e.message : "Could not start checkout";
-                            const capacityMiss =
-                              msg.toLowerCase().includes("sold out") ||
-                              msg.toLowerCase().includes("seat") ||
-                              msg.toLowerCase().includes("spots");
-                            if (newBookingId && capacityMiss) {
-                              await supabase.from("bookings").delete().eq("id", newBookingId);
-                            }
-                            toast({
-                              title: "Couldn’t start checkout",
-                              description: capacityMiss
-                                ? msg
-                                : `${msg} If this keeps happening, call ${business.phoneDisplay}.`,
+                          const sold = soldForEvent(soldByEvent, activeEvent.id);
+                          const rem = spotsRemaining(activeEvent, sold);
+                          const want = form.getValues("tickets");
+                          if (rem != null && want > rem) {
+                            form.setError("tickets", {
+                              message: `Only ${rem} seat${rem === 1 ? "" : "s"} left.`,
                             });
-                            setPaying(false);
+                            return;
                           }
+                          if (!user) {
+                            authModalConsumedRef.current = false;
+                            checkoutAuthIntentRef.current = isFree ? "free" : "paid";
+                            setAuthDialogOpen(true);
+                            return;
+                          }
+                          void runCheckoutWithIntent(null);
                         }}
                       >
-                        {paying ? (
+                        {paying || reserving ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                            Preparing secure payment…
+                            {isFree ? "Saving…" : "Preparing secure payment…"}
                           </>
+                        ) : isFree ? (
+                          "Reserve"
                         ) : (
                           "Continue to secure payment"
                         )}
@@ -854,6 +960,17 @@ const Events = () => {
       </div>
         </DialogContent>
       </Dialog>
+
+      <EventCheckoutAuthDialog
+        open={authDialogOpen}
+        onOpenChange={(open) => {
+          setAuthDialogOpen(open);
+          if (!open && !authModalConsumedRef.current) checkoutAuthIntentRef.current = null;
+          if (!open) authModalConsumedRef.current = false;
+        }}
+        onAuthenticated={handleCheckoutAuthenticated}
+        onBeforeOAuth={stashCheckoutDraftForResume}
+      />
   </Layout>
 );
 };

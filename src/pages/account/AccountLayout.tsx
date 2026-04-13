@@ -15,7 +15,7 @@ export default function AccountLayout() {
         <Seo title="Account" description="Manage your Cigar Society account." path="/account" noIndex />
         <section className="section-padding">
           <div className="container mx-auto max-w-4xl">
-            <SectionHeading title="Account" subtitle="Profile settings and your event bookings in one place." />
+            <SectionHeading title="Account" subtitle="Profile settings and your event tickets in one place." />
 
             <div className="mb-8 flex flex-wrap gap-2">
               <Button
@@ -38,7 +38,7 @@ export default function AccountLayout() {
                     : "border-border/70",
                 )}
               >
-                <NavLink to="/account/bookings">Bookings</NavLink>
+                <NavLink to="/account/bookings">Tickets</NavLink>
               </Button>
             </div>
 

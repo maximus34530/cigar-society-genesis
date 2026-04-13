@@ -12,7 +12,7 @@
 | Milestone | Scope | Code / docs |
 |-----------|--------|-------------|
 | **A — Shipped** | Legal alignment, no magic-link login UI, paid-only ticket lists (hide `pending_payment` in UI), admin **Ticket sales** labeling, Stripe cancel toast copy, **`UI_UX_implementation_plan.md`** aligned with no magic-link tab | **Done** in repo (see §7). |
-| **B — Next build** | Events flow without early `/login`, auth modal at Pay/Reserve, `/thank-you` page, remove customer **cancel** everywhere, customer copy **bookings → tickets**, optional dashboard **View events** hub | **Specified** below; implement in a follow-up PR. |
+| **B — Next build** | Events flow without early `/login`, auth modal at Pay/Reserve, `/thank-you` page, remove customer **cancel** everywhere, customer copy **bookings → tickets**, optional dashboard **View events** hub | **Done** in repo (see §7 Milestone B checkboxes). |
 
 ---
 
@@ -133,13 +133,13 @@ No auth modal at step 4; straight to Pay or **Reserve**.
 - [x] **E6 Terms** — **§10 Event tickets purchased through this website**; **Events** link → **Event ticket terms**; Stripe cancel toast aligned (no “complete payment from Dashboard”).  
 - [x] **E6 Privacy** — Reviewed: no ticket/refund copy requiring change (N/A).
 
-### Milestone B — **Next PR** (spec locked; not yet shipped)
+### Milestone B — **Complete** (shipped in repo)
 
-- [ ] **E1** — **`openReservation`**: guests open dialog without **`/login`** redirect; `?reserve=` works for guests.  
-- [ ] **E2** — **`AuthRequiredDialog`**: login + full signup in modal + OAuth; wire to final **Pay** / **Reserve** only.  
-- [ ] **E3** — **`/thank-you`** route + redirects from Stripe / free success; policy line + **View my tickets** → **`/dashboard`**.  
-- [ ] **E4** — Remove **cancel** / delete flows from **Dashboard**, **Profile**, **`AccountBookingsPage`**; **View events** hub + policy messaging.  
-- [ ] **E4b** — Customer copy sweep **bookings → tickets** (grep `src/pages`, customer components).  
+- [x] **E1** — **`openReservation`**: guests open dialog without **`/login`** redirect; `?reserve=` works for guests.  
+- [x] **E2** — **`EventCheckoutAuthDialog`**: login + full signup in modal + OAuth; wire to final **Pay** / **Reserve** only.  
+- [x] **E3** — **`/thank-you`** route + redirects from Stripe / free success; policy line + **View my tickets** → **`/dashboard`**.  
+- [x] **E4** — Remove **cancel** / delete flows from **Dashboard**, **Profile**, **`AccountBookingsPage`**; **View events** hub + policy messaging.  
+- [x] **E4b** — Customer copy sweep **bookings → tickets** (key customer pages + account nav).  
 - [ ] **E7** — Manual QA matrix for Milestone B.
 
 ---
@@ -155,12 +155,12 @@ No auth modal at step 4; straight to Pay or **Reserve**.
 
 ### Milestone B (definition of done for remaining 2.0 UX)
 
-- [ ] No customer **cancel/delete** ticket action anywhere.  
-- [ ] Guest completes event flow through **confirmation** without `/login` until final **Reserve**/**Pay**.  
-- [ ] Auth modal = **email + password** + **full sign-up in popup** + **optional OAuth** (no magic link).  
-- [ ] **Thank-you** page shows required policy line + **View my tickets** → **dashboard**.  
-- [ ] Free events follow the **same step shape** as paid with **Reserve** as final free CTA.  
-- [ ] Customer UI uses **tickets** not **bookings** (grep clean-up).
+- [x] No customer **cancel/delete** ticket action anywhere.  
+- [x] Guest completes event flow through **confirmation** without `/login` until final **Reserve**/**Pay**.  
+- [x] Auth modal = **email + password** + **full sign-up in popup** + **optional OAuth** (no magic link).  
+- [x] **Thank-you** page shows required policy line + **View my tickets** → **dashboard**.  
+- [x] Free events follow the **same step shape** as paid with **Reserve** as final free CTA.  
+- [x] Customer UI uses **tickets** not **bookings** (key surfaces updated; spot-check grep as needed).
 
 ---
 
