@@ -239,7 +239,7 @@ const Index = () => {
                   Coming soon
                 </p>
                 <p className="mt-3 max-w-[14rem] text-sm text-muted-foreground/70 font-body leading-relaxed">
-                  Marketplace listings will appear here when we launch.
+                  In the meantime, explore our in-lounge selection
                 </p>
               </div>
             ))}

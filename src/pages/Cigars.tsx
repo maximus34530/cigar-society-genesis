@@ -57,7 +57,7 @@ const Cigars = () => {
                   Coming soon
                 </p>
                 <p className="mt-3 max-w-[min(100%,14rem)] mx-auto font-body text-sm leading-relaxed text-muted-foreground/70">
-                  Marketplace listings will appear here when we launch.
+                  In the meantime, explore our in-lounge selection
                 </p>
               </div>
             ))}
