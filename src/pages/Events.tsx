@@ -49,6 +49,43 @@ type EventRow = {
 
 type CheckoutStep = "tickets" | "details" | "confirm";
 
+function formatEventDateTime(dateRaw: string | null | undefined, timeRaw: string | null | undefined) {
+  const dateStr = (dateRaw ?? "").trim();
+  const timeStr = (timeRaw ?? "").trim();
+  if (!dateStr && !timeStr) return "";
+  if (!dateStr) return timeStr;
+  if (!timeStr) return dateStr;
+
+  const d = new Date(`${dateStr}T00:00:00`);
+  const dateOk = !Number.isNaN(d.getTime());
+  const dateLabel = dateOk
+    ? new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric" }).format(d)
+    : dateStr;
+
+  const ampmMatch = timeStr.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+  if (ampmMatch) {
+    const h = Number(ampmMatch[1]);
+    const m = ampmMatch[2];
+    const ap = ampmMatch[3].toUpperCase();
+    const hh = h >= 1 && h <= 12 ? h : ((h % 12) || 12);
+    return `${dateLabel} • ${hh}:${m} ${ap}`;
+  }
+
+  const hhmmMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (hhmmMatch && dateOk) {
+    const h = Number(hhmmMatch[1]);
+    const m = Number(hhmmMatch[2]);
+    if (Number.isFinite(h) && Number.isFinite(m)) {
+      const dt = new Date(d);
+      dt.setHours(h, m, 0, 0);
+      const timeLabel = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(dt);
+      return `${dateLabel} • ${timeLabel}`;
+    }
+  }
+
+  return `${dateLabel} • ${timeStr}`;
+}
+
 function formatUsPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
   if (digits.length <= 3) return digits;
@@ -439,7 +476,7 @@ const Events = () => {
       <div>
         <p className="font-heading text-sm text-foreground">{activeEvent.name}</p>
         <p className="mt-1 font-body text-xs text-muted-foreground">
-          {activeEvent.date} • {activeEvent.time}
+          {formatEventDateTime(activeEvent.date, activeEvent.time)}
         </p>
         <p className="mt-2 font-body text-xs text-muted-foreground">
           {business.publicVenueName} — {business.address}
@@ -453,7 +490,7 @@ const Events = () => {
           </span>
         </div>
         {!isFree ? (
-          <p className="mt-2 text-xs text-muted-foreground">Fees included in ticket price.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Tickets are non-refundable.</p>
         ) : (
           <p className="mt-2 text-xs text-muted-foreground">No ticket charge for this event.</p>
         )}
@@ -596,7 +633,7 @@ const Events = () => {
                       <p className="font-body text-sm text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="h-4 w-4 shrink-0 text-foreground/70" aria-hidden />
-                          {event.date} • {event.time}
+                          {formatEventDateTime(event.date, event.time)}
                         </span>
                         {!isEventFree && event.price != null ? ` • $${event.price} per ticket` : null}
                       </p>
@@ -629,26 +666,17 @@ const Events = () => {
                         )}
                       </div>
 
-                      <p className="font-body text-[11px] text-muted-foreground/80">
-                        <Link
-                          to="/terms"
-                          className="text-primary underline underline-offset-2 hover:text-primary/90"
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                        >
-                          Event ticket terms
-                        </Link>
-                      </p>
-
                       <div
                         className={cn(
                           buttonVariants({ variant: "outline", size: "default" }),
                           "mt-auto w-full justify-between gap-2 font-body text-sm",
-                          soldOut ? "pointer-events-none border-border/50 text-muted-foreground" : "border-primary/35 text-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
+                          soldOut
+                            ? "pointer-events-none border-border/50 text-muted-foreground"
+                            : "bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90 border-transparent",
                         )}
                       >
-                        <span>{soldOut ? "Sold out" : "Reserve"}</span>
-                        {!soldOut ? <ArrowRight className="h-4 w-4 shrink-0 text-primary" aria-hidden /> : null}
+                        <span>{soldOut ? "Sold out" : "Get tickets"}</span>
+                        {!soldOut ? <ArrowRight className="h-4 w-4 shrink-0 text-primary-foreground" aria-hidden /> : null}
                       </div>
                     </CardContent>
                   </Card>
@@ -668,16 +696,6 @@ const Events = () => {
                 Follow for updates
               </a>
             </Button>
-            <p className="mt-6 font-body text-sm text-muted-foreground">
-              Prefer the phone?{" "}
-              <Link
-                to="/contact"
-                className="font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-colors duration-[600ms] ease-out hover:text-primary/90"
-              >
-                Contact us
-              </Link>
-              .
-            </p>
           </div>
         </div>
         </FadeUp>
@@ -713,7 +731,7 @@ const Events = () => {
                   <p className="font-heading text-sm text-foreground">{activeEvent.name}</p>
                   <p className="mt-1 font-body text-xs text-muted-foreground">
                     <CalendarDays className="mr-1 inline h-3.5 w-3.5 text-foreground/70" aria-hidden />
-                    {activeEvent.date} • {activeEvent.time}
+                    {formatEventDateTime(activeEvent.date, activeEvent.time)}
                   </p>
                 </div>
               ) : null}

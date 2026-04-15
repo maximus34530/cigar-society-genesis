@@ -87,23 +87,8 @@ const ThankYou = () => {
             </div>
             <SectionHeading
               title="Thank you for your ticket purchase"
-              subtitle="We’re glad you’re joining us at the lounge. You’ll receive a confirmation by email when it’s ready."
+              subtitle="We’re glad you’re joining us at the lounge. Your receipt confirmation has been sent to your email."
             />
-
-            <div className="mt-8 rounded-xl border border-destructive/25 bg-destructive/5 px-5 py-4 text-left">
-              <p className="font-heading text-sm font-semibold text-foreground">All ticket sales are final and non-refundable.</p>
-              <p className="mt-2 font-body text-sm text-muted-foreground">
-                Questions? Call{" "}
-                <a href={`tel:${business.phoneE164}`} className="text-primary underline underline-offset-2 hover:text-primary/90">
-                  {business.phoneDisplay}
-                </a>{" "}
-                or{" "}
-                <Link to="/contact" className="text-primary underline underline-offset-2 hover:text-primary/90">
-                  contact us
-                </Link>{" "}
-                — we’re happy to help with event details only (not refunds or reschedules).
-              </p>
-            </div>
 
             {reserved ? (
               <p className="mt-6 font-body text-sm text-muted-foreground">
@@ -111,27 +96,16 @@ const ThankYou = () => {
               </p>
             ) : null}
 
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Button asChild variant="luxury" className="font-body text-sm uppercase tracking-wider">
                 <Link to="/dashboard">View my tickets</Link>
               </Button>
               <Button asChild variant="outline" className="border-border/70 font-body">
-                <Link to="/events">Browse events</Link>
-              </Button>
-              <Button asChild variant="outline" className="border-border/70 font-body">
-                <a href={business.googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
+                <a href={business.googleMapsPlacePageUrl} target="_blank" rel="noopener noreferrer">
                   Directions
                 </a>
               </Button>
             </div>
-
-            <p className="mt-10 font-body text-xs text-muted-foreground">
-              See also{" "}
-              <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
-                Terms of Service
-              </Link>{" "}
-              for event ticket policies.
-            </p>
           </FadeUp>
         </section>
       </Layout>
