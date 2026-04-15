@@ -4,16 +4,20 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FadeUp } from "@/components/FadeUp";
 import { GoldAccentShimmer } from "@/components/GoldAccentShimmer";
 import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
-import { List, MapPin, Star } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { CalendarDays, ChevronRight, List, MapPin, Star } from "lucide-react";
 import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
+import { useEffect, useMemo, useState } from "react";
 
 type LoungeHighlight = {
   title: string;
@@ -142,10 +146,88 @@ const experienceChild: Variants = {
 
 const headlineEase = [0.16, 1, 0.3, 1] as const;
 
+type HomeEventPreview = {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  capacity_total: number | null;
+  description: string | null;
+  image_url: string | null;
+  image_path: string | null;
+};
+
+function soldForEvent(soldByEvent: Record<string, number>, eventId: string) {
+  return soldByEvent[eventId] ?? 0;
+}
+
+function spotsRemaining(event: HomeEventPreview, sold: number): number | null {
+  if (event.capacity_total == null) return null;
+  const cap = Number(event.capacity_total);
+  if (!Number.isFinite(cap) || cap <= 0) return null;
+  return Math.max(0, cap - sold);
+}
+
 const Index = () => {
   const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
   const reduceMotion = useReducedMotion();
   const brandWords = business.shortName.split(/\s+/).filter(Boolean);
+  const [events, setEvents] = useState<HomeEventPreview[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [soldByEvent, setSoldByEvent] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    setEventsLoading(true);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select("id,name,date,time,capacity_total,description,image_url,image_path")
+          .eq("is_active", true)
+          .is("deleted_at", null)
+          .order("date", { ascending: true })
+          .order("time", { ascending: true })
+          .limit(3);
+        if (cancelled) return;
+        if (error) throw error;
+        const rows = ((data as HomeEventPreview[]) ?? []).slice(0, 3);
+        setEvents(rows);
+
+        const ids = rows.map((r) => r.id);
+        if (ids.length === 0) return;
+        try {
+          const { data: soldRows, error: rpcErr } = await supabase.rpc("event_tickets_sold_batch", {
+            p_event_ids: ids,
+          });
+          if (rpcErr) throw rpcErr;
+          const map: Record<string, number> = {};
+          for (const row of (soldRows as { event_id: string; tickets_sold: number }[] | null) ?? []) {
+            map[row.event_id] = row.tickets_sold;
+          }
+          if (!cancelled) setSoldByEvent(map);
+        } catch {
+          if (!cancelled) setSoldByEvent({});
+        }
+      } catch {
+        if (!cancelled) {
+          setEvents([]);
+          setSoldByEvent({});
+        }
+      } finally {
+        if (!cancelled) setEventsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const eventsEmpty = useMemo(() => !eventsLoading && events.length === 0, [eventsLoading, events.length]);
+  const featured = events[0] ?? null;
+  const secondary = events.slice(1, 3);
 
   return (
     <Layout>
@@ -301,6 +383,170 @@ const Index = () => {
                 <Link to="/gallery">View the gallery →</Link>
               </Button>
             </div>
+          </div>
+        </FadeUp>
+      </section>
+
+      <section className="section-warm-radial section-padding border-y border-border/40 bg-muted/80">
+        <FadeUp>
+          <div className="container mx-auto">
+            <SectionHeading
+              title="Live events at the lounge"
+              subtitle="Live music, comedy nights, and special events in the Rio Grande Valley."
+              className="!mb-10 md:!mb-12"
+            />
+
+            {eventsLoading ? (
+              <p className="font-body text-sm text-muted-foreground">Loading events…</p>
+            ) : eventsEmpty ? (
+              <div className="rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-10 text-center">
+                <p className="font-heading text-lg font-semibold tracking-wide text-muted-foreground/90 md:text-xl">
+                  No upcoming events posted yet
+                </p>
+                <p className="mt-3 font-body text-sm leading-relaxed text-muted-foreground/70">
+                  Check back soon, or follow us on Instagram for announcements.
+                </p>
+                <div className="mt-6">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <a href={business.instagramUrl} target="_blank" rel="noopener noreferrer">
+                      Follow for updates
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-border/50 bg-card/30 p-4 sm:p-6">
+                <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+                  <Card className="overflow-hidden rounded-2xl border-border/60 bg-card/40 shadow-card">
+                    <div className="relative">
+                      {(() => {
+                        const imageSrc =
+                          featured?.image_path || featured?.image_url
+                            ? featured?.image_path
+                              ? supabase.storage.from("event-images").getPublicUrl(featured.image_path).data.publicUrl
+                              : featured?.image_url ?? undefined
+                            : liveEventsImg;
+                        return (
+                          <img
+                            src={imageSrc}
+                            alt=""
+                            className="h-56 w-full max-w-full object-cover sm:h-64"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        );
+                      })()}
+                      <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"
+                      />
+                    </div>
+                    <CardHeader className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-primary/15 text-primary border border-primary/25 font-body text-[10px] uppercase tracking-wide">
+                          Next up
+                        </Badge>
+                        <Badge variant="outline" className="border-border/70 font-body text-[10px] uppercase tracking-wide">
+                          21+
+                        </Badge>
+                      </div>
+                      <CardTitle className="font-heading text-2xl">{featured?.name ?? "Upcoming event"}</CardTitle>
+                      <div className="grid gap-1 font-body text-sm text-muted-foreground">
+                        <p className="inline-flex items-center gap-2">
+                          <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
+                          {featured ? `${featured.date} • ${featured.time}` : "Dates announced soon"}
+                        </p>
+                        <p className="inline-flex items-start gap-2">
+                          <MapPin className="mt-[2px] h-4 w-4 text-foreground/70" aria-hidden />
+                          {business.address}
+                        </p>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="font-body text-sm leading-relaxed text-muted-foreground line-clamp-4">
+                        {featured?.description?.trim()
+                          ? featured.description
+                          : "Great nights, great cigars, and a relaxed lounge built for conversation."}
+                      </p>
+
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="font-body text-xs text-muted-foreground/80">
+                          All ticket sales are final and non-refundable.{" "}
+                          <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
+                            Event ticket terms
+                          </Link>
+                        </p>
+                        <Button
+                          asChild
+                          className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                          onClick={() => trackEvent("Home Events Featured Get Tickets", { event_id: featured?.id ?? "unknown" })}
+                        >
+                          <Link to={featured ? `/events?reserve=${encodeURIComponent(featured.id)}` : "/events"}>
+                            Get tickets <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="space-y-3">
+                    <p className="font-heading text-sm text-foreground/80">Also coming up</p>
+                    {secondary.map((e) => {
+                      const sold = soldForEvent(soldByEvent, e.id);
+                      const remaining = spotsRemaining(e, sold);
+                      const subtleLink = `/events?reserve=${encodeURIComponent(e.id)}`;
+                      const desc = (e.description ?? "").trim();
+                      const descLower = desc.toLowerCase();
+                      const safeDesc = !desc ? "Details coming soon." : descLower === "free event" ? "Details coming soon." : desc;
+
+                      return (
+                        <Card key={e.id} className="border-border/60 bg-card/20">
+                          <CardHeader className="space-y-2">
+                            <CardTitle className="font-heading text-base">{e.name}</CardTitle>
+                            <p className="font-body text-xs text-muted-foreground">
+                              {e.date} • {e.time}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className="border-border/70 font-body text-[10px] uppercase tracking-wide">
+                                21+
+                              </Badge>
+                              {remaining != null ? (
+                                <Badge variant="secondary" className="font-body text-[10px]">
+                                  {remaining} spots left
+                                </Badge>
+                              ) : null}
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <p className="font-body text-sm leading-relaxed text-muted-foreground line-clamp-3">{safeDesc}</p>
+                            <div className="mt-3">
+                              <Button
+                                asChild
+                                variant="link"
+                                className="h-auto p-0 font-body text-xs uppercase tracking-wider text-primary underline underline-offset-4 hover:text-primary/90"
+                                onClick={() => trackEvent("Home Events Upcoming CTA", { event_id: e.id })}
+                              >
+                                <Link to={subtleLink}>View details →</Link>
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+
+                    <Button asChild variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                      <Link to="/events" onClick={() => trackEvent("Home Events View All", { variant: "footer" })}>
+                        View full calendar <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </FadeUp>
       </section>
