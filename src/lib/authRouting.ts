@@ -40,7 +40,7 @@ const EMAIL_SIGNUP_RETURN_KEY = "cigar_society_email_signup_return";
 const EMAIL_SIGNUP_RETURN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 export function resolvePostLoginPath(from: string, isAdmin: boolean): string {
-  if (from === DEFAULT_POST_AUTH_PATH && isAdmin) return "/admin";
+  if (isAdmin) return "/admin";
   return from;
 }
 

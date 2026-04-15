@@ -19,7 +19,6 @@ const Events = lazy(() => import("./pages/Events"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
-const Profile = lazy(() => import("./pages/Profile"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
@@ -27,9 +26,7 @@ const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
 const AdminBookings = lazy(() => import("./pages/admin/AdminBookings"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
-const AccountProfilePage = lazy(() => import("./pages/account/AccountProfilePage"));
-const AccountBookingsPage = lazy(() => import("./pages/account/AccountBookingsPage"));
+const Account = lazy(() => import("./pages/Account"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -68,14 +65,13 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile" element={<Navigate to="/account" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/thank-you" element={<ThankYou />} />
-                <Route path="/account" element={<AccountLayout />}>
-                  <Route index element={<Navigate to="/account/profile" replace />} />
-                  <Route path="profile" element={<AccountProfilePage />} />
-                  <Route path="bookings" element={<AccountBookingsPage />} />
-                </Route>
+                <Route path="/account" element={<Account />} />
+                <Route path="/account/profile" element={<Navigate to="/account" replace />} />
+                <Route path="/account/bookings" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/account/*" element={<Navigate to="/account" replace />} />
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminOverview />} />
                   <Route path="events" element={<AdminEvents />} />

@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LayoutDashboard, LogOut, Settings, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 export function ProfileMenu({ className }: { className?: string }) {
   const navigate = useNavigate();
-  const { profile, signOut, user } = useAuth();
+  const { profile, signOut, user, isAdmin } = useAuth();
 
   if (!user) return null;
 
@@ -43,15 +43,22 @@ export function ProfileMenu({ className }: { className?: string }) {
         <DropdownMenuLabel className="font-body">Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/profile" className="cursor-pointer">
-            <UserIcon className="mr-2 h-4 w-4" />
-            Profile
-          </Link>
+          {isAdmin ? (
+            <Link to="/admin" className="cursor-pointer">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Admin dashboard
+            </Link>
+          ) : (
+            <Link to="/dashboard" className="cursor-pointer">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Dashboard
+            </Link>
+          )}
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/account/profile" className="cursor-pointer">
+          <Link to="/account" className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
-            Account settings
+            Manage account
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

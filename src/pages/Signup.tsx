@@ -71,7 +71,7 @@ const Signup = () => {
       <Seo title="Sign Up" description="Create your Cigar Society account." path="/signup" noIndex />
       <section className="section-padding">
         <FadeUp className="container mx-auto max-w-lg">
-          <SectionHeading title="Create your account" subtitle="Sign up to view your profile and event bookings." />
+          <SectionHeading title="Create your account" subtitle="Sign up to view your tickets and manage your account." />
           <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8 space-y-6">
             {phase === "form" ? (
               <>

@@ -7,6 +7,9 @@ export type ProfileRole = "admin" | "client" | "user";
 export type Profile = {
   id: string;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
   avatar_url: string | null;
   role: ProfileRole;
 };
@@ -16,6 +19,7 @@ type AuthContextValue = {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
+  profileError: string | null;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
@@ -24,31 +28,64 @@ type AuthContextValue = {
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
+  const primary = await supabase
+    .from("profiles")
+    .select("id, full_name, first_name, last_name, phone, avatar_url, role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!primary.error) {
+    return (primary.data as Profile | null) ?? null;
+  }
+
+  // Back-compat: if migrations haven't been applied yet (missing columns), fall back to legacy select.
+  const msg = primary.error.message ?? "";
+  const looksLikeMissingColumn =
+    msg.toLowerCase().includes("column") &&
+    (msg.includes("first_name") || msg.includes("last_name") || msg.includes("phone"));
+
+  if (!looksLikeMissingColumn) throw primary.error;
+
+  const legacy = await supabase
     .from("profiles")
     .select("id, full_name, avatar_url, role")
     .eq("id", userId)
     .maybeSingle();
 
-  if (error) throw error;
-  return (data as Profile | null) ?? null;
+  if (legacy.error) throw legacy.error;
+  const row = (legacy.data as Omit<Profile, "first_name" | "last_name" | "phone"> | null) ?? null;
+  if (!row) return null;
+  return {
+    ...row,
+    first_name: null,
+    last_name: null,
+    phone: null,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const user = session?.user ?? null;
 
   const refreshProfile = async () => {
     if (!user) {
       setProfile(null);
+      setProfileError(null);
       return;
     }
 
-    const next = await fetchProfile(user.id);
-    setProfile(next);
+    try {
+      const next = await fetchProfile(user.id);
+      setProfile(next);
+      setProfileError(null);
+    } catch (e) {
+      setProfile(null);
+      setProfileError(e instanceof Error ? e.message : "Failed to load profile");
+    }
   };
 
   useEffect(() => {
@@ -77,10 +114,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         if (!user) {
           setProfile(null);
+          setProfileError(null);
           return;
         }
-        const next = await fetchProfile(user.id);
-        if (!cancelled) setProfile(next);
+        try {
+          const next = await fetchProfile(user.id);
+          if (!cancelled) {
+            setProfile(next);
+            setProfileError(null);
+          }
+        } catch (e) {
+          if (!cancelled) {
+            setProfile(null);
+            setProfileError(e instanceof Error ? e.message : "Failed to load profile");
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -97,13 +145,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       user,
       profile,
+      profileError,
       refreshProfile,
       signOut: async () => {
         await supabase.auth.signOut();
       },
-      isAdmin: profile?.role === "admin",
+      isAdmin: String(profile?.role ?? "")
+        .trim()
+        .toLowerCase() === "admin",
     }),
-    [loading, session, user, profile],
+    [loading, session, user, profile, profileError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
