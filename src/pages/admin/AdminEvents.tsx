@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -17,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
-import { CloudUpload, Trash2 } from "lucide-react";
+import { CloudUpload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,6 +35,7 @@ type EventRow = {
   image_path: string | null;
   is_active: boolean | null;
   created_at: string | null;
+  deleted_at?: string | null;
 };
 
 const schema = z.object({
@@ -49,7 +51,6 @@ const schema = z.object({
     .optional()
     .refine((v) => !v || (Number.isInteger(Number(v)) && Number(v) >= 0), "Enter a whole number (0 or higher)"),
   description: z.string().optional(),
-  isActive: z.boolean().default(true),
 });
 
 type Values = z.infer<typeof schema>;
@@ -75,11 +76,14 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EventRow | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewEventId, setPreviewEventId] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [confirmingDelete, setConfirmingDelete] = useState<EventRow | null>(null);
   const [confirmingPermanentDelete, setConfirmingPermanentDelete] = useState<EventRow | null>(null);
   const [showTrash, setShowTrash] = useState(false);
 
@@ -92,11 +96,32 @@ export default function AdminEvents() {
       price: "",
       capacityTotal: "",
       description: "",
-      isActive: true,
     },
   });
 
+  const resetEditor = () => {
+    setEditing(null);
+    setPreviewOpen(false);
+    setPreviewEventId(null);
+    setImageFile(null);
+    setRemoveImage(false);
+    setDragOver(false);
+    form.reset({
+      name: "",
+      date: "",
+      time: "",
+      price: "",
+      capacityTotal: "",
+      description: "",
+    });
+  };
+
   const title = useMemo(() => (editing ? "Edit event" : "New event"), [editing]);
+
+  const previewEvent = useMemo(() => {
+    if (!previewEventId) return null;
+    return rows.find((r) => r.id === previewEventId) ?? null;
+  }, [rows, previewEventId]);
 
   const load = async () => {
     setLoading(true);
@@ -117,6 +142,93 @@ export default function AdminEvents() {
     }
   };
 
+  const upsertDraft = async (values: Values) => {
+    // Draft-first: never publish from the editor. Publishing happens from the Preview modal.
+    const basePayload = {
+      name: values.name,
+      date: values.date,
+      time: values.time,
+      price: values.price ? Number(values.price) : null,
+      capacity_total: values.capacityTotal?.trim() ? Number(values.capacityTotal) : null,
+      description: values.description?.trim() ? values.description.trim() : null,
+      is_active: false,
+      deleted_at: editing?.deleted_at ?? null,
+    };
+
+    const { data: saved, error: saveError } = editing
+      ? await supabase.from("events").update(basePayload).eq("id", editing.id).select("id,image_path").single()
+      : await supabase.from("events").insert(basePayload).select("id,image_path").single();
+
+    if (saveError || !saved) {
+      form.setError("root", { message: saveError?.message ?? "Failed to save event" });
+      return null;
+    }
+
+    const eventId = saved.id as string;
+    const previousImagePath = (saved.image_path as string | null) ?? null;
+
+    if (removeImage && previousImagePath) {
+      await supabase.storage.from("event-images").remove([previousImagePath]);
+      await supabase.from("events").update({ image_path: null }).eq("id", eventId);
+    }
+
+    if (imageFile) {
+      if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
+        form.setError("root", { message: "Please upload a JPG, PNG, or WebP image." });
+        return null;
+      }
+      if (imageFile.size > MAX_IMAGE_BYTES) {
+        form.setError("root", { message: "Image must be 25MB or smaller." });
+        return null;
+      }
+
+      const ext = extFromFile(imageFile);
+      const objectPath = `events/${eventId}/${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage.from("event-images").upload(objectPath, imageFile, {
+        upsert: true,
+        contentType: imageFile.type,
+      });
+
+      if (uploadError) {
+        form.setError("root", { message: uploadError.message });
+        return null;
+      }
+
+      if (previousImagePath && previousImagePath !== objectPath) {
+        await supabase.storage.from("event-images").remove([previousImagePath]);
+      }
+
+      await supabase.from("events").update({ image_path: objectPath }).eq("id", eventId);
+    }
+
+    await load();
+    return eventId;
+  };
+
+  const archiveEventById = async (eventId: string) => {
+    const { error: archiveError } = await supabase
+      .from("events")
+      .update({ deleted_at: new Date().toISOString(), is_active: false })
+      .eq("id", eventId);
+    if (archiveError) {
+      form.setError("root", { message: archiveError.message });
+      return false;
+    }
+    await load();
+    return true;
+  };
+
+  const publishEventById = async (eventId: string) => {
+    const { error } = await supabase.from("events").update({ is_active: true, deleted_at: null }).eq("id", eventId);
+    if (error) {
+      form.setError("root", { message: error.message });
+      return false;
+    }
+    await load();
+    return true;
+  };
+
   useEffect(() => {
     void load();
   }, [showTrash]);
@@ -127,128 +239,49 @@ export default function AdminEvents() {
         <div>
           <CardTitle className="font-heading">Events</CardTitle>
           <p className="mt-1 font-body text-sm text-muted-foreground">
-            {showTrash ? "Trash — events are kept for 30 days." : "Create and manage public event listings."}
+            {showTrash ? "Archive — events are kept for 30 days." : "Create and manage public event listings."}
           </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Button
-            type="button"
-            variant="outline"
-            className={cn("border-border/70", showTrash ? "text-foreground/70" : "text-primary border-primary/40")}
-            onClick={() => setShowTrash(false)}
+          <Dialog
+            open={open}
+            onOpenChange={(next) => {
+              setOpen(next);
+              if (!next) {
+                resetEditor();
+              }
+            }}
           >
-            Active
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className={cn("border-border/70", showTrash ? "text-primary border-primary/40" : "text-foreground/70")}
-            onClick={() => setShowTrash(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Trash
-          </Button>
-
-          {!showTrash ? (
-            <Dialog
-              open={open}
-              onOpenChange={(next) => {
-                setOpen(next);
-                if (!next) {
-                  setEditing(null);
-                  setImageFile(null);
-                  setRemoveImage(false);
-                  setDragOver(false);
-                  form.reset({
-                    name: "",
-                    date: "",
-                    time: "",
-                    price: "",
-                    capacityTotal: "",
-                    description: "",
-                    isActive: true,
-                  });
-                }
-              }}
-            >
+            {!showTrash ? (
               <DialogTrigger asChild>
                 <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
                   New event
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="font-heading">{title}</DialogTitle>
-                </DialogHeader>
+            ) : null}
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="font-heading">{title}</DialogTitle>
+              </DialogHeader>
 
             <Form {...form}>
               <form
                 className="space-y-4"
                 onSubmit={form.handleSubmit(async (values) => {
-                  const basePayload = {
-                    name: values.name,
-                    date: values.date,
-                    time: values.time,
-                    price: values.price ? Number(values.price) : null,
-                    capacity_total: values.capacityTotal?.trim() ? Number(values.capacityTotal) : null,
-                    description: values.description?.trim() ? values.description.trim() : null,
-                    is_active: values.isActive,
-                  };
+                  if (archiving || publishing) return;
+                  const eventId = await upsertDraft(values);
+                  if (!eventId) return;
 
-                  // 1) Create/update event row (without touching image_path yet)
-                  const { data: saved, error: saveError } = editing
-                    ? await supabase.from("events").update(basePayload).eq("id", editing.id).select("id,image_path").single()
-                    : await supabase.from("events").insert(basePayload).select("id,image_path").single();
-
-                  if (saveError || !saved) {
-                    form.setError("root", { message: saveError?.message ?? "Failed to save event" });
+                  // Archive edit: save in-place and stay in Archive (no preview/publish flow).
+                  if (showTrash) {
+                    setOpen(false);
                     return;
                   }
 
-                  const eventId = saved.id as string;
-                  const previousImagePath = (saved.image_path as string | null) ?? null;
-
-                  // 2) Handle image removal/replacement
-                  if (removeImage && previousImagePath) {
-                    await supabase.storage.from("event-images").remove([previousImagePath]);
-                    await supabase.from("events").update({ image_path: null }).eq("id", eventId);
-                  }
-
-                  if (imageFile) {
-                    if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
-                      form.setError("root", { message: "Please upload a JPG, PNG, or WebP image." });
-                      return;
-                    }
-                    if (imageFile.size > MAX_IMAGE_BYTES) {
-                      form.setError("root", { message: "Image must be 25MB or smaller." });
-                      return;
-                    }
-
-                    const ext = extFromFile(imageFile);
-                    const objectPath = `events/${eventId}/${Date.now()}.${ext}`;
-
-                    const { error: uploadError } = await supabase.storage
-                      .from("event-images")
-                      .upload(objectPath, imageFile, {
-                        upsert: true,
-                        contentType: imageFile.type,
-                      });
-
-                    if (uploadError) {
-                      form.setError("root", { message: uploadError.message });
-                      return;
-                    }
-
-                    if (previousImagePath && previousImagePath !== objectPath) {
-                      await supabase.storage.from("event-images").remove([previousImagePath]);
-                    }
-
-                    await supabase.from("events").update({ image_path: objectPath }).eq("id", eventId);
-                  }
-
-                  await load();
-                  setOpen(false);
+                  // Active edit/create: open preview before publishing.
+                  setPreviewEventId(eventId);
+                  setPreviewOpen(true);
                 })}
               >
                 <FormField
@@ -420,19 +453,144 @@ export default function AdminEvents() {
                   <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
                 ) : null}
 
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
-                    Save
-                  </Button>
+                <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  {showTrash && editing ? (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="sm:mr-auto"
+                      onClick={() => {
+                        setConfirmingPermanentDelete(editing);
+                        setOpen(false);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  ) : (
+                    <span />
+                  )}
+
+                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                      Cancel
+                    </Button>
+                    {!showTrash ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-border/70"
+                        disabled={archiving}
+                        onClick={() => {
+                          setArchiving(true);
+                          void form.handleSubmit(async (values) => {
+                            try {
+                              const eventId = await upsertDraft(values);
+                              if (!eventId) return;
+                              const ok = await archiveEventById(eventId);
+                              if (!ok) return;
+                              setPreviewOpen(false);
+                              setPreviewEventId(null);
+                              setOpen(false);
+                              setShowTrash(true);
+                            } finally {
+                              setArchiving(false);
+                            }
+                          })();
+                        }}
+                      >
+                        Save later
+                      </Button>
+                    ) : null}
+                    <Button type="submit" className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                      Save
+                    </Button>
+                  </div>
                 </DialogFooter>
               </form>
             </Form>
-              </DialogContent>
-            </Dialog>
-          ) : null}
+            </DialogContent>
+          </Dialog>
+
+          <Dialog
+            open={previewOpen}
+            onOpenChange={(next) => {
+              setPreviewOpen(next);
+              if (!next) return;
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="font-heading">Preview</DialogTitle>
+              </DialogHeader>
+
+              {previewEvent ? (
+                <div className="rounded-xl border border-border/60 bg-card/30 overflow-hidden">
+                  {previewEvent.image_path || previewEvent.image_url ? (
+                    <img
+                      src={
+                        previewEvent.image_path
+                          ? getPublicEventImageUrl(previewEvent.image_path)
+                          : previewEvent.image_url ?? undefined
+                      }
+                      alt=""
+                      className="h-44 w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : null}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-heading text-base text-foreground">{previewEvent.name}</p>
+                      <Badge variant="outline" className="border-border/60 text-muted-foreground font-body">
+                        Draft
+                      </Badge>
+                    </div>
+                    <p className="mt-1 font-body text-sm text-muted-foreground">
+                      {previewEvent.date} • {previewEvent.time} {previewEvent.price != null ? `• $${previewEvent.price}` : ""}
+                    </p>
+                    {previewEvent.description ? (
+                      <p className="mt-3 font-body text-sm text-muted-foreground">{previewEvent.description}</p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <p className="font-body text-sm text-muted-foreground">Loading preview…</p>
+              )}
+
+              <DialogFooter className="gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-border/70"
+                  disabled={publishing}
+                  onClick={() => setPreviewOpen(false)}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                  disabled={publishing || !previewEventId}
+                  onClick={async () => {
+                    if (!previewEventId) return;
+                    setPublishing(true);
+                    try {
+                      const ok = await publishEventById(previewEventId);
+                      if (!ok) return;
+                      setPreviewOpen(false);
+                      setOpen(false);
+                      setPreviewEventId(null);
+                      setShowTrash(false);
+                    } finally {
+                      setPublishing(false);
+                    }
+                  }}
+                >
+                  Upload
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
 
@@ -468,13 +626,47 @@ export default function AdminEvents() {
                   {row.description ? (
                     <p className="mt-2 font-body text-xs text-muted-foreground/80 line-clamp-2">{row.description}</p>
                   ) : null}
-                  <p className="mt-2 font-body text-xs text-muted-foreground/80">
-                    Status: {row.is_active ? "Active" : "Inactive"}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "border-border/60 font-body",
+                        row.is_active ? "text-primary" : "text-muted-foreground",
+                      )}
+                    >
+                      {row.is_active ? "Published" : "Draft"}
+                    </Badge>
+                    {row.capacity_total != null ? (
+                      <Badge variant="outline" className="border-border/60 text-muted-foreground font-body">
+                        Cap: {row.capacity_total}
+                      </Badge>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   {showTrash ? (
                     <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-border/70"
+                        onClick={() => {
+                          setEditing(row);
+                          setImageFile(null);
+                          setRemoveImage(false);
+                          form.reset({
+                            name: row.name,
+                            date: row.date,
+                            time: row.time,
+                            price: row.price?.toString() ?? "",
+                            capacityTotal: row.capacity_total != null ? String(row.capacity_total) : "",
+                            description: row.description ?? "",
+                          });
+                          setOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
@@ -511,31 +703,11 @@ export default function AdminEvents() {
                             price: row.price?.toString() ?? "",
                             capacityTotal: row.capacity_total != null ? String(row.capacity_total) : "",
                             description: row.description ?? "",
-                            isActive: row.is_active ?? true,
                           });
                           setOpen(true);
                         }}
                       >
                         Edit
-                      </Button>
-                      {row.image_path ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="border-border/70"
-                          onClick={async () => {
-                            const { error } = await supabase.from("events").update({ image_path: null }).eq("id", row.id);
-                            if (!error) {
-                              await supabase.storage.from("event-images").remove([row.image_path]);
-                              await load();
-                            }
-                          }}
-                        >
-                          Remove image
-                        </Button>
-                      ) : null}
-                      <Button type="button" variant="destructive" onClick={() => setConfirmingDelete(row)}>
-                        Delete
                       </Button>
                     </>
                   )}
@@ -544,33 +716,18 @@ export default function AdminEvents() {
             ))}
           </div>
         )}
-      </CardContent>
 
-      <AlertDialog open={!!confirmingDelete} onOpenChange={(next) => (!next ? setConfirmingDelete(null) : null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete event?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will move the event to Trash. You can restore it for 30 days.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={async () => {
-                const row = confirmingDelete;
-                setConfirmingDelete(null);
-                if (!row) return;
-                await supabase.from("events").update({ deleted_at: new Date().toISOString() }).eq("id", row.id);
-                await load();
-              }}
-            >
-              Move to Trash
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <div className="mt-8 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className={cn("border-border/70", showTrash ? "text-primary border-primary/40" : "text-foreground/70")}
+            onClick={() => setShowTrash((v) => !v)}
+          >
+            {showTrash ? "Back to events" : "Archive"}
+          </Button>
+        </div>
+      </CardContent>
 
       <AlertDialog
         open={!!confirmingPermanentDelete}
