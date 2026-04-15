@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { FadeUp } from "@/components/FadeUp";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -48,7 +49,7 @@ const Login = () => {
     <Layout>
       <Seo title="Log In" description="Log in to your Cigar Society account." path="/login" noIndex />
       <section className="section-padding">
-        <div className="container mx-auto max-w-lg">
+        <FadeUp className="container mx-auto max-w-lg">
           <SectionHeading title="Log in" subtitle="Access your tickets and account." />
           <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8 space-y-6">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -185,10 +186,11 @@ const Login = () => {
 
                 <Button
                   type="submit"
+                  variant="luxury"
                   size="lg"
                   disabled={submitting || oauthBusy !== null}
                   aria-busy={submitting}
-                  className="w-full bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm shadow-gold hover:opacity-90"
+                  className="w-full font-body text-sm uppercase tracking-wider"
                 >
                   {submitting ? "Logging in…" : "Log in"}
                 </Button>
@@ -202,7 +204,7 @@ const Login = () => {
               </form>
             </Form>
           </div>
-        </div>
+        </FadeUp>
       </section>
     </Layout>
   );

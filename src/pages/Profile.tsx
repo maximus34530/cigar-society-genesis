@@ -82,7 +82,7 @@ const Profile = () => {
                     >
                       Refresh profile
                     </Button>
-                    <Button asChild variant="outline" className="border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground">
+                    <Button asChild variant="luxury">
                       <Link to="/account/profile">Account settings</Link>
                     </Button>
                     <Button
@@ -102,7 +102,7 @@ const Profile = () => {
                   </Button>
 
                   {isAdmin ? (
-                    <Button asChild className="w-full bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                    <Button asChild variant="luxury" className="w-full">
                       <Link to="/admin">Go to Admin</Link>
                     </Button>
                   ) : null}
@@ -129,7 +129,7 @@ const Profile = () => {
                         Reserve an event and it will show here.
                       </p>
                       <div className="mt-5">
-                        <Button className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90" asChild>
+                        <Button variant="luxury" asChild>
                           <Link to="/events">Browse events</Link>
                         </Button>
                       </div>

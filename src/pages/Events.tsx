@@ -1,6 +1,8 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { EventCheckoutAuthDialog } from "@/components/EventCheckoutAuthDialog";
+import { FadeUp } from "@/components/FadeUp";
+import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Badge } from "@/components/ui/badge";
@@ -485,7 +487,11 @@ const Events = () => {
         path="/events"
       />
       <section className="relative flex h-[50vh] items-center justify-center overflow-hidden border-b border-primary/25 bg-gradient-to-b from-background via-background to-muted/40">
-        <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <ScrollParallaxLayer
+          speed={0.3}
+          className="pointer-events-none absolute inset-0 -z-10 min-h-[110%] min-w-full"
+          aria-hidden
+        >
           <img
             src={eventsHeroImg}
             alt=""
@@ -494,7 +500,7 @@ const Events = () => {
             fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,0.225)] to-[rgba(0,0,0,0.275)]" />
-        </div>
+        </ScrollParallaxLayer>
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.035] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]"
           aria-hidden
@@ -508,7 +514,8 @@ const Events = () => {
     </section>
 
       <section className="section-warm-radial section-padding border-y border-border/40 bg-muted/80">
-      <div className="container mx-auto">
+        <FadeUp>
+          <div className="container mx-auto">
           <SectionHeading
             title="Live events calendar"
             subtitle="See what’s on at the lounge. For last-minute updates, follow us on Instagram."
@@ -555,10 +562,10 @@ const Events = () => {
                       if (e.key === "Enter" || e.key === " ") openReservation(event);
                     }}
                     className={cn(
-                      "flex h-full flex-col overflow-hidden border-primary/30 bg-card/40 shadow-sm transition-colors",
+                      "group/event-card flex h-full flex-col overflow-hidden border-primary/30 bg-card/40 shadow-sm transition-[colors,box-shadow] duration-500 ease-out",
                       soldOut
                         ? "cursor-not-allowed opacity-60"
-                        : "hover:border-primary/45 hover:bg-card/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
+                        : "hover:border-primary/45 hover:bg-card/50 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
                     )}
                   >
                     <div className="relative h-44 w-full shrink-0 overflow-hidden bg-muted">
@@ -566,7 +573,10 @@ const Events = () => {
                         <img
                           src={imageSrc}
                           alt=""
-                          className="h-full w-full object-cover"
+                          className={cn(
+                            "h-full w-full object-cover transition-transform duration-500 ease-out",
+                            !soldOut && "group-hover/event-card:scale-[1.04]",
+                          )}
                           loading="lazy"
                           decoding="async"
                         />
@@ -648,11 +658,7 @@ const Events = () => {
           )}
 
           <div className="mt-12 text-center">
-            <Button
-              asChild
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-            >
+            <Button asChild variant="luxury">
               <a
                 href={business.instagramUrl}
                 target="_blank"
@@ -666,7 +672,7 @@ const Events = () => {
               Prefer the phone?{" "}
               <Link
                 to="/contact"
-                className="font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-colors hover:text-primary/90"
+                className="font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-colors duration-[600ms] ease-out hover:text-primary/90"
               >
                 Contact us
               </Link>
@@ -674,6 +680,7 @@ const Events = () => {
             </p>
           </div>
         </div>
+        </FadeUp>
       </section>
 
       <Dialog
@@ -759,7 +766,7 @@ const Events = () => {
                         </Button>
                         <Button
                           type="button"
-                          className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                          variant="luxury"
                           onClick={async () => {
                             const ok = await form.trigger("tickets");
                             if (!ok) return;
@@ -877,7 +884,7 @@ const Events = () => {
                         </Button>
                         <Button
                           type="button"
-                          className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                          variant="luxury"
                           disabled={reserving}
                           onClick={async () => {
                             const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);
@@ -964,7 +971,7 @@ const Events = () => {
                       </Button>
                       <Button
                         type="button"
-                        className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                        variant="luxury"
                         disabled={paying || reserving}
                         onClick={async () => {
                           const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);

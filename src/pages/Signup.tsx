@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { FadeUp } from "@/components/FadeUp";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -68,7 +69,7 @@ const Signup = () => {
     <Layout>
       <Seo title="Sign Up" description="Create your Cigar Society account." path="/signup" noIndex />
       <section className="section-padding">
-        <div className="container mx-auto max-w-lg">
+        <FadeUp className="container mx-auto max-w-lg">
           <SectionHeading title="Create your account" subtitle="Sign up to view your profile and event bookings." />
           <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8 space-y-6">
             {phase === "form" ? (
@@ -246,10 +247,11 @@ const Signup = () => {
 
                     <Button
                       type="submit"
+                      variant="luxury"
                       size="lg"
                       disabled={submitting || oauthBusy !== null || (cooldownUntil != null && Date.now() < cooldownUntil)}
                       aria-busy={submitting}
-                      className="w-full bg-gold-gradient text-primary-foreground font-body tracking-wider uppercase text-sm shadow-gold hover:opacity-90"
+                      className="w-full font-body text-sm uppercase tracking-wider"
                     >
                       {submitting ? "Creating…" : "Sign up"}
                     </Button>
@@ -292,7 +294,7 @@ const Signup = () => {
               </div>
             )}
           </div>
-        </div>
+        </FadeUp>
       </section>
     </Layout>
   );

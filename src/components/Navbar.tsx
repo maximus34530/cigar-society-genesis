@@ -56,8 +56,8 @@ const Navbar = () => {
               <li key={link.path}>
                 <Link
                   to={link.path}
-                  className={`relative pb-0.5 text-sm font-body tracking-widest uppercase transition-colors duration-200 hover:text-primary after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full ${
-                    location.pathname === link.path ? "text-primary after:w-full" : "text-foreground/70"
+                  className={`relative pb-0.5 text-sm font-body tracking-widest uppercase transition-colors duration-300 ease-out hover:text-primary after:pointer-events-none after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-full after:-translate-x-1/2 after:origin-center after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 ${
+                    location.pathname === link.path ? "text-primary after:scale-x-100" : "text-foreground/70"
                   }`}
                 >
                   {link.label}

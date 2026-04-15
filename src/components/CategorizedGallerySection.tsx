@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { FadeUp } from "@/components/FadeUp";
 import { useFadeInOnScroll } from "@/hooks/useFadeInOnScroll";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
@@ -108,7 +109,7 @@ const GALLERY_BY_CATEGORY: CategorizedImages = Object.fromEntries(
 ) as CategorizedImages;
 
 const tileShellClass =
-  "relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group/card transition-shadow duration-300 hover:shadow-[0_0_0_1px_hsl(var(--gold)/0.28),0_8px_28px_-8px_hsl(var(--gold)/0.12)]";
+  "relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group/card transition-[transform,box-shadow] duration-500 ease-out hover:scale-[1.04] hover:shadow-[0_0_0_1px_hsl(var(--gold)/0.28),0_16px_40px_-12px_hsl(0_0%_0%_/0.55),0_8px_28px_-8px_hsl(var(--gold)/0.12)]";
 
 function LoungePhotoTileMarquee({ img, onOpen }: { img: GalleryImage; onOpen: (img: GalleryImage) => void }) {
   return (
@@ -125,11 +126,11 @@ function LoungePhotoTileMarquee({ img, onOpen }: { img: GalleryImage; onOpen: (i
       }}
       className={cn(tileShellClass, "w-[min(78vw,320px)] shrink-0")}
     >
-      <div className="aspect-[4/3] bg-muted">
+      <div className="aspect-[4/3] overflow-hidden bg-muted">
         <img
           src={img.src}
           alt=""
-          className="h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-[1.02]"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.04]"
           decoding="async"
           loading="lazy"
         />
@@ -175,9 +176,9 @@ function LoungePhotoTileStatic({
         <img
           src={img.src}
           alt=""
-          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.02]"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.04]"
           style={{
-            transform: fade.visible ? "scale(1)" : "scale(1.02)",
+            transform: fade.visible ? "scale(1)" : "scale(1.04)",
             transitionDelay: fade.visible ? `${staggerIndex * 80}ms` : "0ms",
           }}
           decoding="async"
@@ -370,16 +371,18 @@ export function CategorizedGallerySection() {
         className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-b border-border/50"
         aria-label="Photo gallery by category"
       >
-        {CATEGORIES.map((cat, index) => (
-          <CategoryGalleryRow
-            key={cat}
-            category={cat}
-            images={GALLERY_BY_CATEGORY[cat]}
-            prefersReducedMotion={prefersReducedMotion}
-            onOpen={openImage}
-            contentMovesRightToLeft={index % 2 === 0}
-          />
-        ))}
+        <FadeUp>
+          {CATEGORIES.map((cat, index) => (
+            <CategoryGalleryRow
+              key={cat}
+              category={cat}
+              images={GALLERY_BY_CATEGORY[cat]}
+              prefersReducedMotion={prefersReducedMotion}
+              onOpen={openImage}
+              contentMovesRightToLeft={index % 2 === 0}
+            />
+          ))}
+        </FadeUp>
       </section>
 
       <Dialog open={open} onOpenChange={setOpen}>

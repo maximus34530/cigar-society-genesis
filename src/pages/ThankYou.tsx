@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { FadeUp } from "@/components/FadeUp";
 import { RequireAuth } from "@/components/RequireAuth";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
@@ -80,7 +81,7 @@ const ThankYou = () => {
       <Layout>
         <Seo title="Thank you" description="Your ticket purchase at Cigar Society." path="/thank-you" noIndex />
         <section className="section-padding">
-          <div className="container mx-auto max-w-xl text-center">
+          <FadeUp className="container mx-auto max-w-xl text-center">
             <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-primary/30 bg-primary/10">
               <CheckCircle2 className="h-8 w-8 text-primary" aria-hidden />
             </div>
@@ -111,7 +112,7 @@ const ThankYou = () => {
             ) : null}
 
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Button asChild className="bg-gold-gradient font-body text-sm uppercase tracking-wider text-primary-foreground shadow-gold hover:opacity-90">
+              <Button asChild variant="luxury" className="font-body text-sm uppercase tracking-wider">
                 <Link to="/dashboard">View my tickets</Link>
               </Button>
               <Button asChild variant="outline" className="border-border/70 font-body">
@@ -131,7 +132,7 @@ const ThankYou = () => {
               </Link>{" "}
               for event ticket policies.
             </p>
-          </div>
+          </FadeUp>
         </section>
       </Layout>
     </RequireAuth>
