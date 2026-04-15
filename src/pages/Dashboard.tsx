@@ -12,16 +12,23 @@ import { embeddedEvent, errorMessage, parseEventDateTime } from "@/lib/bookingUt
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronRight, PartyPopper, Bell } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
 
 const Dashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: bookings = [], isPending: loading, isError, error } = useUserBookings(user?.id);
   const loadError = isError ? errorMessage(error, "Failed to load") : null;
   const bookingsSectionRef = useRef<HTMLDivElement>(null);
+  const [receiptBookingId, setReceiptBookingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isAdmin) {
+      navigate("/admin", { replace: true });
+      return;
+    }
     const checkout = searchParams.get("checkout");
     if (checkout !== "success") return;
 
@@ -32,7 +39,7 @@ const Dashboard = () => {
     if (sessionId) qs.set("session_id", sessionId);
     if (bookingId) qs.set("booking_id", bookingId);
     navigate(`/thank-you?${qs.toString()}`, { replace: true });
-  }, [searchParams, navigate]);
+  }, [isAdmin, searchParams, navigate]);
 
   const upcoming = useMemo(() => {
     const now = new Date();
@@ -86,6 +93,8 @@ const Dashboard = () => {
   }, [bookings.length, upcoming]);
 
   const displayName = profile?.full_name?.trim() ? profile.full_name : "there";
+  const receiptBooking = useMemo(() => bookings.find((b) => b.id === receiptBookingId) ?? null, [bookings, receiptBookingId]);
+  const receiptEvent = receiptBooking ? embeddedEvent(receiptBooking) : null;
 
   return (
     <RequireAuth>
@@ -210,8 +219,13 @@ const Dashboard = () => {
                           })()}
 
                           <div className="flex flex-col gap-2 sm:flex-row">
-                            <Button type="button" variant="outline" className="border-border/70" asChild>
-                              <Link to="/events">View events</Link>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="border-border/70"
+                              onClick={() => setReceiptBookingId(b.id)}
+                            >
+                              View receipt
                             </Button>
                           </div>
                         </div>
@@ -267,6 +281,73 @@ const Dashboard = () => {
             </div>
           </div>
         </section>
+
+        <Dialog open={receiptBookingId != null} onOpenChange={(next) => (!next ? setReceiptBookingId(null) : null)}>
+          <DialogContent className="max-w-xl border-border/60 bg-background">
+            <DialogHeader className="text-center">
+              <DialogTitle className="font-heading text-2xl tracking-wide">Reservation confirmed</DialogTitle>
+              <div className="gold-divider mt-4" />
+              <p className="mt-4 font-body text-sm text-muted-foreground">
+                Hello{" "}
+                <span className="text-foreground/85 font-medium">
+                  {profile?.full_name?.trim() ? profile.full_name : user?.email ?? "there"}
+                </span>
+                , here are your ticket details.
+              </p>
+            </DialogHeader>
+
+            <div className="rounded-xl border border-border/60 bg-card/30 p-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Event</p>
+                  <p className="mt-1 font-heading text-base text-primary">
+                    {receiptEvent?.name ?? "Event"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Date & time</p>
+                  <p className="mt-1 font-body text-sm text-foreground/85">
+                    {receiptEvent ? `${receiptEvent.date} at ${receiptEvent.time}` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Tickets</p>
+                  <p className="mt-1 font-body text-sm text-foreground/85">
+                    {receiptBooking ? `${receiptBooking.tickets} ${receiptBooking.tickets === 1 ? "Person" : "People"}` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Total paid</p>
+                  <p className="mt-1 font-body text-sm text-foreground/85">
+                    {receiptBooking && Number.isFinite(receiptBooking.total_paid)
+                      ? `$${Number(receiptBooking.total_paid).toFixed(2)}`
+                      : "—"}
+                  </p>
+                </div>
+              </div>
+              {receiptBooking ? (
+                <div className="mt-4 flex justify-end">
+                  <Badge variant="outline" className="border-border/70 text-[10px] font-body uppercase tracking-wide">
+                    {bookingStatusLabel(receiptBooking.status)}
+                  </Badge>
+                </div>
+              ) : null}
+            </div>
+
+            <p className="px-1 text-center font-body text-sm text-muted-foreground/90">
+              Please have this confirmation ready upon arrival.
+            </p>
+
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" className="border-border/70" onClick={() => setReceiptBookingId(null)}>
+                Close
+              </Button>
+              <Button asChild className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
+                <Link to="/events">Visit website</Link>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Layout>
     </RequireAuth>
   );
