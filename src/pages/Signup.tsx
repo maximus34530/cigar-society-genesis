@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { useAuth } from "@/hooks/useAuth";
 import {
   clearEmailSignupReturnPath,
@@ -43,7 +44,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
+  const [oauthBusy, setOauthBusy] = useState<"google" | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [phase, setPhase] = useState<"form" | "check_email">("form");
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -74,13 +75,11 @@ const Signup = () => {
           <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8 space-y-6">
             {phase === "form" ? (
               <>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full border-border/80 bg-background/50 font-body text-sm"
+                <div className="grid gap-3">
+                  <GoogleAuthButton
+                    mode="signup"
+                    busy={oauthBusy === "google"}
                     disabled={oauthBusy !== null || submitting}
-                    aria-busy={oauthBusy === "google"}
                     onClick={async () => {
                       form.clearErrors("root");
                       setOauthBusy("google");
@@ -93,30 +92,7 @@ const Signup = () => {
                         setOauthBusy(null);
                       }
                     }}
-                  >
-                    {oauthBusy === "google" ? "Redirecting…" : "Continue with Google"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full border-border/80 bg-background/50 font-body text-sm"
-                    disabled={oauthBusy !== null || submitting}
-                    aria-busy={oauthBusy === "apple"}
-                    onClick={async () => {
-                      form.clearErrors("root");
-                      setOauthBusy("apple");
-                      try {
-                        await signInWithOAuthProvider("apple", from);
-                      } catch (e) {
-                        const msg = e instanceof Error ? e.message : "Apple sign-in failed.";
-                        form.setError("root", { message: msg });
-                      } finally {
-                        setOauthBusy(null);
-                      }
-                    }}
-                  >
-                    {oauthBusy === "apple" ? "Redirecting…" : "Continue with Apple"}
-                  </Button>
+                  />
                 </div>
 
                 <div className="flex items-center gap-4">

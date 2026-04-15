@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { stashOAuthReturnPath } from "@/lib/authRouting";
 
-export type OAuthProviderId = "google" | "apple";
+export type OAuthProviderId = "google";
 
 function getAuthCallbackUrl(): string {
   const origin =

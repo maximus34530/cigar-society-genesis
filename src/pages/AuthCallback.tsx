@@ -10,6 +10,19 @@ import {
 } from "@/lib/authRouting";
 import { supabase } from "@/lib/supabase";
 
+async function exchangeCodeIfPresent(): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (!code) return { ok: true };
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) return { ok: false, message: error.message };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Failed to complete sign-in." };
+  }
+}
+
 async function waitForUserSession(maxMs: number): Promise<boolean> {
   const deadline = Date.now() + maxMs;
   while (Date.now() < deadline) {
@@ -30,12 +43,20 @@ const AuthCallback = () => {
     let cancelled = false;
 
     (async () => {
+      const exchange = await exchangeCodeIfPresent();
+      if (cancelled) return;
+      if (!exchange.ok) {
+        takeOAuthReturnPath();
+        navigate("/login", { replace: true, state: { error: exchange.message } });
+        return;
+      }
+
       const ok = await waitForUserSession(8000);
       if (cancelled) return;
 
       if (!ok) {
         takeOAuthReturnPath();
-        navigate("/login", { replace: true });
+        navigate("/login", { replace: true, state: { error: "OAuth sign-in did not complete. Please try again." } });
         return;
       }
 
@@ -44,7 +65,7 @@ const AuthCallback = () => {
       const uid = data.session?.user?.id;
       if (cancelled || !uid) {
         takeOAuthReturnPath();
-        navigate("/login", { replace: true });
+        navigate("/login", { replace: true, state: { error: "Could not read your session. Please try again." } });
         return;
       }
 

@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { stashEmailSignupReturnPath, clearEmailSignupReturnPath } from "@/lib/authRouting";
 import { EVENT_CHECKOUT_RESUME_PATH } from "@/lib/eventCheckoutDraft";
 import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
@@ -52,7 +53,7 @@ type Props = {
 
 export function EventCheckoutAuthDialog({ open, onOpenChange, onAuthenticated, onBeforeOAuth }: Props) {
   const [tab, setTab] = useState<"login" | "signup">("login");
-  const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
+  const [oauthBusy, setOauthBusy] = useState<"google" | null>(null);
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -102,13 +103,11 @@ export function EventCheckoutAuthDialog({ open, onOpenChange, onAuthenticated, o
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full border-border/80 bg-background/50 font-body text-sm"
+        <div className="grid gap-3">
+          <GoogleAuthButton
+            mode={tab === "signup" ? "signup" : "login"}
+            busy={oauthBusy === "google"}
             disabled={oauthBusy !== null || loginSubmitting || signupSubmitting}
-            aria-busy={oauthBusy === "google"}
             onClick={async () => {
               loginForm.clearErrors("root");
               signupForm.clearErrors("root");
@@ -123,32 +122,7 @@ export function EventCheckoutAuthDialog({ open, onOpenChange, onAuthenticated, o
                 setOauthBusy(null);
               }
             }}
-          >
-            {oauthBusy === "google" ? "Redirecting…" : "Continue with Google"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full border-border/80 bg-background/50 font-body text-sm"
-            disabled={oauthBusy !== null || loginSubmitting || signupSubmitting}
-            aria-busy={oauthBusy === "apple"}
-            onClick={async () => {
-              loginForm.clearErrors("root");
-              signupForm.clearErrors("root");
-              setOauthBusy("apple");
-              try {
-                onBeforeOAuth();
-                await signInWithOAuthProvider("apple", EVENT_CHECKOUT_RESUME_PATH);
-              } catch (e) {
-                const msg = e instanceof Error ? e.message : "Apple sign-in failed.";
-                loginForm.setError("root", { message: msg });
-              } finally {
-                setOauthBusy(null);
-              }
-            }}
-          >
-            {oauthBusy === "apple" ? "Redirecting…" : "Continue with Apple"}
-          </Button>
+          />
         </div>
 
         <div className="flex items-center gap-4">

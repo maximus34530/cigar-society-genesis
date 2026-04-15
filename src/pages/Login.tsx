@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_POST_AUTH_PATH, resolvePostLoginPath } from "@/lib/authRouting";
 import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
@@ -30,12 +31,17 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState<"google" | "apple" | null>(null);
+  const [oauthBusy, setOauthBusy] = useState<"google" | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const from = useMemo(() => {
-    const state = location.state as { from?: string } | null;
+    const state = location.state as { from?: string; error?: string } | null;
     return state?.from ?? DEFAULT_POST_AUTH_PATH;
+  }, [location.state]);
+
+  const oauthError = useMemo(() => {
+    const state = location.state as { error?: string } | null;
+    return state?.error ?? null;
   }, [location.state]);
 
   const form = useForm<Values>({
@@ -52,56 +58,36 @@ const Login = () => {
         <FadeUp className="container mx-auto max-w-lg">
           <SectionHeading title="Log in" subtitle="Access your tickets and account." />
           <div className="rounded-xl border border-border/60 bg-card/40 p-6 md:p-8 space-y-6">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-border/80 bg-background/50 font-body text-sm"
-                disabled={oauthBusy !== null}
-                aria-busy={oauthBusy === "google"}
-                onClick={async () => {
-                  form.clearErrors("root");
-                  setOauthBusy("google");
-                  try {
-                    await signInWithOAuthProvider("google", from);
-                  } catch (e) {
-                    const msg = e instanceof Error ? e.message : "Google sign-in failed.";
-                    form.setError("root", { message: msg });
-                  } finally {
-                    setOauthBusy(null);
-                  }
-                }}
-              >
-                {oauthBusy === "google" ? "Redirecting…" : "Continue with Google"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-border/80 bg-background/50 font-body text-sm"
-                disabled={oauthBusy !== null}
-                aria-busy={oauthBusy === "apple"}
-                onClick={async () => {
-                  form.clearErrors("root");
-                  setOauthBusy("apple");
-                  try {
-                    await signInWithOAuthProvider("apple", from);
-                  } catch (e) {
-                    const msg = e instanceof Error ? e.message : "Apple sign-in failed.";
-                    form.setError("root", { message: msg });
-                  } finally {
-                    setOauthBusy(null);
-                  }
-                }}
-              >
-                {oauthBusy === "apple" ? "Redirecting…" : "Continue with Apple"}
-              </Button>
-            </div>
+            <GoogleAuthButton
+              mode="login"
+              busy={oauthBusy === "google"}
+              disabled={oauthBusy !== null}
+              onClick={async () => {
+                form.clearErrors("root");
+                setOauthBusy("google");
+                try {
+                  await signInWithOAuthProvider("google", from);
+                } catch (e) {
+                  const msg = e instanceof Error ? e.message : "Google sign-in failed.";
+                  form.setError("root", { message: msg });
+                } finally {
+                  setOauthBusy(null);
+                }
+              }}
+            />
 
             <div className="flex items-center gap-4">
               <Separator className="flex-1 bg-border/60" />
               <span className="text-xs uppercase tracking-widest text-muted-foreground font-body">or</span>
               <Separator className="flex-1 bg-border/60" />
             </div>
+
+            {oauthError ? (
+              <Alert variant="destructive">
+                <AlertTitle>Sign-in</AlertTitle>
+                <AlertDescription>{oauthError}</AlertDescription>
+              </Alert>
+            ) : null}
 
             <Form {...form}>
               <form
