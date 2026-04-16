@@ -100,9 +100,25 @@ function formatUsPhone(value: string) {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
+/** First letter uppercase, rest lowercase; hyphenated segments each get the same treatment. */
+function capitalizePersonNamePart(value: string): string {
+  const t = value.trim();
+  if (!t) return "";
+  const seg = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "");
+  return t.split("-").map(seg).join("-");
+}
+
 const reservationSchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
+  firstName: z
+    .string()
+    .trim()
+    .min(2, "First name is required")
+    .transform(capitalizePersonNamePart),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "Last name is required")
+    .transform(capitalizePersonNamePart),
   email: z.string().email("Enter a valid email"),
   phone: z
     .string()
@@ -174,8 +190,8 @@ const Events = () => {
     stashEventCheckoutDraft({
       eventId: activeEvent.id,
       tickets: v.tickets,
-      firstName: v.firstName.trim(),
-      lastName: v.lastName.trim(),
+      firstName: capitalizePersonNamePart(v.firstName),
+      lastName: capitalizePersonNamePart(v.lastName),
       email: v.email.trim(),
       phone: v.phone.trim(),
       pendingAction: freeEvent ? "free_reserve" : "paid_checkout",
@@ -193,6 +209,8 @@ const Events = () => {
 
       const paidFlow = intent === "paid" || (intent === null && !isFree);
       const values = form.getValues();
+      const firstName = capitalizePersonNamePart(values.firstName);
+      const lastName = capitalizePersonNamePart(values.lastName);
 
       if (paidFlow) {
         setPaying(true);
@@ -201,7 +219,7 @@ const Events = () => {
           const payload = {
             user_id: uid,
             event_id: activeEvent.id,
-            name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+            name: `${firstName} ${lastName}`.trim(),
             email: values.email.trim().toLowerCase(),
             phone: values.phone.trim(),
             tickets: values.tickets,
@@ -236,7 +254,7 @@ const Events = () => {
           const payload = {
             user_id: uid,
             event_id: activeEvent.id,
-            name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+            name: `${firstName} ${lastName}`.trim(),
             email: values.email.trim().toLowerCase(),
             phone: values.phone.trim(),
             tickets: values.tickets,
@@ -258,8 +276,8 @@ const Events = () => {
                 user_id: uid,
                 event: activeEvent,
                 reservation: {
-                  firstName: values.firstName.trim(),
-                  lastName: values.lastName.trim(),
+                  firstName,
+                  lastName,
                   email: values.email.trim().toLowerCase(),
                   phone: values.phone.trim(),
                   tickets: values.tickets,
@@ -312,8 +330,8 @@ const Events = () => {
       checkoutAuthIntentRef.current = null;
       if (user) {
         form.reset({
-          firstName: profile?.full_name?.trim()?.split(" ")?.[0] ?? "",
-          lastName: profile?.full_name?.trim()?.split(" ")?.slice(1).join(" ") ?? "",
+          firstName: capitalizePersonNamePart(profile?.full_name?.trim()?.split(" ")?.[0] ?? ""),
+          lastName: capitalizePersonNamePart(profile?.full_name?.trim()?.split(" ")?.slice(1).join(" ") ?? ""),
           email: user.email ?? "",
           phone: "",
           tickets: 1,
@@ -391,8 +409,8 @@ const Events = () => {
     if (draft.pendingAction === "paid_checkout") stashEventCheckoutAutorun("paid");
     else if (draft.pendingAction === "free_reserve") stashEventCheckoutAutorun("free");
     form.reset({
-      firstName: draft.firstName,
-      lastName: draft.lastName,
+      firstName: capitalizePersonNamePart(draft.firstName),
+      lastName: capitalizePersonNamePart(draft.lastName),
       email: draft.email,
       phone: draft.phone,
       tickets: draft.tickets,
@@ -869,7 +887,16 @@ const Events = () => {
                             <FormItem>
                               <FormLabel>First name</FormLabel>
                               <FormControl>
-                                <Input {...field} className="bg-card border-border" autoComplete="given-name" />
+                                <Input
+                                  {...field}
+                                  className="bg-card border-border"
+                                  autoComplete="given-name"
+                                  onBlur={(e) => {
+                                    field.onBlur();
+                                    const next = capitalizePersonNamePart(e.target.value);
+                                    if (next !== field.value) field.onChange(next);
+                                  }}
+                                />
                               </FormControl>
                               <p className="text-[11px] text-muted-foreground">Shown on your door list.</p>
                               <FormMessage />
@@ -884,7 +911,16 @@ const Events = () => {
                             <FormItem>
                               <FormLabel>Last name</FormLabel>
                               <FormControl>
-                                <Input {...field} className="bg-card border-border" autoComplete="family-name" />
+                                <Input
+                                  {...field}
+                                  className="bg-card border-border"
+                                  autoComplete="family-name"
+                                  onBlur={(e) => {
+                                    field.onBlur();
+                                    const next = capitalizePersonNamePart(e.target.value);
+                                    if (next !== field.value) field.onChange(next);
+                                  }}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -947,6 +983,9 @@ const Events = () => {
                           variant="luxury"
                           disabled={reserving}
                           onClick={async () => {
+                            const raw = form.getValues();
+                            form.setValue("firstName", capitalizePersonNamePart(raw.firstName), { shouldValidate: true });
+                            form.setValue("lastName", capitalizePersonNamePart(raw.lastName), { shouldValidate: true });
                             const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);
                             if (!ok) return;
                             const sold = soldForEvent(soldByEvent, activeEvent.id);
@@ -982,7 +1021,8 @@ const Events = () => {
 
                     <div className="rounded-xl border border-border/60 bg-card/20 p-4 font-body text-sm text-muted-foreground">
                       <p className="text-foreground/90">
-                        {form.getValues("firstName")} {form.getValues("lastName")}
+                        {capitalizePersonNamePart(form.getValues("firstName"))}{" "}
+                        {capitalizePersonNamePart(form.getValues("lastName"))}
                       </p>
                       <p className="mt-1 text-xs">{form.getValues("email")}</p>
                       <p className="mt-0.5 text-xs">{form.getValues("phone")}</p>
@@ -1034,6 +1074,9 @@ const Events = () => {
                         variant="luxury"
                         disabled={paying || reserving}
                         onClick={async () => {
+                          const raw = form.getValues();
+                          form.setValue("firstName", capitalizePersonNamePart(raw.firstName), { shouldValidate: true });
+                          form.setValue("lastName", capitalizePersonNamePart(raw.lastName), { shouldValidate: true });
                           const ok = await form.trigger(["firstName", "lastName", "email", "phone", "tickets"]);
                           if (!ok) return;
                           const sold = soldForEvent(soldByEvent, activeEvent.id);
