@@ -155,6 +155,7 @@ export function EventCheckoutAuthDialog({ open, onOpenChange, onAuthenticated, o
                   setLoginSubmitting(true);
                   loginForm.clearErrors("root");
                   try {
+                    onBeforeOAuth();
                     const { data, error } = await supabase.auth.signInWithPassword(values);
                     if (error || !data.user) {
                       loginForm.setError("root", { message: error?.message ?? "Login failed" });

@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_POST_AUTH_PATH, resolvePostLoginPath } from "@/lib/authRouting";
+import { EVENT_CHECKOUT_RESUME_PATH, peekEventCheckoutDraft } from "@/lib/eventCheckoutDraft";
 import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +37,9 @@ const Login = () => {
 
   const from = useMemo(() => {
     const state = location.state as { from?: string; error?: string } | null;
-    return state?.from ?? DEFAULT_POST_AUTH_PATH;
+    if (state?.from) return state.from;
+    if (peekEventCheckoutDraft()) return EVENT_CHECKOUT_RESUME_PATH;
+    return DEFAULT_POST_AUTH_PATH;
   }, [location.state]);
 
   const oauthError = useMemo(() => {

@@ -1091,6 +1091,7 @@ const Events = () => {
                           if (!user) {
                             authModalConsumedRef.current = false;
                             checkoutAuthIntentRef.current = isFree ? "free" : "paid";
+                            stashCheckoutDraftForResume();
                             setAuthDialogOpen(true);
                             return;
                           }

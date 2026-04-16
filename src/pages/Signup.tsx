@@ -15,6 +15,7 @@ import {
   resolvePostLoginPathForUser,
   stashEmailSignupReturnPath,
 } from "@/lib/authRouting";
+import { EVENT_CHECKOUT_RESUME_PATH, peekEventCheckoutDraft } from "@/lib/eventCheckoutDraft";
 import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +54,9 @@ const Signup = () => {
 
   const from = useMemo(() => {
     const state = location.state as { from?: string } | null;
-    return state?.from ?? DEFAULT_POST_AUTH_PATH;
+    if (state?.from) return state.from;
+    if (peekEventCheckoutDraft()) return EVENT_CHECKOUT_RESUME_PATH;
+    return DEFAULT_POST_AUTH_PATH;
   }, [location.state]);
 
   const form = useForm<Values>({
