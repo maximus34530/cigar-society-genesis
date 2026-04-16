@@ -2,6 +2,7 @@ import Layout from "@/components/Layout";
 import { RequireAuth } from "@/components/RequireAuth";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -12,13 +13,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { normalizePhoneE164Like } from "@/lib/phone";
 import { markRecentReauth, hasRecentReauth } from "@/lib/reAuth";
-import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Shield, UserRound } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { Shield, UserRound } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 
 const personalInfoSchema = z.object({
@@ -38,12 +39,6 @@ const reauthSchema = z.object({
 
 type ReauthValues = z.infer<typeof reauthSchema>;
 
-const changeEmailSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-});
-
-type ChangeEmailValues = z.infer<typeof changeEmailSchema>;
-
 const changePasswordSchema = z
   .object({
     password: z.string().min(8, "Use at least 8 characters"),
@@ -53,21 +48,89 @@ const changePasswordSchema = z
 
 type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
 
-function getPrimaryProvider(user: { app_metadata?: { provider?: string } } | null): string {
+function getPrimaryProvider(user: User | null): string {
   return user?.app_metadata?.provider ?? "email";
+}
+
+function pickString(meta: Record<string, unknown>, keys: string[]): string {
+  for (const k of keys) {
+    const v = meta[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "";
+}
+
+function extractNameParts(user: User, profileFullName: string | null | undefined): { first: string; last: string } | null {
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  let first = pickString(meta, ["given_name"]);
+  let last = pickString(meta, ["family_name"]);
+  if (!first && !last) {
+    const combined = pickString(meta, ["full_name", "name"]);
+    if (combined) {
+      const parts = combined.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        first = parts[0] ?? "";
+        last = parts.slice(1).join(" ");
+      } else if (parts.length === 1) {
+        first = parts[0] ?? "";
+        last = "";
+      }
+    }
+  }
+  if (!first && !last && profileFullName?.trim()) {
+    const parts = profileFullName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      first = parts[0] ?? "";
+      last = parts.slice(1).join(" ");
+    } else if (parts.length === 1) {
+      first = parts[0] ?? "";
+      last = "";
+    }
+  }
+  if (!first && !last) return null;
+  return { first, last };
+}
+
+function extractPhoneFromMeta(user: User): string | null {
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const raw = pickString(meta, ["phone", "phone_number"]);
+  if (!raw) return null;
+  return normalizePhoneE164Like(raw);
+}
+
+function initialsForUser(
+  first: string | null | undefined,
+  last: string | null | undefined,
+  full: string | null | undefined,
+  email: string | null | undefined,
+): string {
+  const f = first?.trim() ?? "";
+  const l = last?.trim() ?? "";
+  if (f && l) return `${f[0] ?? ""}${l[0] ?? ""}`.toUpperCase();
+  const fullT = full?.trim() ?? "";
+  if (fullT) {
+    const parts = fullT.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
+    if (parts.length === 1 && parts[0].length >= 2) return parts[0].slice(0, 2).toUpperCase();
+    if (parts.length === 1) return `${parts[0][0] ?? "U"}`.toUpperCase();
+  }
+  const e = email?.trim() ?? "";
+  if (e.length >= 2) return e.slice(0, 2).toUpperCase();
+  return "U";
 }
 
 export default function Account() {
   const { user, profile, refreshProfile, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [savingPersonal, setSavingPersonal] = useState(false);
-  const [busySecurity, setBusySecurity] = useState<null | "reauth" | "email" | "password">(null);
+  const [busySecurity, setBusySecurity] = useState<null | "reauth" | "password">(null);
   const [reauthOpen, setReauthOpen] = useState(false);
+  const profileSyncDoneKeyRef = useRef<string | null>(null);
 
   const provider = useMemo(() => getPrimaryProvider(user), [user]);
+  const isGoogleOAuth = provider === "google";
 
   useEffect(() => {
     if (searchParams.get("reauth") !== "1") return;
@@ -76,6 +139,46 @@ export default function Account() {
     next.delete("reauth");
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!user?.id || !profile) return;
+    const key = `${user.id}:${profile.id}`;
+    if (profileSyncDoneKeyRef.current === key) return;
+
+    void (async () => {
+      const updates: {
+        first_name?: string | null;
+        last_name?: string | null;
+        full_name?: string | null;
+        phone?: string | null;
+      } = {};
+
+      const missingStructuredName = !profile.first_name?.trim() && !profile.last_name?.trim();
+      if (missingStructuredName) {
+        const parts = extractNameParts(user, profile.full_name);
+        if (parts && (parts.first || parts.last)) {
+          updates.first_name = parts.first || null;
+          updates.last_name = parts.last || null;
+          updates.full_name = `${parts.first} ${parts.last}`.trim() || profile.full_name;
+        }
+      }
+
+      if (!profile.phone?.trim()) {
+        const fromMeta = extractPhoneFromMeta(user);
+        if (fromMeta) updates.phone = fromMeta;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        profileSyncDoneKeyRef.current = key;
+        return;
+      }
+
+      const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
+      if (error) return;
+      profileSyncDoneKeyRef.current = key;
+      await refreshProfile();
+    })();
+  }, [user, profile, refreshProfile]);
 
   const personalForm = useForm<PersonalInfoValues>({
     resolver: zodResolver(personalInfoSchema),
@@ -91,46 +194,28 @@ export default function Account() {
     defaultValues: { password: "" },
   });
 
-  const emailForm = useForm<ChangeEmailValues>({
-    resolver: zodResolver(changeEmailSchema),
-    values: { email: user?.email ?? "" },
-  });
-
   const passwordForm = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { password: "", confirm: "" },
   });
 
   const signInMethodLabel = useMemo(() => {
-    if (provider === "google") return "Google";
+    if (isGoogleOAuth) return "Google";
     if (provider === "email") return "Email + password";
     return provider;
-  }, [provider]);
+  }, [isGoogleOAuth, provider]);
 
   const displayEmail = user?.email ?? "";
+  const displayName =
+    profile?.full_name?.trim() ||
+    `${profile?.first_name?.trim() ?? ""} ${profile?.last_name?.trim() ?? ""}`.trim() ||
+    displayEmail ||
+    "Member";
 
-  const ensureRecentReauth = async (after: "email" | "password"): Promise<boolean> => {
+  const avatarInitials = initialsForUser(profile?.first_name, profile?.last_name, profile?.full_name, displayEmail);
+
+  const ensurePasswordReauth = (): boolean => {
     if (hasRecentReauth()) return true;
-
-    if (provider === "google") {
-      try {
-        setBusySecurity("reauth");
-        const base = `${location.pathname}${location.search}`;
-        const sep = base.includes("?") ? "&" : "?";
-        await signInWithOAuthProvider("google", `${base}${sep}reauth=1`);
-        return false;
-      } catch (e) {
-        toast({
-          title: "Couldn’t confirm it’s you",
-          description: e instanceof Error ? e.message : "Please try again.",
-          variant: "destructive",
-        });
-        return false;
-      } finally {
-        setBusySecurity(null);
-      }
-    }
-
     setReauthOpen(true);
     return false;
   };
@@ -159,6 +244,18 @@ export default function Account() {
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-5">
+                  <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-card/30 p-4">
+                    <Avatar className="h-14 w-14 border border-border/60 shrink-0">
+                      <AvatarFallback className="bg-muted font-heading text-lg text-foreground/90">{avatarInitials}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Signed in as</p>
+                      <p className="mt-1 font-heading text-base text-foreground truncate">{displayName}</p>
+                      <p className="mt-0.5 font-body text-sm text-muted-foreground truncate">{displayEmail}</p>
+                      <p className="mt-2 font-body text-xs text-muted-foreground/80">Email is tied to your sign-in and can’t be changed here.</p>
+                    </div>
+                  </div>
+
                   <Form {...personalForm}>
                     <form
                       className="space-y-5"
@@ -274,145 +371,99 @@ export default function Account() {
                   <p className="mt-1 font-body text-sm text-muted-foreground">Protect your account and keep sign-in details current.</p>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="rounded-xl border border-border/60 bg-card/30 p-4">
+                  <div className="rounded-xl border border-border/60 bg-card/30 p-4 space-y-2">
                     <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Sign-in method</p>
-                    <p className="mt-2 font-heading text-base text-foreground">{signInMethodLabel}</p>
+                    <p className="font-heading text-base text-foreground">{signInMethodLabel}</p>
+                    <p className="font-body text-sm text-muted-foreground">
+                      <span className="text-foreground/85">Email:</span> {displayEmail || "—"}
+                    </p>
                   </div>
 
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button type="button" variant="outline" className="w-full justify-between border-border/70">
-                        <span className="inline-flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" aria-hidden />
-                          Change email
-                        </span>
-                        <span className="text-xs text-muted-foreground truncate max-w-[11rem]">{displayEmail}</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Change email</DialogTitle>
-                      </DialogHeader>
-                      <Form {...emailForm}>
-                        <form
-                          className="space-y-4"
-                          onSubmit={emailForm.handleSubmit(async (values) => {
-                            if (!user) return;
-                            const ok = await ensureRecentReauth("email");
-                            if (!ok) return;
+                  {isGoogleOAuth ? (
+                    <p className="rounded-xl border border-border/60 bg-card/30 p-4 font-body text-sm text-muted-foreground">
+                      You signed in with Google. Password changes are not available for this account—use your Google account to manage access.
+                    </p>
+                  ) : (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="outline" className="w-full justify-between border-border/70">
+                          <span>Change password</span>
+                          <span className="text-xs text-muted-foreground">Email sign-in</span>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Change password</DialogTitle>
+                        </DialogHeader>
+                        <Form {...passwordForm}>
+                          <form
+                            className="space-y-4"
+                            onSubmit={passwordForm.handleSubmit(async (values) => {
+                              if (!ensurePasswordReauth()) {
+                                toast({
+                                  title: "Confirm it’s you",
+                                  description: "Enter your current password in the dialog, then try again.",
+                                });
+                                return;
+                              }
 
-                            setBusySecurity("email");
-                            try {
-                              const { error } = await supabase.auth.updateUser({ email: values.email.trim().toLowerCase() });
-                              if (error) throw error;
-                              toast({
-                                title: "Check your inbox",
-                                description: "We sent a confirmation link to complete your email change.",
-                              });
-                            } catch (e) {
-                              toast({
-                                title: "Couldn’t change email",
-                                description: e instanceof Error ? e.message : "Please try again.",
-                                variant: "destructive",
-                              });
-                            } finally {
-                              setBusySecurity(null);
-                            }
-                          })}
-                        >
-                          <FormField
-                            control={emailForm.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>New email</FormLabel>
-                                <FormControl>
-                                  <Input {...field} type="email" autoComplete="email" className="bg-card border-border" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <DialogFooter>
-                            <Button type="submit" disabled={busySecurity !== null} className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
-                              {busySecurity === "email" ? "Sending…" : "Send confirmation"}
-                            </Button>
-                          </DialogFooter>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button type="button" variant="outline" className="w-full justify-between border-border/70">
-                        <span>Set / change password</span>
-                        <span className="text-xs text-muted-foreground">Recommended</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Set / change password</DialogTitle>
-                      </DialogHeader>
-                      <Form {...passwordForm}>
-                        <form
-                          className="space-y-4"
-                          onSubmit={passwordForm.handleSubmit(async (values) => {
-                            const ok = await ensureRecentReauth("password");
-                            if (!ok) return;
-
-                            setBusySecurity("password");
-                            try {
-                              const { error } = await supabase.auth.updateUser({ password: values.password.trim() });
-                              if (error) throw error;
-                              passwordForm.reset({ password: "", confirm: "" });
-                              toast({ title: "Password updated", description: "Your password was changed." });
-                            } catch (e) {
-                              toast({
-                                title: "Couldn’t update password",
-                                description: e instanceof Error ? e.message : "Please try again.",
-                                variant: "destructive",
-                              });
-                            } finally {
-                              setBusySecurity(null);
-                            }
-                          })}
-                        >
-                          <FormField
-                            control={passwordForm.control}
-                            name="password"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>New password</FormLabel>
-                                <FormControl>
-                                  <Input {...field} type="password" autoComplete="new-password" className="bg-card border-border" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={passwordForm.control}
-                            name="confirm"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Confirm password</FormLabel>
-                                <FormControl>
-                                  <Input {...field} type="password" autoComplete="new-password" className="bg-card border-border" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <DialogFooter>
-                            <Button type="submit" disabled={busySecurity !== null} className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
-                              {busySecurity === "password" ? "Updating…" : "Update password"}
-                            </Button>
-                          </DialogFooter>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
+                              setBusySecurity("password");
+                              try {
+                                const { error } = await supabase.auth.updateUser({ password: values.password.trim() });
+                                if (error) throw error;
+                                passwordForm.reset({ password: "", confirm: "" });
+                                toast({ title: "Password updated", description: "Your password was changed." });
+                              } catch (e) {
+                                toast({
+                                  title: "Couldn’t update password",
+                                  description: e instanceof Error ? e.message : "Please try again.",
+                                  variant: "destructive",
+                                });
+                              } finally {
+                                setBusySecurity(null);
+                              }
+                            })}
+                          >
+                            <FormField
+                              control={passwordForm.control}
+                              name="password"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>New password</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="password" autoComplete="new-password" className="bg-card border-border" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={passwordForm.control}
+                              name="confirm"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Confirm password</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="password" autoComplete="new-password" className="bg-card border-border" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <DialogFooter>
+                              <Button
+                                type="submit"
+                                disabled={busySecurity !== null}
+                                className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
+                              >
+                                {busySecurity === "password" ? "Updating…" : "Update password"}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -437,7 +488,7 @@ export default function Account() {
                     markRecentReauth();
                     setReauthOpen(false);
                     reauthForm.reset({ password: "" });
-                    toast({ title: "Confirmed", description: "You can continue your security change." });
+                    toast({ title: "Confirmed", description: "You can update your password." });
                   } catch (e) {
                     toast({
                       title: "Couldn’t confirm",
@@ -454,7 +505,7 @@ export default function Account() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Current password</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" autoComplete="current-password" className="bg-card border-border" />
                       </FormControl>
@@ -475,4 +526,3 @@ export default function Account() {
     </RequireAuth>
   );
 }
-
