@@ -342,9 +342,6 @@ const Dashboard = () => {
               <Button type="button" variant="outline" className="border-border/70" onClick={() => setReceiptBookingId(null)}>
                 Close
               </Button>
-              <Button asChild className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90">
-                <Link to="/events">Visit website</Link>
-              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
