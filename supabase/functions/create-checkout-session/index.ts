@@ -2,6 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { handleOptions, json } from "./_shared/cors.ts";
 
+/** Stripe allows up to 500 characters per metadata value. */
+function stripeMetadataValue(value: string, maxLen = 450): string {
+  const t = value.trim();
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen - 3)}...`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return handleOptions();
   if (req.method !== "POST") return json({ error: "Method not allowed" }, { status: 405 });
@@ -43,7 +50,7 @@ Deno.serve(async (req) => {
 
   const { data: booking, error: bErr } = await admin
     .from("bookings")
-    .select("id,user_id,event_id,tickets,status,email,events(id,name,price,capacity_total)")
+    .select("id,user_id,event_id,tickets,status,email,events(id,name,date,time,price,capacity_total)")
     .eq("id", bookingId)
     .maybeSingle();
 
@@ -52,7 +59,7 @@ Deno.serve(async (req) => {
   if (booking.status === "paid") return json({ error: "Already paid" }, { status: 400 });
 
   const ev = booking.events as
-    | { id: string; name: string; price: number | null; capacity_total: number | null }
+    | { id: string; name: string; date: string; time: string; price: number | null; capacity_total: number | null }
     | null
     | undefined;
   const event = Array.isArray(ev) ? ev[0] : ev;
@@ -93,6 +100,25 @@ Deno.serve(async (req) => {
   const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
   const qty = Math.max(1, Math.trunc(Number(booking.tickets ?? 1)));
 
+  const sessionMetadata: Record<string, string> = {
+    booking_id: booking.id,
+    user_id: uid,
+    event_id: event.id,
+    tickets: String(qty),
+    event_name: stripeMetadataValue(event.name),
+    event_date: stripeMetadataValue(String(event.date ?? "")),
+    event_time: stripeMetadataValue(String(event.time ?? "")),
+  };
+  const paymentIntentMetadata: Record<string, string> = {
+    booking_id: booking.id,
+    user_id: uid,
+    event_id: event.id,
+    tickets: String(qty),
+    event_name: stripeMetadataValue(event.name),
+    event_date: stripeMetadataValue(String(event.date ?? "")),
+    event_time: stripeMetadataValue(String(event.time ?? "")),
+  };
+
   let session: Stripe.Checkout.Session;
   try {
     session = await stripe.checkout.sessions.create({
@@ -113,18 +139,9 @@ Deno.serve(async (req) => {
     success_url:
       `${siteOrigin}/thank-you?checkout=success&booking_id=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteOrigin}/events?checkout=cancelled&event_id=${encodeURIComponent(event.id)}`,
-    metadata: {
-      booking_id: booking.id,
-      user_id: uid,
-      event_id: event.id,
-      tickets: String(qty),
-    },
+    metadata: sessionMetadata,
     payment_intent_data: {
-      metadata: {
-        booking_id: booking.id,
-        user_id: uid,
-        event_id: event.id,
-      },
+      metadata: paymentIntentMetadata,
     },
   });
   } catch (e) {

@@ -7,8 +7,9 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const sig = req.headers.get("stripe-signature");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  const sig = req.headers.get("stripe-signature") ?? req.headers.get("Stripe-Signature");
+  const webhookSecret = (Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? Deno.env.get("STRIPE_WEBHOOK_SIGNING_SECRET") ?? "")
+    .trim();
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -19,12 +20,16 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
+  const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
   let stripeEvent: Stripe.Event;
   try {
-    stripeEvent = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-  } catch {
-    return new Response("Invalid signature", { status: 400 });
+    // Deno / Edge: sync constructEvent can fail verification; use Web Crypto async path (Supabase docs).
+    stripeEvent = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret, undefined, cryptoProvider);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.warn("[stripe-webhook] constructEventAsync failed:", msg);
+    return new Response(msg, { status: 400 });
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
@@ -59,7 +64,7 @@ Deno.serve(async (req) => {
       return new Response(error.message, { status: 500 });
     }
 
-    await sendReceiptEmail(admin, bookingId);
+    await sendReceiptEmail(admin, bookingId, session.metadata ?? null);
   }
 
   return new Response(JSON.stringify({ received: true }), {

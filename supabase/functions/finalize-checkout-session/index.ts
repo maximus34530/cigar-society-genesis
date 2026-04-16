@@ -78,6 +78,6 @@ Deno.serve(async (req) => {
 
   if (error) return json({ error: error.message }, { status: 500 });
 
-  await sendReceiptEmail(admin, bookingId);
+  await sendReceiptEmail(admin, bookingId, session.metadata ?? null);
   return json({ ok: true });
 });

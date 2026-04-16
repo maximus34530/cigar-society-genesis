@@ -14,12 +14,24 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  formatEventImageFocal,
+  parseEventImageFocal,
+  eventImageObjectStyle,
+  isMissingEventsImageObjectPositionError,
+  HOME_FEATURED_EVENT_IMAGE_FRAME,
+  HOME_FEATURED_EVENT_IMAGE_IMG,
+  EVENTS_PAGE_CARD_IMAGE_FRAME,
+  EVENTS_PAGE_CARD_IMAGE_IMG,
+} from "@/lib/eventImagePosition";
 import { supabase } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import { CloudUpload } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -33,6 +45,7 @@ type EventRow = {
   description: string | null;
   image_url: string | null;
   image_path: string | null;
+  image_object_position: string | null;
   is_active: boolean | null;
   created_at: string | null;
   deleted_at?: string | null;
@@ -80,6 +93,7 @@ export default function AdminEvents() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewEventId, setPreviewEventId] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [imageFocal, setImageFocal] = useState({ x: 50, y: 50 });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -103,6 +117,7 @@ export default function AdminEvents() {
     setEditing(null);
     setPreviewOpen(false);
     setPreviewEventId(null);
+    setImageFocal({ x: 50, y: 50 });
     setImageFile(null);
     setRemoveImage(false);
     setDragOver(false);
@@ -123,18 +138,76 @@ export default function AdminEvents() {
     return rows.find((r) => r.id === previewEventId) ?? null;
   }, [rows, previewEventId]);
 
+  const previewSessionRef = useRef<{ open: boolean; id: string | null }>({ open: false, id: null });
+
+  useEffect(() => {
+    if (open && !editing) {
+      setImageFocal({ x: 50, y: 50 });
+    }
+  }, [open, editing]);
+
+  useEffect(() => {
+    if (!previewOpen || !previewEventId) {
+      previewSessionRef.current = { open: previewOpen, id: null };
+      return;
+    }
+
+    const prev = previewSessionRef.current;
+    const openedNow = !prev.open && previewOpen;
+    const idChanged = previewEventId !== prev.id;
+    previewSessionRef.current = { open: previewOpen, id: previewEventId };
+
+    if (!openedNow && !idChanged) return;
+
+    const row = rows.find((r) => r.id === previewEventId);
+    if (row) setImageFocal(parseEventImageFocal(row.image_object_position));
+  }, [previewOpen, previewEventId, rows]);
+
+  useEffect(() => {
+    if (!previewOpen || !previewEventId) return;
+    const id = previewEventId;
+    const { x, y } = imageFocal;
+    const t = window.setTimeout(() => {
+      void supabase.from("events").update({ image_object_position: formatEventImageFocal(x, y) }).eq("id", id);
+    }, 450);
+    return () => window.clearTimeout(t);
+  }, [previewOpen, previewEventId, imageFocal.x, imageFocal.y]);
+
+  const setFocalFromPointer = (e: PointerEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setImageFocal({
+      x: Math.round(Math.min(100, Math.max(0, x))),
+      y: Math.round(Math.min(100, Math.max(0, y))),
+    });
+  };
+
   const load = async () => {
     setLoading(true);
     try {
-      const base = supabase
-        .from("events")
-        .select("id,name,date,time,price,capacity_total,description,image_url,image_path,is_active,created_at,deleted_at")
-        .order("date", { ascending: true })
-        .order("time", { ascending: true });
+      const selectWithFocal =
+        "id,name,date,time,price,capacity_total,description,image_url,image_path,image_object_position,is_active,created_at,deleted_at";
+      const selectLegacy =
+        "id,name,date,time,price,capacity_total,description,image_url,image_path,is_active,created_at,deleted_at";
 
-      const { data, error } = showTrash
-        ? await base.not("deleted_at", "is", null)
-        : await base.is("deleted_at", null);
+      const runListQuery = (cols: string) => {
+        const q = supabase
+          .from("events")
+          .select(cols)
+          .order("date", { ascending: true })
+          .order("time", { ascending: true });
+        return showTrash ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+      };
+
+      let { data, error } = await runListQuery(selectWithFocal);
+      if (error && isMissingEventsImageObjectPositionError(error)) {
+        ({ data, error } = await runListQuery(selectLegacy));
+        if (!error && data) {
+          data = data.map((r) => ({ ...r, image_object_position: null }));
+        }
+      }
       if (error) throw error;
       setRows((data as EventRow[]) ?? []);
     } finally {
@@ -165,6 +238,9 @@ export default function AdminEvents() {
     }
 
     const eventId = saved.id as string;
+
+    const focalCss = formatEventImageFocal(imageFocal.x, imageFocal.y);
+    await supabase.from("events").update({ image_object_position: focalCss }).eq("id", eventId);
     const previousImagePath = (saved.image_path as string | null) ?? null;
 
     if (removeImage && previousImagePath) {
@@ -232,6 +308,10 @@ export default function AdminEvents() {
   useEffect(() => {
     void load();
   }, [showTrash]);
+
+  useEffect(() => {
+    if (imageFile) setImageFocal({ x: 50, y: 50 });
+  }, [imageFile]);
 
   return (
     <Card className="bg-card/40 border-border/60">
@@ -524,21 +604,95 @@ export default function AdminEvents() {
               </DialogHeader>
 
               {previewEvent ? (
-                <div className="rounded-xl border border-border/60 bg-card/30 overflow-hidden">
+                <div className="space-y-5">
+                  <p className="font-body text-sm text-muted-foreground">
+                    Drag a preview to set the focal point, or use the sliders. Matches live crops on the home page and events
+                    calendar.
+                  </p>
+
                   {previewEvent.image_path || previewEvent.image_url ? (
-                    <img
-                      src={
-                        previewEvent.image_path
-                          ? getPublicEventImageUrl(previewEvent.image_path)
-                          : previewEvent.image_url ?? undefined
-                      }
-                      alt=""
-                      className="h-44 w-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : null}
-                  <div className="p-4">
+                    <div className="grid gap-5 lg:grid-cols-2">
+                      <div className="space-y-2">
+                        <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Home (featured)</p>
+                        <div
+                          className={cn(
+                            HOME_FEATURED_EVENT_IMAGE_FRAME,
+                            "cursor-crosshair rounded-t-xl border border-border/60 bg-muted",
+                          )}
+                          onPointerDown={(e) => setFocalFromPointer(e)}
+                        >
+                          <img
+                            src={
+                              previewEvent.image_path
+                                ? getPublicEventImageUrl(previewEvent.image_path)
+                                : previewEvent.image_url ?? undefined
+                            }
+                            alt=""
+                            className={HOME_FEATURED_EVENT_IMAGE_IMG}
+                            style={eventImageObjectStyle(formatEventImageFocal(imageFocal.x, imageFocal.y))}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Events (card)</p>
+                        <div
+                          className={cn(
+                            EVENTS_PAGE_CARD_IMAGE_FRAME,
+                            "mx-auto max-w-md cursor-crosshair rounded-t-xl border border-border/60 bg-muted",
+                          )}
+                          onPointerDown={(e) => setFocalFromPointer(e)}
+                        >
+                          <img
+                            src={
+                              previewEvent.image_path
+                                ? getPublicEventImageUrl(previewEvent.image_path)
+                                : previewEvent.image_url ?? undefined
+                            }
+                            alt=""
+                            className={EVENTS_PAGE_CARD_IMAGE_IMG}
+                            style={eventImageObjectStyle(formatEventImageFocal(imageFocal.x, imageFocal.y))}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="font-body text-sm text-muted-foreground">Add an event image in the form to preview crops.</p>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <Label className="font-body text-sm">Horizontal</Label>
+                        <span className="font-body text-xs text-muted-foreground">{imageFocal.x}%</span>
+                      </div>
+                      <Slider
+                        value={[imageFocal.x]}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onValueChange={(v) => setImageFocal((prev) => ({ ...prev, x: v[0] ?? prev.x }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <Label className="font-body text-sm">Vertical</Label>
+                        <span className="font-body text-xs text-muted-foreground">{imageFocal.y}%</span>
+                      </div>
+                      <Slider
+                        value={[imageFocal.y]}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onValueChange={(v) => setImageFocal((prev) => ({ ...prev, y: v[0] ?? prev.y }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border/60 bg-card/30 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-heading text-base text-foreground">{previewEvent.name}</p>
                       <Badge variant="outline" className="border-border/60 text-muted-foreground font-body">
@@ -654,6 +808,7 @@ export default function AdminEvents() {
                           setEditing(row);
                           setImageFile(null);
                           setRemoveImage(false);
+                          setImageFocal(parseEventImageFocal(row.image_object_position));
                           form.reset({
                             name: row.name,
                             date: row.date,
@@ -696,6 +851,7 @@ export default function AdminEvents() {
                           setEditing(row);
                           setImageFile(null);
                           setRemoveImage(false);
+                          setImageFocal(parseEventImageFocal(row.image_object_position));
                           form.reset({
                             name: row.name,
                             date: row.date,

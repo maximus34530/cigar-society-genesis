@@ -14,6 +14,12 @@ import { CalendarDays, ChevronRight, List, MapPin, Star } from "lucide-react";
 import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
+import {
+  HOME_FEATURED_EVENT_IMAGE_FRAME,
+  HOME_FEATURED_EVENT_IMAGE_IMG,
+  eventImageObjectStyle,
+  isMissingEventsImageObjectPositionError,
+} from "@/lib/eventImagePosition";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
@@ -155,6 +161,7 @@ type HomeEventPreview = {
   description: string | null;
   image_url: string | null;
   image_path: string | null;
+  image_object_position: string | null;
 };
 
 function soldForEvent(soldByEvent: Record<string, number>, eventId: string) {
@@ -178,24 +185,43 @@ const Index = () => {
 
   useEffect(() => {
     let cancelled = false;
-    setEventsLoading(true);
 
-    (async () => {
+    const loadHomeEvents = async () => {
+      setEventsLoading(true);
+
       try {
-        const { data, error } = await supabase
+        const selectWithFocal =
+          "id,name,date,time,capacity_total,description,image_url,image_path,image_object_position";
+        const selectLegacy = "id,name,date,time,capacity_total,description,image_url,image_path";
+
+        let { data, error } = await supabase
           .from("events")
-          .select("id,name,date,time,capacity_total,description,image_url,image_path")
+          .select(selectWithFocal)
           .eq("is_active", true)
           .is("deleted_at", null)
           .order("date", { ascending: true })
           .order("time", { ascending: true })
           .limit(3);
         if (cancelled) return;
+        if (error && isMissingEventsImageObjectPositionError(error)) {
+          ({ data, error } = await supabase
+            .from("events")
+            .select(selectLegacy)
+            .eq("is_active", true)
+            .is("deleted_at", null)
+            .order("date", { ascending: true })
+            .order("time", { ascending: true })
+            .limit(3));
+        }
+        if (cancelled) return;
         if (error) throw error;
-        const rows = ((data as HomeEventPreview[]) ?? []).slice(0, 3);
-        setEvents(rows);
+        const rows = (
+          (data as (HomeEventPreview | Omit<HomeEventPreview, "image_object_position">)[] | null) ?? []
+        ).map((r) => ("image_object_position" in r ? r : { ...r, image_object_position: null as string | null }));
+        const sliced = rows.slice(0, 3) as HomeEventPreview[];
+        if (!cancelled) setEvents(sliced);
 
-        const ids = rows.map((r) => r.id);
+        const ids = sliced.map((r) => r.id);
         if (ids.length === 0) return;
         try {
           const { data: soldRows, error: rpcErr } = await supabase.rpc("event_tickets_sold_batch", {
@@ -218,10 +244,19 @@ const Index = () => {
       } finally {
         if (!cancelled) setEventsLoading(false);
       }
-    })();
+    };
+
+    void loadHomeEvents();
+
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      void loadHomeEvents();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
@@ -431,13 +466,16 @@ const Index = () => {
                               : featured?.image_url ?? undefined
                             : liveEventsImg;
                         return (
-                          <img
-                            src={imageSrc}
-                            alt=""
-                            className="h-56 w-full max-w-full object-cover sm:h-64"
-                            loading="lazy"
-                            decoding="async"
-                          />
+                          <div className={cn(HOME_FEATURED_EVENT_IMAGE_FRAME, "rounded-t-2xl")}>
+                            <img
+                              src={imageSrc}
+                              alt=""
+                              className={HOME_FEATURED_EVENT_IMAGE_IMG}
+                              style={eventImageObjectStyle(featured?.image_object_position ?? null)}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </div>
                         );
                       })()}
                       <div

@@ -17,6 +17,12 @@ import logoImg from "@/assets/logo.png";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { business } from "@/lib/business";
+import {
+  EVENTS_PAGE_CARD_IMAGE_FRAME,
+  EVENTS_PAGE_CARD_IMAGE_IMG,
+  eventImageObjectStyle,
+  isMissingEventsImageObjectPositionError,
+} from "@/lib/eventImagePosition";
 import { createCheckoutSessionUrl } from "@/lib/checkout";
 import { trackEvent } from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
@@ -45,6 +51,7 @@ type EventRow = {
   description: string | null;
   image_url: string | null;
   image_path: string | null;
+  image_object_position: string | null;
 };
 
 type CheckoutStep = "tickets" | "details" | "confirm";
@@ -250,7 +257,14 @@ const Events = () => {
                 booking_id: inserted.id,
                 user_id: uid,
                 event: activeEvent,
-                reservation: values,
+                reservation: {
+                  firstName: values.firstName.trim(),
+                  lastName: values.lastName.trim(),
+                  email: values.email.trim().toLowerCase(),
+                  phone: values.phone.trim(),
+                  tickets: values.tickets,
+                },
+                payment: null,
               }),
             }).catch(() => {});
           }
@@ -419,21 +433,38 @@ const Events = () => {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
-    (async () => {
+    const loadEventsPage = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const { data, error: err } = await supabase
+        const selectWithFocal =
+          "id,name,date,time,price,capacity_total,description,image_url,image_path,image_object_position";
+        const selectLegacy = "id,name,date,time,price,capacity_total,description,image_url,image_path";
+
+        let { data, error: err } = await supabase
           .from("events")
-          .select("id,name,date,time,price,capacity_total,description,image_url,image_path")
+          .select(selectWithFocal)
           .eq("is_active", true)
           .is("deleted_at", null)
           .order("date", { ascending: true })
           .order("time", { ascending: true });
 
+        if (err && isMissingEventsImageObjectPositionError(err)) {
+          ({ data, error: err } = await supabase
+            .from("events")
+            .select(selectLegacy)
+            .eq("is_active", true)
+            .is("deleted_at", null)
+            .order("date", { ascending: true })
+            .order("time", { ascending: true }));
+        }
+
         if (err) throw err;
-        const rows = (data as EventRow[]) ?? [];
+        const rows = ((data as (EventRow | Omit<EventRow, "image_object_position">)[] | null) ?? []).map((r) =>
+          "image_object_position" in r ? r : { ...r, image_object_position: null as string | null },
+        ) as EventRow[];
         if (!cancelled) setEvents(rows);
 
         const ids = rows.map((r) => r.id);
@@ -457,10 +488,19 @@ const Events = () => {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    };
+
+    void loadEventsPage();
+
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      void loadEventsPage();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
@@ -605,15 +645,17 @@ const Events = () => {
                         : "hover:border-primary/45 hover:bg-card/50 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
                     )}
                   >
-                    <div className="relative h-44 w-full shrink-0 overflow-hidden bg-muted">
+                    <div className={cn(EVENTS_PAGE_CARD_IMAGE_FRAME, "rounded-t-xl")}>
                       {imageSrc ? (
                         <img
                           src={imageSrc}
                           alt=""
                           className={cn(
-                            "h-full w-full object-cover transition-transform duration-500 ease-out",
+                            EVENTS_PAGE_CARD_IMAGE_IMG,
+                            "transition-transform duration-500 ease-out",
                             !soldOut && "group-hover/event-card:scale-[1.04]",
                           )}
+                          style={eventImageObjectStyle(event.image_object_position)}
                           loading="lazy"
                           decoding="async"
                         />
