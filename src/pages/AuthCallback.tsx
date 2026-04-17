@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import {
   DEFAULT_POST_AUTH_PATH,
   resolvePostLoginPathForUser,
+  sanitizeOAuthReturnPath,
   takeOAuthReturnPath,
 } from "@/lib/authRouting";
 import { supabase } from "@/lib/supabase";
@@ -60,11 +61,11 @@ const AuthCallback = () => {
         return;
       }
 
-      const from = takeOAuthReturnPath() ?? DEFAULT_POST_AUTH_PATH;
+      const rawFrom = takeOAuthReturnPath() ?? DEFAULT_POST_AUTH_PATH;
+      const from = sanitizeOAuthReturnPath(rawFrom);
       const { data } = await supabase.auth.getSession();
       const uid = data.session?.user?.id;
       if (cancelled || !uid) {
-        takeOAuthReturnPath();
         navigate("/login", { replace: true, state: { error: "Could not read your session. Please try again." } });
         return;
       }

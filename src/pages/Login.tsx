@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { useAuth } from "@/hooks/useAuth";
-import { DEFAULT_POST_AUTH_PATH, resolvePostLoginPath } from "@/lib/authRouting";
+import { DEFAULT_POST_AUTH_PATH, resolvePostLoginPath, sanitizeOAuthReturnPath } from "@/lib/authRouting";
 import { EVENT_CHECKOUT_RESUME_PATH, peekEventCheckoutDraft } from "@/lib/eventCheckoutDraft";
 import { signInWithOAuthProvider } from "@/lib/oauthSignIn";
 import { supabase } from "@/lib/supabase";
@@ -37,9 +37,12 @@ const Login = () => {
 
   const from = useMemo(() => {
     const state = location.state as { from?: string; error?: string } | null;
-    if (state?.from) return state.from;
-    if (peekEventCheckoutDraft()) return EVENT_CHECKOUT_RESUME_PATH;
-    return DEFAULT_POST_AUTH_PATH;
+    const candidate = state?.from
+      ? state.from
+      : peekEventCheckoutDraft()
+        ? EVENT_CHECKOUT_RESUME_PATH
+        : DEFAULT_POST_AUTH_PATH;
+    return sanitizeOAuthReturnPath(candidate);
   }, [location.state]);
 
   const oauthError = useMemo(() => {
