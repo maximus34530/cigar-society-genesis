@@ -31,11 +31,17 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 | `VITE_SITE_ORIGIN` | No | Canonical / OG base URL (default: `https://cigarsocietyus.com`) |
 | `VITE_PLAUSIBLE_DOMAIN` | No | Plausible analytics domain (e.g. `cigarsocietyus.com`) |
 | `VITE_GA_MEASUREMENT_ID` | No | Google Analytics 4 measurement ID (`G-…`) |
+| `VITE_SUPABASE_URL` | Phase 2 | Supabase project URL (`https://xxxxx.supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | Phase 2 | Supabase anon key (client-safe; optional if using publishable key) |
+| `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Phase 2 | Supabase publishable key (client-safe alternative to anon) |
 
 ## Project docs
 
+- [`cursor-agent-bundle/GUIDES/login_signup_auth.md`](./cursor-agent-bundle/GUIDES/login_signup_auth.md) — Supabase auth, OAuth (Google/Apple), return-to-intent, MCP notes
 - `IMPLEMENTATION_PLAN.md` — Phases and scope
+- `Phase_2_implementation_plan.md` — Phase 2 epics, order, and hold areas
 - `GITHUB_ISSUES_GUIDE.md` — Issue workflow
+- `partner_handoff.md` — Partner / collaborator onboarding (Phase 2)
 - `GITHUB_ISSUES_BACKLOG.md` — Issue backlog
 - `SYSTEM_OVERVIEW.md` — Architecture summary
 - `LAUNCH_CHECKLIST.md` — Owner sign-off (Issue 25)

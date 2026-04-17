@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { FadeUp } from "@/components/FadeUp";
+import { useFadeInOnScroll } from "@/hooks/useFadeInOnScroll";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -106,15 +108,10 @@ const GALLERY_BY_CATEGORY: CategorizedImages = Object.fromEntries(
   ]),
 ) as CategorizedImages;
 
-function LoungePhotoTile({
-  img,
-  onOpen,
-  layout,
-}: {
-  img: GalleryImage;
-  onOpen: (img: GalleryImage) => void;
-  layout: "marquee" | "static";
-}) {
+const tileShellClass =
+  "relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group/card transition-[transform,box-shadow] duration-500 ease-out hover:scale-[1.04] hover:shadow-[0_0_0_1px_hsl(var(--gold)/0.28),0_16px_40px_-12px_hsl(0_0%_0%_/0.55),0_8px_28px_-8px_hsl(var(--gold)/0.12)]";
+
+function LoungePhotoTileMarquee({ img, onOpen }: { img: GalleryImage; onOpen: (img: GalleryImage) => void }) {
   return (
     <div
       role="button"
@@ -127,17 +124,63 @@ function LoungePhotoTile({
           onOpen(img);
         }
       }}
-      className={cn(
-        "relative overflow-hidden rounded-xl border border-primary/25 shadow-[0_0_0_1px_hsl(var(--gold)/0.12),0_20px_50px_-20px_hsl(0_0%_0%_/0.5)] outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer group/card",
-        layout === "marquee" && "w-[min(78vw,320px)] shrink-0",
-        layout === "static" && "w-full max-w-sm sm:max-w-none sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]",
-      )}
+      className={cn(tileShellClass, "w-[min(78vw,320px)] shrink-0")}
     >
-      <div className="aspect-[4/3] bg-muted">
+      <div className="aspect-[4/3] overflow-hidden bg-muted">
         <img
           src={img.src}
           alt=""
-          className="h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-[1.02]"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.04]"
+          decoding="async"
+          loading="lazy"
+        />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent pt-12 pb-3 px-3">
+        <p className="text-foreground font-body text-xs sm:text-sm text-center leading-snug">{img.alt}</p>
+      </div>
+    </div>
+  );
+}
+
+function LoungePhotoTileStatic({
+  img,
+  onOpen,
+  staggerIndex,
+}: {
+  img: GalleryImage;
+  onOpen: (img: GalleryImage) => void;
+  staggerIndex: number;
+}) {
+  const fade = useFadeInOnScroll(staggerIndex * 80);
+  return (
+    <div
+      ref={fade.ref}
+      style={fade.style}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open photo: ${img.alt}`}
+      onClick={() => onOpen(img)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(img);
+        }
+      }}
+      className={cn(
+        tileShellClass,
+        fade.className,
+        "w-full max-w-sm sm:max-w-none sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]",
+      )}
+    >
+      <div className="aspect-[4/3] bg-muted overflow-hidden">
+        <img
+          src={img.src}
+          alt=""
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.04]"
+          style={{
+            transform: fade.visible ? "scale(1)" : "scale(1.04)",
+            transitionDelay: fade.visible ? `${staggerIndex * 80}ms` : "0ms",
+          }}
           decoding="async"
           loading="lazy"
         />
@@ -294,20 +337,15 @@ function CategoryGalleryRow({
               >
                 <div className="flex w-max gap-4 md:gap-6 py-2 pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-8">
                   {marqueeTrack.map((img, i) => (
-                    <LoungePhotoTile
-                      key={`${category}-${img.src}-${i}`}
-                      img={img}
-                      onOpen={onOpen}
-                      layout="marquee"
-                    />
+                    <LoungePhotoTileMarquee key={`${category}-${img.src}-${i}`} img={img} onOpen={onOpen} />
                   ))}
                 </div>
               </div>
             </>
           ) : (
-            <div className="container mx-auto flex max-w-6xl flex-wrap justify-center gap-4 md:gap-6 py-2 px-4 sm:px-6 lg:px-8">
-              {images.map((img) => (
-                <LoungePhotoTile key={`${category}-${img.src}`} img={img} onOpen={onOpen} layout="static" />
+            <div className="container mx-auto flex max-w-6xl min-w-0 flex-wrap justify-center gap-4 md:gap-6 py-2 px-4 sm:px-6 lg:px-8">
+              {images.map((img, idx) => (
+                <LoungePhotoTileStatic key={`${category}-${img.src}`} img={img} onOpen={onOpen} staggerIndex={idx} />
               ))}
             </div>
           )}
@@ -333,26 +371,33 @@ export function CategorizedGallerySection() {
         className="section-padding bg-gradient-to-b from-background via-muted/15 to-background border-b border-border/50"
         aria-label="Photo gallery by category"
       >
-        {CATEGORIES.map((cat, index) => (
-          <CategoryGalleryRow
-            key={cat}
-            category={cat}
-            images={GALLERY_BY_CATEGORY[cat]}
-            prefersReducedMotion={prefersReducedMotion}
-            onOpen={openImage}
-            contentMovesRightToLeft={index % 2 === 0}
-          />
-        ))}
+        <FadeUp>
+          {CATEGORIES.map((cat, index) => (
+            <CategoryGalleryRow
+              key={cat}
+              category={cat}
+              images={GALLERY_BY_CATEGORY[cat]}
+              prefersReducedMotion={prefersReducedMotion}
+              onOpen={openImage}
+              contentMovesRightToLeft={index % 2 === 0}
+            />
+          ))}
+        </FadeUp>
       </section>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background border-border">
+        <DialogContent
+          className={cn(
+            "dialog-gallery-content max-w-3xl gap-0 p-0 overflow-hidden bg-background border-border sm:rounded-lg",
+            "data-[state=open]:!animate-none data-[state=closed]:!animate-none",
+          )}
+        >
           {selected ? (
-            <div>
+            <div className="dialog-gallery-inner">
               <img
                 src={selected.src}
                 alt={selected.alt}
-                className="w-full h-auto max-h-[70vh] object-contain"
+                className="w-full h-auto max-h-[min(70vh,100dvh-8rem)] object-contain"
                 decoding="async"
                 fetchPriority="high"
               />

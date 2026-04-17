@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { FadeUp } from "@/components/FadeUp";
 import { Seo } from "@/components/Seo";
 import { business } from "@/lib/business";
 
@@ -9,15 +10,15 @@ const Privacy = () => (
   <Layout>
     <Seo title="Privacy Policy" description={PRIVACY_DESCRIPTION} path="/privacy" />
     <section className="section-padding border-b border-border/40 bg-muted/30">
-      <div className="container mx-auto max-w-3xl text-center">
+      <FadeUp className="container mx-auto max-w-3xl text-center">
         <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground font-body">
           Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
         </p>
-      </div>
+      </FadeUp>
     </section>
     <section className="section-padding">
-      <div className="container mx-auto max-w-3xl space-y-10 text-muted-foreground font-body leading-relaxed">
+      <FadeUp className="container mx-auto max-w-3xl space-y-10 text-muted-foreground font-body leading-relaxed">
         <div>
           <h2 className="font-heading text-2xl text-foreground mb-3">1. Who we are</h2>
           <p>
@@ -124,7 +125,7 @@ const Privacy = () => (
             <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>
           </p>
         </div>
-      </div>
+      </FadeUp>
     </section>
   </Layout>
 );

@@ -11,12 +11,13 @@ Stack: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase �
 
 ## GitHub Workflow (MANDATORY)
 - Always read `GITHUB_ISSUES_GUIDE.md` before making any code changes.
-- Every task requires a GitHub Issue. Ask for the issue ID or create one before starting.
+- **Every task requires a GitHub Issue.** Create an issue automatically for the task unless the user explicitly opts out.
+- After work: **close the issue** when acceptance criteria are clearly met; **otherwise ask** the user whether to close or update the issue.
 - Branch naming: `feat/issue-ID-short-description` or `fix/issue-ID-short-description`
-- If you are using a fixed existing branch (e.g. `March-19, 2026`) instead, do not create new branches; commit to the current branch while still using the issue ID in commit messages.
+- If you are using a fixed working branch (e.g. `Phase-2`) instead, do not create new branches unless asked; still use `[#ISSUE_ID]` in commits **after the user approves** commit/sync.
+- **Do not commit or push without explicit user approval** for that action. **Never commit to or push `main`** from agent work.
 - Commit format: `[#ISSUE_ID] Commit message`
-- PR creation/merge and issue closing are handled manually by you.
-- The agent will not open PRs or merge into `main` automatically.
+- PR creation/merge to `main` is manual unless the user explicitly instructs otherwise.
 
 ## Code Style
 - TypeScript strict mode — no `any` types unless absolutely unavoidable
@@ -43,13 +44,13 @@ Stack: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase �
 - **Offerings**: Cigars, bourbon, beer, mixed drinks
 - **Location**: Rio Grande Valley, Texas
 
-## Supabase (Back Burner)
-- Supabase MCP and backend integration are optional for now.
-- If/when you enable Supabase later, use it for schema changes and migrations, and never write raw SQL directly.
-- All Supabase client calls go in `src/lib/supabase.ts`
-- Use TanStack Query for all async data fetching
+## Supabase (Phase 2 — active)
+- **Phase 2 is active** — see `Phase_2_implementation_plan.md` and `IMPLEMENTATION_PLAN.md`.
+- Use Supabase for schema changes and migrations (MCP or dashboard workflow per team); do not scatter ad-hoc SQL in the repo.
+- All browser-safe Supabase client usage goes through `src/lib/supabase.ts`
+- Use TanStack Query for async server state once `@tanstack/react-query` is added for Phase 2 data fetching
 - Use React Hook Form + Zod for all forms
-- Never expose service role keys client-side
+- Never expose service role or payment secret keys client-side (`VITE_*` is public)
 
 ## File Structure
 ```

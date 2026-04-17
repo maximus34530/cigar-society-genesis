@@ -3,7 +3,7 @@
 **Business**: Cigar Society, LLC  
 **Address**: 116 W State Ave, Pharr, TX 78577  
 **Phone**: (956) 223-1303  
-**Stack**: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · (Supabase — Phase 2 only)  
+**Stack**: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase (Phase 2 active) · payments (Phase 2)  
 **Collaborators**: Ethan (Cursor) · Partner (Antigravity)  
 **Repo**: `cigar-society-genesis`
 
@@ -73,19 +73,29 @@ Follow-up polish tracked as discrete GitHub issues. Full acceptance criteria and
 
 ---
 
-## Phase 2 — Supabase Backend Integration (BACK BURNER — DO NOT START)
-*Goal: Add dynamic, database-backed features when Phase 2 is explicitly started.*
+## Phase 2 — Supabase, dashboards, events & payments (ACTIVE)
+*Goal: Add authenticated user and admin experiences, database-backed events, and payment processing. Detailed execution order and epics: **`Phase_2_implementation_plan.md`**.*
 
-| # | Issue | Label | Priority |
+**Current team priority (high level)**
+
+1. User dashboard (frontend first, then wire to Supabase)
+2. Admin panel with CRUD (events first; then wire to Supabase)
+3. Public Events page (real data from Supabase)
+4. Supabase schema, Auth, and RLS aligned with the above
+5. Payment processor integration (after core auth/data)
+
+**On hold / “coming soon” unless reopened**: full membership system, contact form persistence, gallery CMS — see `Phase_2_implementation_plan.md`.
+
+| # | Issue | Label | Notes |
 |---|---|---|---|
-| 14 | Supabase schema design — contact and events | `backend` | 🔴 Urgent (phase start) |
-| 15 | Contact form → saves submissions to Supabase | `backend` | 🟠 High |
-| 16 | Membership waitlist / signup → saves to Supabase | `backend` | Deferred — Not in current product scope |
-| 17 | Events table — dynamic events on Events page | `backend` | 🟡 Medium |
-| 18 | Gallery table — dynamic photo gallery management | `backend` | 🟡 Medium |
-| 19 | Admin dashboard scaffold (manage events, gallery, inquiries) | `enhancement` | 🟢 Low |
+| 14 | Supabase schema design — contact and events | `backend` | Evolve into focused schema issues (events, bookings, roles); contact on hold |
+| 15 | Contact form → saves submissions to Supabase | `backend` | **On hold** per Phase 2 plan |
+| 16 | Membership waitlist / signup → saves to Supabase | `backend` | **On hold** |
+| 17 | Events table — dynamic events on Events page | `backend` | **High priority** |
+| 18 | Gallery table — dynamic photo gallery management | `backend` | **On hold** |
+| 19 | Admin dashboard scaffold (manage events, gallery, inquiries) | `enhancement` | **High priority** — events CRUD first |
 
-**Phase 2 Definition of Done**: Forms submit real data to Supabase; at least contact submissions are live.
+**Phase 2 Definition of Done (rolling)**: User dashboard, admin CRUD for events, and public Events page backed by Supabase with appropriate RLS; payments integrated per product scope; workflow in `GITHUB_ISSUES_GUIDE.md` (issues + approved commits; never agent commits to `main`).
 
 ---
 
@@ -117,13 +127,13 @@ Issue 26 (Analytics) is part of Phase 3 backlog; schedule after deploy/QA or in 
 
 **Phase 3 Definition of Done**: Site is live on a custom domain, fast, SEO-ready, and approved by the business owner.
 
-## Non-Goals (Current Phase)
+## Non-Goals (Phase 1 / static launch — historical)
 
-* No authentication
-* No payment processing
-* No membership system
-* No admin dashboard
-* No Supabase integration (until Phase 2 is explicitly started)
+*Phase 1 shipped without:* authentication, payment processing, membership system, admin dashboard, or Supabase-backed features.
+
+## Phase 2 scope (in progress)
+
+Authentication, admin and user dashboards, Supabase-backed events (and related tables), and payment processing are **in scope** per `Phase_2_implementation_plan.md`. Membership, contact DB persistence, and gallery CMS remain **on hold** until re-prioritized.
 
 **Delivered in repo**
 
@@ -165,10 +175,11 @@ Lounge:         Dark interior, TVs, lounge seating
 |---|---|---|
 | Frontend | React + Vite + TS + Tailwind | Already scaffolded |
 | UI Components | shadcn/ui | Already installed |
-| Backend (launch) | None — static site | Supabase deferred to Phase 2 |
-| Backend (future) | Supabase | When Phase 2 starts |
+| Backend (Phase 1) | None — static site | Shipped |
+| Backend (Phase 2) | Supabase + Auth + RLS | Active — see `Phase_2_implementation_plan.md` |
+| Payments (Phase 2) | Provider TBD (e.g. Stripe) | After core auth/data |
 | Deployment | Vercel | Best DX for Vite/React |
-| State/Data | TanStack Query | Already in package.json |
+| State/Data | TanStack Query | Required for async server state in Phase 2; add `@tanstack/react-query` when wiring Supabase reads/writes |
 | Forms | React Hook Form + Zod | Already in package.json |
 
 ---

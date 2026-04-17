@@ -81,6 +81,23 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
     text-rendering: optimizeLegibility;
+    position: relative;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   h4,
@@ -109,6 +126,37 @@ h2.find-us-section-title {
     background-clip: text;
   }
 
+  /** Richness shimmer for gold accent text — animated via Framer `backgroundPosition` */
+  .bg-gold-shimmer-clip {
+    background-image: linear-gradient(
+      105deg,
+      hsl(var(--gold)) 0%,
+      hsl(var(--gold-light) / 0.82) 38%,
+      hsl(var(--gold-light) / 0.92) 50%,
+      hsl(var(--gold-light) / 0.82) 62%,
+      hsl(var(--gold)) 100%
+    );
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /** Local grain for “The Experience” and similar sections (does not replace global body grain) */
+  .experience-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .experience-grain {
+      opacity: 0;
+    }
+  }
+
   .bg-gold-gradient {
     background: var(--gradient-gold);
   }
@@ -134,7 +182,8 @@ h2.find-us-section-title {
   }
 
   .gold-divider {
-    @apply w-24 h-px mx-auto rounded-full;
+    @apply h-px mx-auto rounded-full;
+    width: 48px;
     background: linear-gradient(
       90deg,
       transparent,
@@ -143,6 +192,7 @@ h2.find-us-section-title {
       hsl(var(--gold) / 0.35) 85%,
       transparent
     );
+    animation: gold-divider-breathe 3s ease-in-out infinite;
   }
 
   .find-us-gold-accent {
@@ -166,5 +216,196 @@ h2.find-us-section-title {
         hsl(var(--background) / 0.5) 40%,
         hsl(var(--background) / 0.72) 100%
       );
+  }
+
+  /* --- Premium: section warm radial (alternate with plain bg-background) --- */
+  .section-warm-radial {
+    background: radial-gradient(ellipse at center, hsl(var(--gold) / 0.04) 0%, transparent 70%);
+  }
+
+  /* --- Premium: card hover glow (use with existing border) --- */
+  .premium-card-hover {
+    transition:
+      box-shadow 500ms ease-out,
+      border-color 500ms ease-out,
+      transform 500ms ease-out;
+  }
+
+  .premium-card-hover:hover {
+    border-color: hsl(var(--border) / 0.35);
+    box-shadow:
+      0 0 0 1px hsl(var(--gold) / 0.3),
+      0 12px 40px -12px hsl(0 0% 0% / 0.55),
+      0 4px 24px hsl(var(--gold) / 0.08);
+  }
+
+  .hero-heading-glow {
+    text-shadow: 0 2px 40px hsl(var(--gold) / 0.2);
+  }
+}
+
+/* ========== Premium: keyframes ========== */
+
+@keyframes gold-divider-breathe {
+  0%,
+  100% {
+    width: 48px;
+  }
+
+  50% {
+    width: 64px;
+  }
+}
+
+@keyframes gold-button-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes dialog-premium-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dialog-bottom-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ========== Premium: scrollbar ========== */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--gold) / 0.45) hsl(var(--background));
+}
+
+html::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+html::-webkit-scrollbar-thumb {
+  background: hsl(var(--gold) / 0.45);
+  border-radius: 9999px;
+}
+
+/* ========== Premium: gold gradient button shimmer ========== */
+
+button.bg-gold-gradient,
+a.bg-gold-gradient {
+  position: relative;
+  overflow: hidden;
+}
+
+button.bg-gold-gradient::after,
+a.bg-gold-gradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    hsl(0 0% 100% / 0.15) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+}
+
+button.bg-gold-gradient:hover::after,
+a.bg-gold-gradient:hover::after {
+  opacity: 1;
+  animation: gold-button-shimmer 600ms ease-out forwards;
+}
+
+/* ========== Premium: gallery dialog (center desktop, bottom sheet mobile) ========== */
+
+.dialog-gallery-inner {
+  animation: dialog-premium-enter 200ms ease-out both;
+  transform-origin: center center;
+}
+
+@media (max-width: 767px) {
+  .dialog-gallery-inner {
+    animation: none;
+  }
+
+  .dialog-gallery-content[data-state="open"] {
+    animation: dialog-bottom-sheet-enter 220ms ease-out both !important;
+  }
+
+  .dialog-gallery-content {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    transform: translate3d(0, 0, 0) !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ========== Premium: footer top gradient edge ========== */
+
+.footer-border-glow {
+  border-top: none;
+}
+
+.footer-border-glow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 720px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.2), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-divider {
+    animation: none;
+    width: 56px;
+  }
+
+  button.bg-gold-gradient:hover::after,
+  a.bg-gold-gradient:hover::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .dialog-gallery-inner {
+    animation: none;
+  }
+
+  .dialog-gallery-content[data-state="open"] {
+    animation: none;
   }
 }

@@ -2,7 +2,17 @@
 
 **Repo**: `cigar-society-genesis`  
 **Business**: `Cigar Society, LLC` (Pharr, TX)  
-**Source**: `IMPLEMENTATION_PLAN.md` + current decisions (Supabase is back-burner for now).
+**Source**: `IMPLEMENTATION_PLAN.md` + `Phase_2_implementation_plan.md` + `docs/CLIENT_PRICING_AND_TIMELINE.md` / `ONBOARDING_PLAN.md` where scope overlaps.
+
+### Phase naming (avoid confusion)
+
+| Doc | What “Phase 2” means |
+|-----|----------------------|
+| **`IMPLEMENTATION_PLAN.md`** (table #14–#19) | Historically framed as **Supabase-only** backlog items |
+| **This backlog + `Phase_2_implementation_plan.md` (current)** | **Active engineering phase**: dashboards, events, payments, Supabase/auth as sequenced there — **not** identical to the short “Supabase back burner” line in older plan text |
+| **Client digital proposal (PDF)** | **Communication & events** commercial package (Stripe, booking, etc.) — map dates/$ to `docs/CLIENT_PRICING_AND_TIMELINE.md` |
+
+When in doubt, **GitHub issue titles + `Phase_2_implementation_plan.md`** are the source of truth for *current* Phase 2 work.
 
 ## Label Conventions
 
@@ -18,7 +28,7 @@ Use the standard labels from `GITHUB_ISSUES_GUIDE.md`:
 
 Notes:
 - Where the plan used `chore`, map it to `documentation` (deployment/config/ops work).
-- Where the plan used “Phase 2 Supabase integration”, keep those issues labeled `backend` but mark them as **Back Burner**.
+- Phase 2 issues use `backend` / `enhancement` as appropriate; **track new work with new GitHub issues** (see `Phase_2_implementation_plan.md`).
 
 ## Phase 1 — Foundation & Content Polish (COMPLETED)
 
@@ -42,17 +52,38 @@ Status: ✅ Complete
 
 ---
 
-## Phase 2 — Supabase Backend Integration (BACK BURNER — DO NOT START)
+## Phase 1.6 — Hero, About, navbar, gallery (GitHub #44–#47)
 
-Issues: 14–19
+Discrete polish issues; detailed acceptance criteria live on GitHub. **Codebase:** carousel gallery, navbar visibility, About/hero iterations — treat issues as **done in code** unless still open for owner sign-off only.
+
+| # | Summary | Typical labels |
+|---|---------|----------------|
+| [44](https://github.com/maximus34530/cigar-society-genesis/issues/44) | Simplify hero — minimal layout, focused CTA | `design` |
+| [45](https://github.com/maximus34530/cigar-society-genesis/issues/45) | About — owners, story, CCST, reviews | `content` |
+| [46](https://github.com/maximus34530/cigar-society-genesis/issues/46) | Hide Cigars + Contact from navbar (routes stay) | `design` |
+| [47](https://github.com/maximus34530/cigar-society-genesis/issues/47) | Gallery — horizontal carousels by category | `design` |
+
+**Gallery implementation notes (#47 / `CategorizedGallerySection`):** duplicated track + `requestAnimationFrame` auto-scroll; **odd rows** scroll content **right → left**, **even rows** **left → right**; reverse rows seed `scrollLeft` in `useLayoutEffect` + `ResizeObserver` with **programmatic scroll flag** so `onScroll` does not trigger a multi-second pause; edge gradient masks; `prefers-reduced-motion` → static grid; tile opens lightbox `Dialog`.
+
+---
+
+## Phase 2 — Supabase, dashboards, events & payments (ACTIVE)
+
+**Status**: In progress. Detailed sequence: `Phase_2_implementation_plan.md`.
+
+**Legacy milestone issues (original backlog)**: 14–19 — still valid as *reference*; **priorities have shifted** (admin + user dashboards, events, payments first; contact / membership / gallery DB work on hold unless reopened).
+
+**Workflow**: See `GITHUB_ISSUES_GUIDE.md` — create issues per task, **no commit/push without user approval**, never commit to `main` from agent work.
 
 ## Phase 3 — Launch Prep
 
 Issues: 20–26
 
+**Codebase status (high level):** Most Phase 3 *implementation* items exist in the repo (SEO, analytics hooks, a11y baselines, code-splitting). What usually remains is **operational** (Vercel project linked to repo, env in dashboard) and **owner sign-off** (#25). See per-issue **Current status (repo)** below.
+
 --- 
 
-## Issues (1–26)
+## Issues (1–26) + see **Additional issues (#44–#47, #81)** at end of file
 
 ### Issue 1 — [Docs] Set up GitHub labels, milestones, and Cursor rules
 **Milestone**: Phase 1: Foundation & Content Polish  
@@ -60,11 +91,12 @@ Issues: 20–26
 **Objective**: Ensure the project workflow is consistent and professional before major UI/content edits.
 **Acceptance Criteria**
 - [ ] GitHub labels exist and match the names in `GITHUB_ISSUES_GUIDE.md`
-- [ ] Milestones exist for Phase 1 / Phase 2 (Back Burner) / Phase 3
+- [ ] Milestones exist for Phase 1 / Phase 2 (Active) / Phase 3
 - [ ] Cursor rules file(s) are in place and reflect the repo workflow expectations
 - [ ] A default issue template/workflow is clearly documented (link to `GITHUB_ISSUES_GUIDE.md`)
 **Technical Notes**
-- If you use GitHub MCP later, issue operations should reference these labels/milestones.
+- **GitHub MCP:** Docker running; image `ghcr.io/github/github-mcp-server`. Put **`GITHUB_PERSONAL_ACCESS_TOKEN` in repo-root `.env.local`** (gitignored). Local `.cursor/mcp.json` should load secrets via **`docker … --env-file .env.local`** — do **not** paste the token into committed JSON. See `cursor-agent-bundle/MCP_SETUP.md`. Restart Cursor after MCP config changes.
+- Issue operations via MCP should use labels/milestones consistent with this guide.
 
 ### Issue 2 — [Content] Update real business content (name, phone, hours, address)
 **Milestone**: Phase 1: Foundation & Content Polish  
@@ -185,12 +217,13 @@ Issues: 20–26
 **Labels**: `content`  
 **Objective**: Let customers “see the vibe” quickly.
 **Acceptance Criteria**
-- [ ] Gallery page shows a responsive photo grid
+- [ ] Gallery shows photos in a **usable, on-brand layout** (responsive; current implementation: **horizontal carousels by category** — see also **#47**)
 - [ ] Images load smoothly (with `loading="lazy"` for non-critical images)
-- [ ] Clicking a photo (if implemented) shows it in a larger view
-- [ ] Alt text is present and not generic
+- [ ] Clicking a photo opens a **larger view** (e.g. dialog/lightbox)
+- [ ] Alt text / captions are present and not generic
 **Technical Notes**
-- No need for Supabase storage in Phase 1; use local assets/public images.
+- Phase 1 uses local assets (e.g. `src/assets/gallery/<category>/`). Supabase-backed gallery is **#18** (**on hold** per current Phase 2 plan).
+- **#47** covers carousel UX polish (auto-scroll direction alternation, edge fades, reduced-motion fallback).
 
 ### Issue 13 — [Content] Build Contact page with hours and map
 **Milestone**: Phase 1: Foundation & Content Polish  
@@ -202,24 +235,25 @@ Issues: 20–26
 - [ ] Form submit shows a success state (even if it only simulates submission for now)
 - [ ] Contact CTA buttons work (call/link/map)
 **Technical Notes**
-- Since Supabase is back burner, submission can be “fake submit” with a clear message, or wire to `mailto:` if preferred.
+- Phase 2 may later persist submissions to Supabase; until an issue implements that, submission can remain “fake submit” with a clear message or `mailto:` — see `Phase_2_implementation_plan.md` (contact on hold unless prioritized).
 
 --- 
 
 ### Issue 14 — [Backend] Supabase schema design — contact and events
-**Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
+**Milestone**: Phase 2: Active backend / data layer  
 **Labels**: `backend`  
-**Objective**: Define tables and constraints so the backend integration is predictable later.
+**Objective**: Define tables and constraints so the backend integration is predictable (align with `Phase_2_implementation_plan.md` — events + bookings + auth/roles first; contact persistence on hold unless reopened).
 **Acceptance Criteria**
 - [ ] Table list includes: `contact_submissions` and `events`
 - [ ] Basic indexes exist for lookup by created time and/or email (as appropriate)
 - [ ] Row-level security strategy is documented (what is public vs private)
 **Technical Notes**
 - `membership_leads` (or similar) is **future work** only if a membership system is explicitly scoped — not part of current product scope.
-- Start only when you explicitly re-enable Supabase integration.
+- Prefer new focused issues for schema slices (events, bookings, profiles, admin roles) under Phase 2.
 
 ### Issue 15 — [Backend] Contact form → saves submissions to Supabase
-**Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
+**Status**: On hold unless product re-prioritizes (see `Phase_2_implementation_plan.md`)  
+**Milestone**: Phase 2: Active backend / data layer  
 **Labels**: `backend`  
 **Objective**: Persist contact submissions.
 **Acceptance Criteria**
@@ -230,8 +264,8 @@ Issues: 20–26
 - Ensure the client uses anon key and RLS policies allow inserts.
 
 ### Issue 16 — [Backend] Membership waitlist / signup → saves to Supabase
-**Status: Deferred — Not in current product scope**  
-**Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
+**Status: Deferred — On hold for Phase 2 current plan**  
+**Milestone**: Phase 2: Active backend / data layer  
 **Labels**: `backend`  
 **Objective**: Persist membership interest (only if membership is explicitly re-scoped later).
 **Acceptance Criteria**
@@ -242,7 +276,7 @@ Issues: 20–26
 - Start only after Issue 14 schema is confirmed.
 
 ### Issue 17 — [Backend] Events table — dynamic events on Events page
-**Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
+**Milestone**: Phase 2: Active — high priority  
 **Labels**: `backend`  
 **Objective**: Load events from Supabase.
 **Acceptance Criteria**
@@ -253,7 +287,8 @@ Issues: 20–26
 - Keep the API fetching logic in `src/lib/` and reuse across components if needed.
 
 ### Issue 18 — [Backend] Gallery table — dynamic photo gallery management
-**Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
+**Status**: On hold unless product re-prioritizes  
+**Milestone**: Phase 2: Active backend / data layer  
 **Labels**: `backend`  
 **Objective**: Load gallery entries from Supabase for later CMS-like workflows.
 **Acceptance Criteria**
@@ -264,7 +299,7 @@ Issues: 20–26
 - In Phase 2, define whether you store images in Supabase Storage or only store references.
 
 ### Issue 19 — [Feature] Admin dashboard scaffold (manage events, gallery, inquiries)
-**Milestone**: Phase 2 (Back Burner): Supabase Backend Integration  
+**Milestone**: Phase 2: Active — high priority (CRUD for events first; gallery/inquiries per plan)  
 **Labels**: `enhancement`  
 **Objective**: Create an admin workflow (later) for managing content.
 **Acceptance Criteria**
@@ -280,18 +315,20 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `documentation`, `urgent`  
 **Objective**: Ensure the site can be deployed reliably.
+**Current status (repo):** `vercel.json` SPA rewrites + deploy/env documentation in `README.md`. **Remaining:** Vercel dashboard — link GitHub repo, set Production/Preview env vars, confirm production URL.
 **Acceptance Criteria**
 - [ ] Vercel project is created and connected to the GitHub repo
 - [ ] Build and preview succeed (`npm run build`)
 - [ ] Any required environment variables are documented (even if currently minimal)
 - [ ] Deployment produces a working URL
 **Technical Notes**
-- Supabase env vars can be skipped until Phase 2 is enabled.
+- Phase 2 requires Supabase (and related) env vars in Vercel for preview/production when features ship; document in `README.md` / ops issues as you enable them.
 
 ### Issue 21 — [Enhancement] SEO — meta tags, Open Graph, sitemap
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `enhancement`  
 **Objective**: Improve discoverability and link previews.
+**Current status (repo):** Per-route `Seo` + `react-helmet-async`; `public/sitemap.xml`; `robots.txt` sitemap line; `public/og-preview.jpg`. Re-check after canonical domain / deploy changes.
 **Acceptance Criteria**
 - [ ] Baseline SEO meta tags exist (title/description, etc.)
 - [ ] Open Graph tags exist for correct social previews
@@ -304,6 +341,7 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `enhancement`  
 **Objective**: Ensure fast load times on mobile.
+**Current status (repo):** Route-level code splitting (`lazy` + `Suspense`); lazy `loading` on many images. **Optional:** formal Lighthouse pass, heavier compression, hero/video weight review.
 **Acceptance Criteria**
 - [ ] Images use lazy loading where appropriate
 - [ ] Largest images are optimized (dimensions, formats, compression approach)
@@ -315,6 +353,7 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `enhancement`  
 **Objective**: Ensure accessibility basics are met.
+**Current status (repo):** Skip link + `#main-content`; 404 uses `Layout`; gallery tiles keyboard-activatable; age gate `role="dialog"` + labelled headings. **Remaining:** full automated/manual audit (forms, contrast, focus traps).
 **Acceptance Criteria**
 - [ ] Forms have labels and useful error messaging
 - [ ] Keyboard navigation works for key flows (nav, CTAs, forms)
@@ -327,6 +366,7 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `bug`, `urgent`  
 **Objective**: Ensure the site looks and works well on phones.
+**Current status (repo):** Responsive layouts across pages; **Remaining:** device QA after deploy (real phones/tablets).
 **Acceptance Criteria**
 - [ ] No major layout breakages on common breakpoints
 - [ ] Navbar + hero + cards don’t overflow or become unreadable
@@ -338,6 +378,7 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `content`, `urgent`  
 **Objective**: Get approval and make final text/image adjustments before launch.
+**Current status (repo):** `LAUNCH_CHECKLIST.md` — owner-driven; not implemented in code.
 **Acceptance Criteria**
 - [ ] Owner reviews all pages: Home, About, Cigars, Events, Gallery, Contact
 - [ ] Contact details, hours, and addresses are confirmed
@@ -349,10 +390,55 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `enhancement`  
 **Objective**: Track user behavior and key actions.
+**Current status (repo):** `AnalyticsScripts` + `trackEvent` for Plausible/GA (`README.md` env vars); enable via Vercel env in production.
 **Acceptance Criteria**
 - [ ] Page views are tracked
 - [ ] CTA clicks (directions/contact) are tracked
 - [ ] Lightweight analytics solution implemented (Google Analytics or Plausible)
 **Technical Notes**
 - Prefer minimal script weight and privacy-conscious defaults where possible.
+
+---
+
+## Additional issues (#44–#47, #81)
+
+Backlog entries for GitHub issues outside the original **1–26** range; keep in sync with `IMPLEMENTATION_PLAN.md` Phase 1.6 and recent product work.
+
+### Issue 44 — [Design] Simplify hero section — minimal layout
+**Milestone**: Phase 1.6  
+**Labels**: `design`  
+**Objective**: Cleaner hero, single strong CTA, less clutter.  
+**Link**: https://github.com/maximus34530/cigar-society-genesis/issues/44  
+
+### Issue 45 — [Content] About — real owners, founding story, credibility
+**Milestone**: Phase 1.6  
+**Labels**: `content`  
+**Objective**: Trust-building About content (names, narrative, certifications/reviews as applicable).  
+**Link**: https://github.com/maximus34530/cigar-society-genesis/issues/45  
+
+### Issue 46 — [Design] Hide Cigars and Contact from navbar
+**Milestone**: Phase 1.6  
+**Labels**: `design`  
+**Objective**: Nav visibility only; preserve routes.  
+**Link**: https://github.com/maximus34530/cigar-society-genesis/issues/46  
+
+### Issue 47 — [Design] Gallery — carousel layout
+**Milestone**: Phase 1.6  
+**Labels**: `design`  
+**Objective**: Horizontal carousels, brand-consistent chrome, mobile-friendly interaction.  
+**Link**: https://github.com/maximus34530/cigar-society-genesis/issues/47  
+**Technical Notes**: See Phase 1.6 table above for implementation summary.
+
+### Issue 81 — [Design] 21+ age verification entry gate
+**Milestone**: Launch-adjacent / compliance (assign on GitHub as you prefer)  
+**Labels**: `design`, `enhancement`  
+**Objective**: First-visit age gate before SPA routes; optional remember-me (session vs extended local storage).  
+**Current status (repo):** `src/components/AgeGate.tsx`, `src/lib/ageGateStorage.ts`, integrated in `src/App.tsx` (blocks router until verified).  
+**Acceptance Criteria**
+- [ ] Gate blocks main site until user confirms 21+
+- [ ] “Remember me” behavior matches product intent (documented)
+- [ ] Underage path and Surgeon General copy reviewed for legal/compliance
+- [ ] Keyboard / reduced-motion behavior acceptable
+**Technical Notes**
+- No production `console.log`; keep tokens/secrets out of repo (see Issue 1 MCP notes).
 

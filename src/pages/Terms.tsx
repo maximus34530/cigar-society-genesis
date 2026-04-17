@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { FadeUp } from "@/components/FadeUp";
 import { Seo } from "@/components/Seo";
 import { business } from "@/lib/business";
 
@@ -9,15 +10,15 @@ const Terms = () => (
   <Layout>
     <Seo title="Terms & Conditions" description={TERMS_DESCRIPTION} path="/terms" />
     <section className="section-padding border-b border-border/40 bg-muted/30">
-      <div className="container mx-auto max-w-3xl text-center">
+      <FadeUp className="container mx-auto max-w-3xl text-center">
         <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">Terms & Conditions</h1>
         <p className="text-sm text-muted-foreground font-body">
           Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
         </p>
-      </div>
+      </FadeUp>
     </section>
     <section className="section-padding">
-      <div className="container mx-auto max-w-3xl space-y-10 text-muted-foreground font-body leading-relaxed">
+      <FadeUp className="container mx-auto max-w-3xl space-y-10 text-muted-foreground font-body leading-relaxed">
         <div>
           <h2 className="font-heading text-2xl text-foreground mb-3">1. Agreement to these terms</h2>
           <p>
@@ -105,7 +106,19 @@ const Terms = () => (
           </p>
         </div>
         <div>
-          <h2 className="font-heading text-2xl text-foreground mb-3">10. Contact</h2>
+          <h2 className="font-heading text-2xl text-foreground mb-3">10. Event tickets purchased through this website</h2>
+          <p>
+            When you purchase tickets for events through this website (including any deposit or ticket fee processed
+            online), <strong className="text-foreground">all ticket sales are final and non-refundable</strong>, except
+            where applicable law requires otherwise. Ticket purchases are not cancelled or modified through the website
+            by customers; questions may be directed to us by phone. Event dates, capacity, and programming may change;
+            we will use reasonable efforts to communicate material changes but{" "}
+            <strong className="text-foreground">non-payment, abandonment of checkout, or failure to attend does not
+            create a refund obligation.</strong>
+          </p>
+        </div>
+        <div>
+          <h2 className="font-heading text-2xl text-foreground mb-3">11. Contact</h2>
           <p>
             Questions about these Terms?{" "}
             <a href={`tel:${business.phoneE164}`} className="text-foreground underline-offset-4 hover:underline">(956) 223-1303</a>
@@ -113,7 +126,7 @@ const Terms = () => (
             <span className="text-foreground">116 W State Ave, Pharr, TX 78577</span>
           </p>
         </div>
-      </div>
+      </FadeUp>
     </section>
   </Layout>
 );
