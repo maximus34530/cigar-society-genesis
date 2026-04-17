@@ -6,14 +6,21 @@ export const DEFAULT_EVENT_IMAGE_OBJECT_POSITION = "50% 50%";
 export const HOME_FEATURED_EVENT_IMAGE_FRAME =
   "relative mx-auto w-full max-w-xl overflow-hidden sm:max-w-2xl";
 
-/** Taller than the old `h-72` strip so posters read better at the same crop. */
+/** Taller than the old `h-72` strip so posters read better at the same crop. `block` avoids a sub-pixel gap under the img that can look like clipping. `!max-w-none` beats Tailwind preflight `img { max-width: 100% }`, which can shrink the box and make `object-position` appear to do nothing. */
 export const HOME_FEATURED_EVENT_IMAGE_IMG =
-  "h-80 w-full sm:h-[26rem] md:h-[30rem]";
+  "block h-80 w-full !max-w-none object-cover sm:h-[26rem] md:h-[30rem]";
 
 /** Square tile like the admin “Events (card)” preview. */
 export const EVENTS_PAGE_CARD_IMAGE_FRAME = "relative aspect-square w-full shrink-0 overflow-hidden bg-muted";
 
-export const EVENTS_PAGE_CARD_IMAGE_IMG = "absolute inset-0 h-full w-full";
+export const EVENTS_PAGE_CARD_IMAGE_IMG =
+  "absolute inset-0 h-full w-full !max-w-none object-cover";
+
+/** Admin Preview: outer width so the featured crop uses the same max width as the public home hero (not squeezed in a two-column grid). */
+export const ADMIN_PREVIEW_HOME_OUTER = "mx-auto w-full max-w-2xl";
+
+/** Admin Preview: width in the ballpark of one `/events` card in the desktop 3-column grid. */
+export const ADMIN_PREVIEW_EVENTS_CARD_OUTER = "mx-auto w-full max-w-[22rem]";
 
 /** True when PostgREST reports the `events.image_object_position` column is missing (migration not applied yet). */
 export function isMissingEventsImageObjectPositionError(

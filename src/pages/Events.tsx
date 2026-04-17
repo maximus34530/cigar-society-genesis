@@ -510,15 +510,29 @@ const Events = () => {
 
     void loadEventsPage();
 
+    let refetchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleRefetch = () => {
+      window.clearTimeout(refetchDebounce);
+      refetchDebounce = window.setTimeout(() => {
+        if (!cancelled) void loadEventsPage();
+      }, 400);
+    };
+
     const onVisibility = () => {
       if (document.visibilityState !== "visible") return;
-      void loadEventsPage();
+      scheduleRefetch();
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    const onWindowFocus = () => scheduleRefetch();
+    window.addEventListener("focus", onWindowFocus);
+
     return () => {
       cancelled = true;
+      window.clearTimeout(refetchDebounce);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onWindowFocus);
     };
   }, []);
 
@@ -666,13 +680,10 @@ const Events = () => {
                     <div className={cn(EVENTS_PAGE_CARD_IMAGE_FRAME, "rounded-t-xl")}>
                       {imageSrc ? (
                         <img
+                          key={`${event.id}-${event.image_object_position ?? "default"}`}
                           src={imageSrc}
                           alt=""
-                          className={cn(
-                            EVENTS_PAGE_CARD_IMAGE_IMG,
-                            "transition-transform duration-500 ease-out",
-                            !soldOut && "group-hover/event-card:scale-[1.04]",
-                          )}
+                          className={cn(EVENTS_PAGE_CARD_IMAGE_IMG, "block")}
                           style={eventImageObjectStyle(event.image_object_position)}
                           loading="lazy"
                           decoding="async"

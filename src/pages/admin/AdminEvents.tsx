@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -22,16 +23,19 @@ import {
   parseEventImageFocal,
   eventImageObjectStyle,
   isMissingEventsImageObjectPositionError,
+  ADMIN_PREVIEW_EVENTS_CARD_OUTER,
+  ADMIN_PREVIEW_HOME_OUTER,
   HOME_FEATURED_EVENT_IMAGE_FRAME,
   HOME_FEATURED_EVENT_IMAGE_IMG,
   EVENTS_PAGE_CARD_IMAGE_FRAME,
   EVENTS_PAGE_CARD_IMAGE_IMG,
 } from "@/lib/eventImagePosition";
 import { supabase } from "@/lib/supabase";
+import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
-import { CloudUpload } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { CloudUpload, Info } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -101,6 +105,11 @@ export default function AdminEvents() {
   const [confirmingPermanentDelete, setConfirmingPermanentDelete] = useState<EventRow | null>(null);
   const [showTrash, setShowTrash] = useState(false);
 
+  const imageFocalRef = useRef(imageFocal);
+  imageFocalRef.current = imageFocal;
+  const previewEventIdRef = useRef(previewEventId);
+  previewEventIdRef.current = previewEventId;
+
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -112,24 +121,6 @@ export default function AdminEvents() {
       description: "",
     },
   });
-
-  const resetEditor = () => {
-    setEditing(null);
-    setPreviewOpen(false);
-    setPreviewEventId(null);
-    setImageFocal({ x: 50, y: 50 });
-    setImageFile(null);
-    setRemoveImage(false);
-    setDragOver(false);
-    form.reset({
-      name: "",
-      date: "",
-      time: "",
-      price: "",
-      capacityTotal: "",
-      description: "",
-    });
-  };
 
   const title = useMemo(() => (editing ? "Edit event" : "New event"), [editing]);
 
@@ -162,16 +153,6 @@ export default function AdminEvents() {
     const row = rows.find((r) => r.id === previewEventId);
     if (row) setImageFocal(parseEventImageFocal(row.image_object_position));
   }, [previewOpen, previewEventId, rows]);
-
-  useEffect(() => {
-    if (!previewOpen || !previewEventId) return;
-    const id = previewEventId;
-    const { x, y } = imageFocal;
-    const t = window.setTimeout(() => {
-      void supabase.from("events").update({ image_object_position: formatEventImageFocal(x, y) }).eq("id", id);
-    }, 450);
-    return () => window.clearTimeout(t);
-  }, [previewOpen, previewEventId, imageFocal.x, imageFocal.y]);
 
   const setFocalFromPointer = (e: PointerEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -215,8 +196,54 @@ export default function AdminEvents() {
     }
   };
 
+  const flushPreviewFocalToDb = useCallback(async () => {
+    const id = previewEventIdRef.current;
+    const { x, y } = imageFocalRef.current;
+    if (!id) return;
+    const focal = formatEventImageFocal(x, y);
+    const { error } = await supabase.from("events").update({ image_object_position: focal }).eq("id", id);
+    if (error) {
+      form.setError("root", { message: `Could not save image framing: ${error.message}` });
+      const missingCol = isMissingEventsImageObjectPositionError(error);
+      toast({
+        variant: "destructive",
+        title: missingCol ? "Add the image framing column in Supabase" : "Could not save image framing",
+        description: missingCol
+          ? "Run the SQL from repo file supabase/migrations/20260416180000_event_image_object_position.sql in Dashboard → SQL Editor (or supabase db push). PostgREST refreshes the schema cache within about a minute."
+          : error.message,
+      });
+    }
+  }, [form]);
+
+  useEffect(() => {
+    if (!previewOpen || !previewEventId) return;
+    const t = window.setTimeout(() => {
+      void flushPreviewFocalToDb();
+    }, 450);
+    return () => window.clearTimeout(t);
+  }, [previewOpen, previewEventId, imageFocal.x, imageFocal.y, flushPreviewFocalToDb]);
+
+  const resetEditor = () => {
+    void flushPreviewFocalToDb();
+    setEditing(null);
+    setPreviewOpen(false);
+    setPreviewEventId(null);
+    setImageFocal({ x: 50, y: 50 });
+    setImageFile(null);
+    setRemoveImage(false);
+    setDragOver(false);
+    form.reset({
+      name: "",
+      date: "",
+      time: "",
+      price: "",
+      capacityTotal: "",
+      description: "",
+    });
+  };
+
   const upsertDraft = async (values: Values) => {
-    // Draft-first: never publish from the editor. Publishing happens from the Preview modal.
+    // New events start unpublished; editing keeps the current live/draft state. Publishing is explicit from Preview (Upload).
     const basePayload = {
       name: values.name,
       date: values.date,
@@ -224,7 +251,7 @@ export default function AdminEvents() {
       price: values.price ? Number(values.price) : null,
       capacity_total: values.capacityTotal?.trim() ? Number(values.capacityTotal) : null,
       description: values.description?.trim() ? values.description.trim() : null,
-      is_active: false,
+      is_active: editing ? Boolean(editing.is_active) : false,
       deleted_at: editing?.deleted_at ?? null,
     };
 
@@ -568,6 +595,7 @@ export default function AdminEvents() {
                               if (!eventId) return;
                               const ok = await archiveEventById(eventId);
                               if (!ok) return;
+                              await flushPreviewFocalToDb();
                               setPreviewOpen(false);
                               setPreviewEventId(null);
                               setOpen(false);
@@ -594,8 +622,10 @@ export default function AdminEvents() {
           <Dialog
             open={previewOpen}
             onOpenChange={(next) => {
+              if (!next) {
+                void flushPreviewFocalToDb().then(() => void load());
+              }
               setPreviewOpen(next);
-              if (!next) return;
             }}
           >
             <DialogContent>
@@ -606,18 +636,41 @@ export default function AdminEvents() {
               {previewEvent ? (
                 <div className="space-y-5">
                   <p className="font-body text-sm text-muted-foreground">
-                    Drag a preview to set the focal point, or use the sliders. Matches live crops on the home page and events
-                    calendar.
+                    Drag a preview or use the sliders. Boxes below use the same crop classes as the public site (wide hero and
+                    square card).
                   </p>
 
+                  <Alert className="border-border/60 bg-card/40">
+                    <Info className="h-4 w-4" aria-hidden />
+                    <AlertDescription className="font-body text-muted-foreground">
+                      {previewEvent.is_active ? (
+                        <>
+                          This event is <strong className="text-foreground">live</strong>. Framing saves to the database—switch
+                          to the home or events tab and refocus the window if the image looks cached. The large home hero is the{" "}
+                          <strong className="text-foreground">soonest upcoming</strong> published event; if another event is
+                          earlier by date, find this one in the smaller “Also coming up” strip or on{" "}
+                          <strong className="text-foreground">/events</strong>.
+                        </>
+                      ) : (
+                        <>
+                          This listing is still a <strong className="text-foreground">draft</strong>. The public home and
+                          events pages only show published events—click <strong className="text-foreground">Upload</strong> to
+                          publish, then framing matches what visitors see.
+                        </>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+
                   {previewEvent.image_path || previewEvent.image_url ? (
-                    <div className="grid gap-5 lg:grid-cols-2">
-                      <div className="space-y-2">
-                        <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Home (featured)</p>
+                    <div className="space-y-8">
+                      <div className={ADMIN_PREVIEW_HOME_OUTER}>
+                        <p className="mb-2 font-body text-xs uppercase tracking-widest text-muted-foreground">
+                          Home (featured strip — same max width as the site)
+                        </p>
                         <div
                           className={cn(
                             HOME_FEATURED_EVENT_IMAGE_FRAME,
-                            "cursor-crosshair rounded-t-xl border border-border/60 bg-muted",
+                            "cursor-crosshair rounded-t-2xl border border-border/60 bg-muted",
                           )}
                           onPointerDown={(e) => setFocalFromPointer(e)}
                         >
@@ -635,12 +688,14 @@ export default function AdminEvents() {
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">Events (card)</p>
+                      <div className={ADMIN_PREVIEW_EVENTS_CARD_OUTER}>
+                        <p className="mb-2 font-body text-xs uppercase tracking-widest text-muted-foreground">
+                          Events page (card tile)
+                        </p>
                         <div
                           className={cn(
                             EVENTS_PAGE_CARD_IMAGE_FRAME,
-                            "mx-auto max-w-md cursor-crosshair rounded-t-xl border border-border/60 bg-muted",
+                            "cursor-crosshair rounded-t-xl border border-border/60 bg-muted",
                           )}
                           onPointerDown={(e) => setFocalFromPointer(e)}
                         >
@@ -675,6 +730,9 @@ export default function AdminEvents() {
                         max={100}
                         step={1}
                         onValueChange={(v) => setImageFocal((prev) => ({ ...prev, x: v[0] ?? prev.x }))}
+                        onValueCommit={() => {
+                          void flushPreviewFocalToDb();
+                        }}
                       />
                     </div>
                     <div className="space-y-2">
@@ -688,6 +746,9 @@ export default function AdminEvents() {
                         max={100}
                         step={1}
                         onValueChange={(v) => setImageFocal((prev) => ({ ...prev, y: v[0] ?? prev.y }))}
+                        onValueCommit={() => {
+                          void flushPreviewFocalToDb();
+                        }}
                       />
                     </div>
                   </div>
@@ -696,7 +757,7 @@ export default function AdminEvents() {
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-heading text-base text-foreground">{previewEvent.name}</p>
                       <Badge variant="outline" className="border-border/60 text-muted-foreground font-body">
-                        Draft
+                        {previewEvent.is_active ? "Live" : "Draft"}
                       </Badge>
                     </div>
                     <p className="mt-1 font-body text-sm text-muted-foreground">
@@ -717,7 +778,10 @@ export default function AdminEvents() {
                   variant="outline"
                   className="border-border/70"
                   disabled={publishing}
-                  onClick={() => setPreviewOpen(false)}
+                  onClick={() => {
+                    void flushPreviewFocalToDb().then(() => void load());
+                    setPreviewOpen(false);
+                  }}
                 >
                   Back
                 </Button>
@@ -729,6 +793,7 @@ export default function AdminEvents() {
                     if (!previewEventId) return;
                     setPublishing(true);
                     try {
+                      await flushPreviewFocalToDb();
                       const ok = await publishEventById(previewEventId);
                       if (!ok) return;
                       setPreviewOpen(false);

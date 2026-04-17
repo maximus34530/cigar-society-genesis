@@ -10,7 +10,7 @@ import { FadeUp } from "@/components/FadeUp";
 import { GoldAccentShimmer } from "@/components/GoldAccentShimmer";
 import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
 import { supabase } from "@/lib/supabase";
-import { CalendarDays, ChevronRight, List, MapPin, Star } from "lucide-react";
+import { CalendarDays, ChevronRight, MapPin, Star, Ticket } from "lucide-react";
 import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
@@ -248,21 +248,38 @@ const Index = () => {
 
     void loadHomeEvents();
 
+    let refetchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleRefetch = () => {
+      window.clearTimeout(refetchDebounce);
+      refetchDebounce = window.setTimeout(() => {
+        if (!cancelled) void loadHomeEvents();
+      }, 400);
+    };
+
     const onVisibility = () => {
       if (document.visibilityState !== "visible") return;
-      void loadHomeEvents();
+      scheduleRefetch();
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    const onWindowFocus = () => scheduleRefetch();
+    window.addEventListener("focus", onWindowFocus);
+
     return () => {
       cancelled = true;
+      window.clearTimeout(refetchDebounce);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onWindowFocus);
     };
   }, []);
 
   const eventsEmpty = useMemo(() => !eventsLoading && events.length === 0, [eventsLoading, events.length]);
   const featured = events[0] ?? null;
   const secondary = events.slice(1, 3);
+  const homeHeroBuyTicketsTo = featured
+    ? `/events?reserve=${encodeURIComponent(featured.id)}`
+    : "/events";
 
   return (
     <Layout>
@@ -324,9 +341,17 @@ const Index = () => {
               </a>
             </Button>
             <Button asChild variant="outline" size="lg" className={heroSecondaryCta}>
-              <Link to="/cigars" onClick={() => trackEvent("View Menu", { location: "home-hero" })}>
-                <List className="size-4 opacity-90" aria-hidden />
-                View Menu
+              <Link
+                to={homeHeroBuyTicketsTo}
+                onClick={() =>
+                  trackEvent("Buy Tickets", {
+                    location: "home-hero",
+                    ...(featured ? { event_id: featured.id } : {}),
+                  })
+                }
+              >
+                <Ticket className="size-4 opacity-90" aria-hidden />
+                Buy Tickets
               </Link>
             </Button>
           </div>
@@ -457,32 +482,32 @@ const Index = () => {
               <div className="rounded-2xl border border-border/50 bg-card/30 p-4 sm:p-6">
                 <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                   <Card className="overflow-hidden rounded-2xl border-border/60 bg-card/40 shadow-card">
-                    <div className="relative">
-                      {(() => {
-                        const imageSrc =
-                          featured?.image_path || featured?.image_url
-                            ? featured?.image_path
-                              ? supabase.storage.from("event-images").getPublicUrl(featured.image_path).data.publicUrl
-                              : featured?.image_url ?? undefined
-                            : liveEventsImg;
-                        return (
-                          <div className={cn(HOME_FEATURED_EVENT_IMAGE_FRAME, "rounded-t-2xl")}>
-                            <img
-                              src={imageSrc}
-                              alt=""
-                              className={HOME_FEATURED_EVENT_IMAGE_IMG}
-                              style={eventImageObjectStyle(featured?.image_object_position ?? null)}
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          </div>
-                        );
-                      })()}
-                      <div
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"
-                      />
-                    </div>
+                    {(() => {
+                      const imageSrc =
+                        featured?.image_path || featured?.image_url
+                          ? featured?.image_path
+                            ? supabase.storage.from("event-images").getPublicUrl(featured.image_path).data.publicUrl
+                            : featured?.image_url ?? undefined
+                          : liveEventsImg;
+                      const focalKey = featured?.image_object_position ?? "default";
+                      return (
+                        <div className={cn(HOME_FEATURED_EVENT_IMAGE_FRAME, "rounded-t-2xl")}>
+                          <img
+                            key={`${featured?.id ?? "hero"}-${focalKey}`}
+                            src={imageSrc}
+                            alt=""
+                            className={HOME_FEATURED_EVENT_IMAGE_IMG}
+                            style={eventImageObjectStyle(featured?.image_object_position ?? null)}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div
+                            aria-hidden
+                            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"
+                          />
+                        </div>
+                      );
+                    })()}
                     <CardHeader className="space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge className="bg-primary/15 text-primary border border-primary/25 font-body text-[10px] uppercase tracking-wide">
