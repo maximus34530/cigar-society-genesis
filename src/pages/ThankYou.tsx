@@ -87,7 +87,7 @@ const ThankYou = () => {
             </div>
             <SectionHeading
               title="Thank you for your ticket purchase"
-              subtitle="We’re glad you’re joining us at the lounge. Your receipt confirmation has been sent to your email."
+              subtitle="We’re glad you’re joining us at the lounge. Your receipt confirmation has been sent to your email — if you don’t see it, please check your spam or junk folder."
             />
 
             {reserved ? (
