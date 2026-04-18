@@ -710,8 +710,7 @@ const Index = () => {
               <div>
                 <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">What are your hours?</h3>
                 <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  We&apos;re open {business.hoursText}. Holiday hours can differ—call {business.phoneDisplay} if you want
-                  to double-check before you head over.
+                  We&apos;re open {business.hoursText}. Holiday hours can vary—check our Instagram for the latest.
                 </p>
               </div>
               <div>
@@ -725,8 +724,7 @@ const Index = () => {
                 <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">Do you allow BYOB?</h3>
                 <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
                   We serve bourbon, beer, and mixed drinks at the bar. Outside bottles and BYOB rules can change with
-                  events and staffing—call {business.phoneDisplay} before your visit and our team will share the current
-                  policy.
+                  events and staffing—just ask our team when you arrive and we&apos;ll share the current policy.
                 </p>
               </div>
               <div>
