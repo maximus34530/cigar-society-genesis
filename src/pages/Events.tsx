@@ -24,6 +24,12 @@ import {
   isMissingEventsImageObjectPositionError,
 } from "@/lib/eventImagePosition";
 import { createCheckoutSessionUrl } from "@/lib/checkout";
+import {
+  eventCheckoutTotalCents,
+  eventServiceChargeCentsFromSubtotalCents,
+  eventTicketSubtotalCents,
+  formatUsdFromCents,
+} from "@/lib/eventCheckoutPricing";
 import { trackEvent } from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -181,6 +187,15 @@ const Events = () => {
 
   const unitPrice = activeEvent ? Number(activeEvent.price ?? 0) : 0;
   const isFree = !Number.isFinite(unitPrice) || unitPrice <= 0;
+
+  const eventCheckoutMoney = useMemo(() => {
+    if (!activeEvent || isFree) return null;
+    const p = Number(activeEvent.price ?? 0);
+    if (!Number.isFinite(p) || p <= 0) return null;
+    const subC = eventTicketSubtotalCents(p, ticketCount);
+    const svcC = eventServiceChargeCentsFromSubtotalCents(subC);
+    return { subC, svcC, totC: subC + svcC };
+  }, [activeEvent, isFree, ticketCount]);
 
   const stashCheckoutDraftForResume = useCallback(() => {
     if (!activeEvent) return;
@@ -555,16 +570,30 @@ const Events = () => {
         </p>
       </div>
       <div className="border-t border-border/60 pt-3 font-body text-sm">
-        <div className="flex justify-between gap-2">
-          <span className="text-muted-foreground">Tickets × {ticketCount}</span>
-          <span className="text-foreground/90">
-            {activeEvent.price != null ? `$${(activeEvent.price * ticketCount).toFixed(2)}` : "—"}
-          </span>
-        </div>
-        {!isFree ? (
-          <p className="mt-2 text-xs text-muted-foreground">Tickets are non-refundable.</p>
+        {!isFree && eventCheckoutMoney ? (
+          <>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-foreground/90 tabular-nums">{formatUsdFromCents(eventCheckoutMoney.subC)}</span>
+            </div>
+            <div className="mt-2 flex justify-between gap-2">
+              <span className="text-muted-foreground">Service charge</span>
+              <span className="text-foreground/90 tabular-nums">{formatUsdFromCents(eventCheckoutMoney.svcC)}</span>
+            </div>
+            <div className="mt-3 flex justify-between gap-2 border-t border-border/50 pt-3 font-medium text-foreground">
+              <span>Total</span>
+              <span className="tabular-nums">{formatUsdFromCents(eventCheckoutMoney.totC)}</span>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Tickets are non-refundable.</p>
+          </>
         ) : (
-          <p className="mt-2 text-xs text-muted-foreground">No ticket charge for this event.</p>
+          <>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Tickets × {ticketCount}</span>
+              <span className="text-foreground/90">—</span>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">No ticket charge for this event.</p>
+          </>
         )}
       </div>
     </div>
@@ -883,9 +912,10 @@ const Events = () => {
                     <div className="space-y-4">
                       <p className="font-body text-sm text-muted-foreground">
                         Tickets: <span className="text-foreground/90">{ticketCount}</span>
-                        {activeEvent.price != null ? (
+                        {activeEvent.price != null && !isFree ? (
                           <span className="ml-2 text-foreground/80">
-                            • Est. ${(activeEvent.price * ticketCount).toFixed(2)}
+                            • Est. total{" "}
+                            {formatUsdFromCents(eventCheckoutTotalCents(Number(activeEvent.price), ticketCount))}
                           </span>
                         ) : null}
                       </p>
@@ -1039,10 +1069,10 @@ const Events = () => {
                       <p className="mt-0.5 text-xs">{form.getValues("phone")}</p>
                       <p className="mt-3 text-xs">
                         {ticketCount} ticket{ticketCount === 1 ? "" : "s"}
-                        {!isFree ? (
+                        {!isFree && activeEvent.price != null ? (
                           <>
                             {" "}
-                            • ${((activeEvent.price ?? 0) * ticketCount).toFixed(2)}
+                            • {formatUsdFromCents(eventCheckoutTotalCents(Number(activeEvent.price), ticketCount))} total
                           </>
                         ) : null}
                       </p>

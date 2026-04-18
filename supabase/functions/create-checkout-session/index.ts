@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { handleOptions, json } from "./_shared/cors.ts";
+import { eventServiceChargeCentsFromSubtotalCents, eventTicketSubtotalCents } from "./_shared/eventPricing.ts";
 
 /** Stripe allows up to 500 characters per metadata value. */
 function stripeMetadataValue(value: string, maxLen = 450): string {
@@ -99,6 +100,8 @@ Deno.serve(async (req) => {
 
   const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
   const qty = Math.max(1, Math.trunc(Number(booking.tickets ?? 1)));
+  const subtotalCents = eventTicketSubtotalCents(unitCents, qty);
+  const serviceCents = eventServiceChargeCentsFromSubtotalCents(subtotalCents);
 
   const sessionMetadata: Record<string, string> = {
     booking_id: booking.id,
@@ -132,6 +135,16 @@ Deno.serve(async (req) => {
           unit_amount: unitCents,
           product_data: {
             name: event.name,
+          },
+        },
+      },
+      {
+        quantity: 1,
+        price_data: {
+          currency: "usd",
+          unit_amount: serviceCents,
+          product_data: {
+            name: "Service charge",
           },
         },
       },
