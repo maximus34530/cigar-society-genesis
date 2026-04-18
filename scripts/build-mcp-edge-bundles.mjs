@@ -34,6 +34,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const payloads = [
   bundle("create-checkout-session", ["_shared/cors.ts"]),
   bundle("finalize-checkout-session", ["_shared/cors.ts", "_shared/receipt.ts"]),
+  bundle("notify-free-reservation", []),
   bundle("stripe-webhook", ["_shared/receipt.ts"]),
 ];
 
