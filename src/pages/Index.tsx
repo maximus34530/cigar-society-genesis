@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FadeUp } from "@/components/FadeUp";
+import { PublicEventCapacityBadges } from "@/components/PublicEventCapacityBadges";
 import { GoldAccentShimmer } from "@/components/GoldAccentShimmer";
 import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
 import { supabase } from "@/lib/supabase";
@@ -175,6 +176,11 @@ function spotsRemaining(event: HomeEventPreview, sold: number): number | null {
   return Math.max(0, cap - sold);
 }
 
+function isSoldOut(event: HomeEventPreview, sold: number): boolean {
+  const r = spotsRemaining(event, sold);
+  return r !== null && r <= 0;
+}
+
 const Index = () => {
   const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
   const reduceMotion = useReducedMotion();
@@ -277,9 +283,7 @@ const Index = () => {
   const eventsEmpty = useMemo(() => !eventsLoading && events.length === 0, [eventsLoading, events.length]);
   const featured = events[0] ?? null;
   const secondary = events.slice(1, 3);
-  const homeHeroBuyTicketsTo = featured
-    ? `/events?reserve=${encodeURIComponent(featured.id)}`
-    : "/events";
+  const homeHeroBuyTicketsTo = featured ? `/events#event-card-${featured.id}` : "/events";
 
   return (
     <Layout>
@@ -516,6 +520,12 @@ const Index = () => {
                         <Badge variant="outline" className="border-border/70 font-body text-[10px] uppercase tracking-wide">
                           21+
                         </Badge>
+                        {featured ? (
+                          <PublicEventCapacityBadges
+                            remaining={spotsRemaining(featured, soldForEvent(soldByEvent, featured.id))}
+                            soldOut={isSoldOut(featured, soldForEvent(soldByEvent, featured.id))}
+                          />
+                        ) : null}
                       </div>
                       <CardTitle className="font-heading text-2xl">{featured?.name ?? "Upcoming event"}</CardTitle>
                       <div className="grid gap-1 font-body text-sm text-muted-foreground">
@@ -548,7 +558,7 @@ const Index = () => {
                           className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
                           onClick={() => trackEvent("Home Events Featured Get Tickets", { event_id: featured?.id ?? "unknown" })}
                         >
-                          <Link to={featured ? `/events?reserve=${encodeURIComponent(featured.id)}` : "/events"}>
+                          <Link to={featured ? `/events#event-card-${featured.id}` : "/events"}>
                             Get tickets <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
                           </Link>
                         </Button>
@@ -561,7 +571,8 @@ const Index = () => {
                     {secondary.map((e) => {
                       const sold = soldForEvent(soldByEvent, e.id);
                       const remaining = spotsRemaining(e, sold);
-                      const subtleLink = `/events?reserve=${encodeURIComponent(e.id)}`;
+                      const soldOut = isSoldOut(e, sold);
+                      const subtleLink = `/events#event-card-${e.id}`;
                       const desc = (e.description ?? "").trim();
                       const descLower = desc.toLowerCase();
                       const safeDesc = !desc ? "Details coming soon." : descLower === "free event" ? "Details coming soon." : desc;
@@ -577,11 +588,7 @@ const Index = () => {
                               <Badge variant="outline" className="border-border/70 font-body text-[10px] uppercase tracking-wide">
                                 21+
                               </Badge>
-                              {remaining != null ? (
-                                <Badge variant="secondary" className="font-body text-[10px]">
-                                  {remaining} spots left
-                                </Badge>
-                              ) : null}
+                              <PublicEventCapacityBadges remaining={remaining} soldOut={soldOut} />
                             </div>
                           </CardHeader>
                           <CardContent className="pt-0">
@@ -703,8 +710,7 @@ const Index = () => {
               <div>
                 <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">What are your hours?</h3>
                 <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  We&apos;re open {business.hoursText}. Holiday hours can differ—call {business.phoneDisplay} if you want
-                  to double-check before you head over.
+                  We&apos;re open {business.hoursText}. Holiday hours can vary—check our Instagram for the latest.
                 </p>
               </div>
               <div>
@@ -718,8 +724,7 @@ const Index = () => {
                 <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">Do you allow BYOB?</h3>
                 <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
                   We serve bourbon, beer, and mixed drinks at the bar. Outside bottles and BYOB rules can change with
-                  events and staffing—call {business.phoneDisplay} before your visit and our team will share the current
-                  policy.
+                  events and staffing—just ask our team when you arrive and we&apos;ll share the current policy.
                 </p>
               </div>
               <div>
