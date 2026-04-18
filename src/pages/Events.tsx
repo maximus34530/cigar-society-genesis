@@ -1,6 +1,7 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { EventCheckoutAuthDialog } from "@/components/EventCheckoutAuthDialog";
+import { PublicEventCapacityBadges } from "@/components/PublicEventCapacityBadges";
 import { FadeUp } from "@/components/FadeUp";
 import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
 import { Seo } from "@/components/Seo";
@@ -154,6 +155,7 @@ function isSoldOut(event: EventRow, sold: number) {
 const Events = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -376,6 +378,17 @@ const Events = () => {
       { replace: true },
     );
   }, [loading, events, searchParams, setSearchParams, openReservation]);
+
+  useEffect(() => {
+    if (loading) return;
+    const raw = location.hash.replace(/^#/, "");
+    if (!raw.startsWith("event-card-")) return;
+    const el = document.getElementById(raw);
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [loading, location.hash, events.length]);
 
   useEffect(() => {
     if (searchParams.get("checkout_resume") !== "1") return;
@@ -700,7 +713,7 @@ const Events = () => {
                       if (e.key === "Enter" || e.key === " ") openReservation(event);
                     }}
                     className={cn(
-                      "group/event-card flex h-full flex-col overflow-hidden border-primary/30 bg-card/40 shadow-sm transition-[colors,box-shadow] duration-500 ease-out",
+                      "group/event-card scroll-mt-28 flex h-full flex-col overflow-hidden border-primary/30 bg-card/40 shadow-sm transition-[colors,box-shadow] duration-500 ease-out",
                       soldOut
                         ? "cursor-not-allowed opacity-60"
                         : "hover:border-primary/45 hover:bg-card/50 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
@@ -750,11 +763,7 @@ const Events = () => {
                         <Badge variant="outline" className="border-border/70 text-[10px] uppercase tracking-wide">
                           21+
                         </Badge>
-                        {remaining != null ? (
-                          <Badge variant={soldOut ? "destructive" : "secondary"} className="text-[10px]">
-                            {soldOut ? "Sold out" : `${remaining} spots left`}
-                          </Badge>
-                        ) : null}
+                        <PublicEventCapacityBadges remaining={remaining} soldOut={soldOut} />
                       </p>
                     </CardHeader>
                     <CardContent className="flex flex-1 flex-col gap-3 pt-0">
