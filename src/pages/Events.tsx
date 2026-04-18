@@ -181,12 +181,6 @@ const Events = () => {
   const ticketCountRaw = typeof liveTickets === "number" ? liveTickets : Number(liveTickets);
   const ticketCount = Number.isFinite(ticketCountRaw) ? Math.min(10, Math.max(1, Math.trunc(ticketCountRaw))) : 1;
 
-  /** Free events only: paid tickets use server `N8N_RECEIPT_WEBHOOK_URL` after Stripe (no client ping before payment). */
-  const n8nFreeEventWebhookUrl = useMemo(() => {
-    const raw = import.meta.env.VITE_N8N_EVENT_RESERVATION_WEBHOOK_URL as string | undefined;
-    return raw?.trim() ? raw.trim() : null;
-  }, []);
-
   const unitPrice = activeEvent ? Number(activeEvent.price ?? 0) : 0;
   const isFree = !Number.isFinite(unitPrice) || unitPrice <= 0;
 
@@ -282,26 +276,26 @@ const Events = () => {
           const { data: inserted, error: insertError } = await supabase.from("bookings").insert(payload).select("id").single();
           if (insertError || !inserted?.id) throw insertError ?? new Error("Failed to create booking");
 
-          if (n8nFreeEventWebhookUrl) {
-            fetch(n8nFreeEventWebhookUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                type: "event_reservation_free_confirmed",
-                created_at: new Date().toISOString(),
-                booking_id: inserted.id,
-                user_id: uid,
-                event: activeEvent,
-                reservation: {
-                  firstName,
-                  lastName,
-                  email: values.email.trim().toLowerCase(),
-                  phone: values.phone.trim(),
-                  tickets: values.tickets,
-                },
-                payment: null,
-              }),
-            }).catch(() => {});
+          type NotifyFreeResult = { ok?: boolean; notified?: boolean; reason?: string };
+          const { data: notifyResult, error: notifyFnError } = await supabase.functions.invoke<NotifyFreeResult>(
+            "notify-free-reservation",
+            { body: { booking_id: inserted.id as string } },
+          );
+          if (notifyFnError) {
+            toast({
+              title: "Reservation saved",
+              description: `We couldn't reach our confirmation service. View your tickets on your dashboard or call ${business.phoneDisplay}.`,
+            });
+          } else if (
+            notifyResult?.ok === true &&
+            notifyResult.notified === false &&
+            notifyResult.reason &&
+            notifyResult.reason !== "webhook_not_configured"
+          ) {
+            toast({
+              title: "Reservation saved",
+              description: `Confirmation email may be delayed. View your tickets on your dashboard or call ${business.phoneDisplay}.`,
+            });
           }
 
           setActiveEvent(null);
@@ -317,7 +311,7 @@ const Events = () => {
         }
       }
     },
-    [activeEvent, isFree, form, navigate, n8nFreeEventWebhookUrl],
+    [activeEvent, isFree, form, navigate, toast],
   );
 
   const handleCheckoutAuthenticated = useCallback(() => {
