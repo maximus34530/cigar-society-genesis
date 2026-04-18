@@ -784,7 +784,7 @@ const Events = () => {
                             : "bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90 border-transparent",
                         )}
                       >
-                        <span>{soldOut ? "Sold out" : "Get tickets"}</span>
+                        <span>{soldOut ? "Sold out" : "Get Tickets For VIP Tables"}</span>
                         {!soldOut ? <ArrowRight className="h-4 w-4 shrink-0 text-primary-foreground" aria-hidden /> : null}
                       </div>
                     </CardContent>
