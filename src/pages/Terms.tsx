@@ -116,6 +116,11 @@ const Terms = () => (
             <strong className="text-foreground">non-payment, abandonment of checkout, or failure to attend does not
             create a refund obligation.</strong>
           </p>
+          <p className="mt-3">
+            A <strong className="text-foreground">service charge</strong> may be added at checkout on top of the ticket
+            subtotal. <strong className="text-foreground">Applicable sales tax is included in that service charge</strong>{" "}
+            (it is not shown as a separate line item).
+          </p>
         </div>
         <div>
           <h2 className="font-heading text-2xl text-foreground mb-3">11. Contact</h2>
