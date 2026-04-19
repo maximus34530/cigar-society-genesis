@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { MembershipRow } from "@/components/account/MembershipRow";
 import { normalizePhoneE164Like } from "@/lib/phone";
 import { markRecentReauth, hasRecentReauth } from "@/lib/reAuth";
 import { supabase } from "@/lib/supabase";
@@ -466,6 +467,8 @@ export default function Account() {
                   )}
                 </CardContent>
               </Card>
+
+              <MembershipRow />
             </div>
           </div>
         </section>
