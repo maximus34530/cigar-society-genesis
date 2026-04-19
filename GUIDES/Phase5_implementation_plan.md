@@ -146,6 +146,8 @@ alter table public.memberships enable row level security;
 - Use `react-helmet-async` `Seo` per route, matching other pages.
 - Tone stays on-brand with `BRANDING_STYLES.md` (gold on dark, restrained, premium).
 
+> **Live deviation (#199)**: The `Membership` navbar link was added pre-Stripe as a deliberate marketing surface. The page itself is non-broken — hero, perks, FAQ, 21+ attestation, and auth routing all work; the Subscribe CTA surfaces a "coming soon" toast for logged-in non-members until Epic C (#184) ships. Revisit once Stripe is live to confirm the page reads as finished rather than pending.
+
 **Exit criteria**
 
 - [ ] Page renders on mobile and desktop, lazy-loaded like other routes.
