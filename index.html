@@ -103,7 +103,14 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static H1 for crawlers (Bing/SEO): first HTML response before React mounts. Removed on hydrate. -->
+      <h1
+        style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0"
+      >
+        Cigar Society — Premium Cigar Lounge in Pharr, TX
+      </h1>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
