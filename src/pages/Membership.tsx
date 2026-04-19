@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { FadeUp } from "@/components/FadeUp";
-import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Badge } from "@/components/ui/badge";
@@ -17,11 +16,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useMembershipStatus } from "@/hooks/useMembershipStatus";
+import { useMembership } from "@/hooks/useMembership";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
 import membershipHeroImg from "@/assets/membership-hero.jpg";
-import { Check, Clock3, Sparkles, Users, Wine, CalendarHeart } from "lucide-react";
+import {
+  Check,
+  Clock3,
+  Sparkles,
+  Users,
+  Wine,
+  CalendarHeart,
+} from "lucide-react";
 
 // TODO: Final membership perks list pending owner approval (plan §8 #4). Copy below is a
 // restrained starter set that reflects existing lounge offerings only; do not promote
@@ -53,10 +59,21 @@ const PERKS: Array<{ icon: typeof Sparkles; title: string; description: string }
   },
 ];
 
-// TODO: Final pricing pending owner approval (plan §8 #1). Keep this true to the site's
-// current state rather than fabricating a price; swap in the real amount when the
-// Stripe price is created in Epic C (#184).
-const PRICE_LABEL = "Monthly — pricing announced at launch";
+// Short, scannable product-card inclusions for the hero column. Kept in sync
+// with the deeper PERKS grid below.
+const QUICK_INCLUDES: ReadonlyArray<string> = [
+  "Priority seating at the lounge",
+  "Full bar — bourbon, beer, mixed drinks",
+  "Weekly events and La Sociedad nights",
+  "Open late, seven days a week",
+] as const;
+
+// TODO(#184): Replace placeholder amount + footnote once the Stripe price is
+// created for `la_sociedad_monthly`. Keep the price visual honest until then
+// rather than fabricating a number.
+const PRICE_AMOUNT_DISPLAY = "$—";
+const PRICE_CADENCE_LABEL = "/ month";
+const PRICE_FOOTNOTE = "Pricing announced at launch.";
 
 const FAQ_ITEMS: Array<{ q: string; a: string }> = [
   {
@@ -89,30 +106,33 @@ type CtaState =
 
 const Membership = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { data: membership, isLoading: membershipLoading } = useMembershipStatus(user?.id);
+  const { user } = useAuth();
+  // Migrated to the Epic E (#190) hook. `isLoading` already accounts for auth
+  // loading once a user is signed in, so we don't need a separate `authLoading`
+  // gate here.
+  const { isActive, isLoading: membershipLoading } = useMembership();
 
-  // Per Phase 5 plan §8 #6: attestation defaults ON at launch.
+  // Per Phase 5 plan §8 #6: attestation defaults ON at launch. Shared state so
+  // the hero and footer CTAs stay in sync without duplicating the checkbox.
   const [attested, setAttested] = useState(true);
 
   const ctaState: CtaState = useMemo(() => {
-    if (authLoading) return { kind: "loading" };
-    if (!user) return { kind: "guest" };
     if (membershipLoading) return { kind: "loading" };
-    if (membership?.isActive) return { kind: "member" };
+    if (!user) return { kind: "guest" };
+    if (isActive) return { kind: "member" };
     return { kind: "subscribe" };
-  }, [authLoading, user, membershipLoading, membership?.isActive]);
+  }, [membershipLoading, user, isActive]);
 
   const ctaLabel = useMemo(() => {
     switch (ctaState.kind) {
       case "loading":
         return "Loading…";
       case "guest":
-        return "Become a member";
+        return "Subscribe";
       case "member":
         return "View your membership";
       case "subscribe":
-        return "Become a member";
+        return "Subscribe";
     }
   }, [ctaState.kind]);
 
@@ -156,77 +176,137 @@ const Membership = () => {
         path="/membership"
       />
 
-      {/* Hero */}
-      <section className="relative flex min-h-[58vh] items-center justify-center overflow-hidden md:min-h-[65vh]">
-        <ScrollParallaxLayer speed={0.3} className="absolute inset-0 min-h-[110%] will-change-transform">
-          <img
-            src={membershipHeroImg}
-            alt={`La Sociedad — ${business.publicVenueName} lounge interior`}
-            className="absolute inset-0 h-[115%] w-full min-h-full object-cover object-center -top-[7.5%]"
-            decoding="async"
-            fetchPriority="high"
-            loading="eager"
-          />
-        </ScrollParallaxLayer>
-        <div className="absolute inset-0 hero-overlay" />
+      {/* Product hero — two-column product-card layout (Creekside-style) */}
+      <section className="relative overflow-hidden bg-background">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07] bg-[radial-gradient(ellipse_at_top,hsl(var(--gold)),transparent_55%)]"
           aria-hidden
         />
-        <div className="relative z-10 mx-auto max-w-[min(100%,48rem)] px-4 text-center animate-fade-in">
-          <Badge
-            variant="outline"
-            className="mb-6 border-primary/60 bg-background/40 px-3 py-1 text-xs uppercase tracking-[0.28em] text-primary"
-          >
-            La Sociedad
-          </Badge>
-          <h1 className="hero-heading-glow !font-heading text-[clamp(2rem,5vw+0.5rem,4rem)] font-bold tracking-tight text-balance text-foreground drop-shadow-[0_2px_24px_hsl(0_0%_0%_/_0.35)] md:text-[clamp(2.75rem,4vw+1rem,4rem)]">
-            The lounge, on your terms.
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground font-body md:text-lg">
-            A monthly membership for the people who already know where to be on a Friday night. Cigars,
-            bourbon, and the room we built for them — in Pharr, serving the Rio Grande Valley.
-          </p>
-          <p className="mt-4 text-sm font-body text-primary/90">{PRICE_LABEL}</p>
+        <div className="container relative mx-auto max-w-6xl px-4 py-12 md:py-20 lg:py-24">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center lg:gap-16">
+            {/* Image column */}
+            <FadeUp>
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-border/60 shadow-card ring-1 ring-primary/20">
+                <img
+                  src={membershipHeroImg}
+                  alt={`La Sociedad — ${business.publicVenueName} lounge interior`}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+                <div
+                  className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent"
+                  aria-hidden
+                />
+                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3">
+                  <Badge
+                    variant="outline"
+                    className="border-primary/60 bg-background/70 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-primary backdrop-blur md:text-xs"
+                  >
+                    La Sociedad
+                  </Badge>
+                  <span className="rounded-md border border-primary/40 bg-background/70 px-3 py-1 font-body text-[10px] uppercase tracking-[0.24em] text-primary backdrop-blur md:text-xs">
+                    21+ Lounge
+                  </span>
+                </div>
+              </div>
+            </FadeUp>
 
-          <div className="mt-10 flex flex-col items-center gap-4">
-            <div className="flex items-start gap-3 rounded-md border border-border/50 bg-background/60 px-4 py-3 text-left text-sm text-muted-foreground shadow-sm backdrop-blur">
-              <Checkbox
-                id="membership-attest-hero"
-                checked={attested}
-                onCheckedChange={(next) => setAttested(next === true)}
-                aria-describedby="membership-attest-hero-label"
-              />
-              <label
-                id="membership-attest-hero-label"
-                htmlFor="membership-attest-hero"
-                className="cursor-pointer select-none font-body leading-snug"
-              >
-                I confirm I am <span className="font-semibold text-foreground">21 years or older</span>{" "}
-                and agree to show a valid ID at the lounge.
-              </label>
-            </div>
+            {/* Product info column */}
+            <FadeUp delay={0.05}>
+              <div className="flex flex-col gap-6">
+                <div>
+                  <p className="font-body text-xs uppercase tracking-[0.28em] text-primary">
+                    Monthly Membership
+                  </p>
+                  <h1 className="hero-heading-glow mt-3 !font-heading text-[clamp(2rem,4vw+0.5rem,3.5rem)] font-bold leading-[1.05] tracking-tight text-balance text-foreground">
+                    La Sociedad Membership
+                  </h1>
+                </div>
 
-            <Button
-              variant="luxury"
-              size="lg"
-              onClick={() => handleCta("hero")}
-              disabled={ctaDisabled}
-              aria-disabled={ctaDisabled}
-              className="min-w-[14rem]"
-            >
-              {ctaLabel}
-            </Button>
+                {/* Price display */}
+                <div className="flex items-baseline gap-3">
+                  <span className="!font-heading text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+                    {PRICE_AMOUNT_DISPLAY}
+                  </span>
+                  <span className="text-base font-body text-muted-foreground md:text-lg">
+                    {PRICE_CADENCE_LABEL}
+                  </span>
+                </div>
+                <p className="-mt-3 text-xs font-body text-muted-foreground">
+                  {PRICE_FOOTNOTE}
+                </p>
+
+                {/* Short, punchy description */}
+                <p className="text-base leading-relaxed text-muted-foreground font-body md:text-lg">
+                  A monthly membership for the people who already know where to be on a Friday night.
+                  Cigars, bourbon, and the room we built for them — in Pharr, serving the Rio Grande
+                  Valley.
+                </p>
+
+                {/* Quick includes (scannable) */}
+                <ul className="grid gap-2.5 text-sm text-muted-foreground font-body">
+                  {QUICK_INCLUDES.map((text) => (
+                    <li key={text} className="flex items-start gap-3">
+                      <span
+                        className="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border border-primary/50 bg-primary/10 text-primary"
+                        aria-hidden="true"
+                      >
+                        <Check className="h-3 w-3" />
+                      </span>
+                      <span>{text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* 21+ attestation (single canonical copy, state shared with footer CTA) */}
+                <div className="flex items-start gap-3 rounded-md border border-border/60 bg-card/40 px-4 py-3 text-left text-sm text-muted-foreground">
+                  <Checkbox
+                    id="membership-attest-hero"
+                    checked={attested}
+                    onCheckedChange={(next) => setAttested(next === true)}
+                    aria-describedby="membership-attest-hero-label"
+                  />
+                  <label
+                    id="membership-attest-hero-label"
+                    htmlFor="membership-attest-hero"
+                    className="cursor-pointer select-none font-body leading-snug"
+                  >
+                    I confirm I am{" "}
+                    <span className="font-semibold text-foreground">21 years or older</span>{" "}
+                    and agree to show a valid ID at the lounge.
+                  </label>
+                </div>
+
+                {/* Primary CTA + billing cadence microcopy */}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="luxury"
+                    size="lg"
+                    onClick={() => handleCta("hero")}
+                    disabled={ctaDisabled}
+                    aria-disabled={ctaDisabled}
+                    className="w-full md:w-auto md:min-w-[16rem]"
+                  >
+                    {ctaLabel}
+                  </Button>
+                  <p className="font-body text-xs text-muted-foreground">
+                    Billed monthly. Cancel anytime. Taxes shown at checkout.
+                  </p>
+                </div>
+              </div>
+            </FadeUp>
           </div>
         </div>
       </section>
 
-      {/* Perks */}
+      {/* What's included */}
       <section className="section-warm-radial section-padding bg-background">
         <FadeUp>
           <div className="container mx-auto max-w-6xl">
             <SectionHeading
-              title="What membership looks like"
+              title="What's included"
               subtitle="La Sociedad is about the lounge, the room, and the people in it. Here's what you're joining."
             />
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -239,7 +319,9 @@ const Membership = () => {
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-primary/40 bg-primary/10 text-primary">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
-                    <h3 className="!font-heading text-lg font-semibold text-foreground">{title}</h3>
+                    <h3 className="!font-heading text-lg font-semibold text-foreground">
+                      {title}
+                    </h3>
                     <p className="text-sm leading-relaxed text-muted-foreground font-body">
                       {description}
                     </p>
@@ -251,38 +333,8 @@ const Membership = () => {
         </FadeUp>
       </section>
 
-      {/* Reassurances */}
-      <section className="section-padding bg-muted/40">
-        <FadeUp>
-          <div className="container mx-auto max-w-4xl">
-            <div className="grid gap-6 sm:grid-cols-3">
-              {[
-                { title: "Cancel anytime", body: "Month-to-month. No long-term commitment, no calls to cancel." },
-                { title: "21+ lounge", body: "Texas law and house rules. Age is verified at checkout and at the door." },
-                { title: "Built for the RGV", body: "One location, one team, one lounge — based in Pharr, Texas." },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/40 p-5"
-                >
-                  <span className="mt-0.5 inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-primary/50 bg-primary/10 text-primary">
-                    <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="!font-heading text-base font-semibold text-foreground">{item.title}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground font-body">
-                      {item.body}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </FadeUp>
-      </section>
-
       {/* FAQ */}
-      <section className="section-padding bg-background">
+      <section className="section-padding bg-muted/40">
         <FadeUp>
           <div className="container mx-auto max-w-3xl">
             <SectionHeading
@@ -291,7 +343,11 @@ const Membership = () => {
             />
             <Accordion type="single" collapsible className="w-full">
               {FAQ_ITEMS.map((item, idx) => (
-                <AccordionItem key={item.q} value={`item-${idx}`} className="border-border/60">
+                <AccordionItem
+                  key={item.q}
+                  value={`item-${idx}`}
+                  className="border-border/60"
+                >
                   <AccordionTrigger className="text-left font-body text-base text-foreground">
                     {item.q}
                   </AccordionTrigger>
@@ -305,8 +361,8 @@ const Membership = () => {
         </FadeUp>
       </section>
 
-      {/* Footer CTA */}
-      <section className="section-padding bg-muted/60">
+      {/* Footer CTA — secondary, attestation state shared with hero */}
+      <section className="section-padding bg-background">
         <FadeUp>
           <div className="container mx-auto max-w-3xl text-center">
             <h2 className="!font-heading text-3xl font-semibold text-foreground md:text-4xl">
@@ -315,36 +371,20 @@ const Membership = () => {
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground font-body">
               One membership. One lounge. One community in the Rio Grande Valley.
             </p>
-            <div className="mt-8 flex flex-col items-center gap-4">
-              <div className="flex items-start gap-3 rounded-md border border-border/50 bg-background/60 px-4 py-3 text-left text-sm text-muted-foreground shadow-sm">
-                <Checkbox
-                  id="membership-attest-footer"
-                  checked={attested}
-                  onCheckedChange={(next) => setAttested(next === true)}
-                  aria-describedby="membership-attest-footer-label"
-                />
-                <label
-                  id="membership-attest-footer-label"
-                  htmlFor="membership-attest-footer"
-                  className="cursor-pointer select-none font-body leading-snug"
-                >
-                  I confirm I am <span className="font-semibold text-foreground">21 years or older</span>{" "}
-                  and agree to show a valid ID at the lounge.
-                </label>
-              </div>
-
+            <div className="mt-8 flex flex-col items-center gap-3">
               <Button
                 variant="luxury"
                 size="lg"
                 onClick={() => handleCta("footer")}
                 disabled={ctaDisabled}
                 aria-disabled={ctaDisabled}
-                className="min-w-[14rem]"
+                className="min-w-[16rem]"
               >
                 {ctaLabel}
               </Button>
-              <p className="text-xs text-muted-foreground font-body">
-                Questions? Call {business.phoneDisplay} — or visit {business.address}.
+              <p className="font-body text-xs text-muted-foreground">
+                Billed monthly. Cancel anytime. {attested ? "" : "Confirm 21+ above to continue. "}
+                Questions? Call {business.phoneDisplay}.
               </p>
             </div>
           </div>
