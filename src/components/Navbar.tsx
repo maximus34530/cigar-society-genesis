@@ -11,6 +11,7 @@ const navLinks = [
   { label: "About", path: "/about" },
   { label: "Cigars", path: "/cigars" },
   { label: "Events", path: "/events" },
+  { label: "Membership", path: "/membership" },
   { label: "Gallery", path: "/gallery" },
   { label: "Contact", path: "/contact" },
 ];
