@@ -14,6 +14,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronRight, PartyPopper, Bell } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
+import { MembershipCard } from "@/components/dashboard/MembershipCard";
+import { MembershipSuccessBanner } from "@/components/dashboard/MembershipSuccessBanner";
 
 const Dashboard = () => {
   const { user, profile, isAdmin } = useAuth();
@@ -107,6 +109,8 @@ const Dashboard = () => {
               subtitle="Manage your event tickets and stay up to date with what’s happening at the lounge."
             />
 
+            <MembershipSuccessBanner />
+
             {loadError ? (
               <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4">
                 <p className="font-body text-sm text-destructive">Couldn’t load your dashboard: {loadError}</p>
@@ -150,6 +154,10 @@ const Dashboard = () => {
                   <p className="mt-1 font-body text-sm text-muted-foreground">Latest updates</p>
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="mt-6">
+              <MembershipCard />
             </div>
 
             <div ref={bookingsSectionRef} className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
