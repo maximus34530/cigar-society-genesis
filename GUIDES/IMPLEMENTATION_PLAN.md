@@ -261,6 +261,15 @@ The numbered **capability** sections below (4–6) describe *what* gets built; *
 - Requires authentication system
 - **Typically third** in the owner-aligned order (after events + cigar holds)
 
+#### Phase 5 deviations
+
+Two deliberate deviations from `GUIDES/Phase5_implementation_plan.md` that future readers should be aware of:
+
+1. **Isolated testing branch** — All Phase 5 database and Edge Function work runs against the Supabase branch `ingqvayyjzhqksjgnely` (*Cigar Society — Phase 5 Testing*), never against production (`cxhftirtdoqeqnhdegdd`). This keeps the live site insulated from Phase 5 churn. Local env vars: `VITE_SUPABASE_URL_PHASE5`, `VITE_SUPABASE_ANON_KEY_PHASE5`, `SUPABASE_SERVICE_ROLE_KEY_PHASE5`.
+2. **Bootstrap migration** — `supabase/migrations/00000000000000_bootstrap_production_schema.sql` was generated to capture the full production schema (extensions, functions, tables, indexes, triggers, RLS) because the testing branch starts empty and the per-file migration history had drifted from production. The file is idempotent (`CREATE ... IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP POLICY IF EXISTS`) and runs *before* all other migrations so the branch replay produces an identical schema.
+
+Open production-side drift tracked separately: `#197 [Bug] profiles table missing first_name, last_name, phone columns on production`.
+
 ---
 
 ### Phase 6 — Events & Ticketing
