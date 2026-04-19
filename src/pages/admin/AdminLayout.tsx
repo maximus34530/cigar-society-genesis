@@ -3,7 +3,7 @@ import { ProfileMenu } from "@/components/ProfileMenu";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { Seo } from "@/components/Seo";
 import { cn } from "@/lib/utils";
-import { CalendarDays, LayoutDashboard, PartyPopper, Settings, Users } from "lucide-react";
+import { CalendarDays, LayoutDashboard, PartyPopper, Settings, UserCheck, Users } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 const sidebarLinks = [
@@ -11,6 +11,7 @@ const sidebarLinks = [
   { label: "Events", to: "/admin/events", icon: PartyPopper },
   { label: "Clients", to: "/admin/clients", icon: Users },
   { label: "Ticket sales", to: "/admin/bookings", icon: CalendarDays },
+  { label: "Members", to: "/admin/members", icon: UserCheck },
 ];
 
 export default function AdminLayout() {
