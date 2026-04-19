@@ -16,7 +16,7 @@
 - If working on fixed branch `March-19,-2026`, do not create new branches
 - Commit format: `[#ID] message`
 - PR/merge to `main` is handled manually by you
-- Reference `GITHUB_ISSUES_GUIDE.md` for full protocol
+- Reference `./GITHUB_ISSUES_GUIDE.md` for full protocol
 
 ---
 
@@ -95,14 +95,14 @@ Follow-up polish tracked as discrete GitHub issues. Full acceptance criteria and
 | 18 | Gallery table — dynamic photo gallery management | `backend` | **On hold** |
 | 19 | Admin dashboard scaffold (manage events, gallery, inquiries) | `enhancement` | **High priority** — events CRUD first |
 
-**Phase 2 Definition of Done (rolling)**: User dashboard, admin CRUD for events, and public Events page backed by Supabase with appropriate RLS; payments integrated per product scope; workflow in `GITHUB_ISSUES_GUIDE.md` (issues + approved commits; never agent commits to `main`).
+**Phase 2 Definition of Done (rolling)**: User dashboard, admin CRUD for events, and public Events page backed by Supabase with appropriate RLS; payments integrated per product scope; workflow in `./GITHUB_ISSUES_GUIDE.md` (issues + approved commits; never agent commits to `main`).
 
 ---
 
 ## Phase 3 — Launch Prep
 *Goal: Harden the site for public launch.*
 
-**Status (codebase):** Implementation complete except **Issue 25** (owner sign-off — use `LAUNCH_CHECKLIST.md`) and **live deploy** (connect repo in Vercel — Issue 20 operational step).
+**Status (codebase):** Implementation complete except **Issue 25** (owner sign-off — use [`../LAUNCH_CHECKLIST.md`](../LAUNCH_CHECKLIST.md)) and **live deploy** (connect repo in Vercel — Issue 20 operational step).
 
 **Execution order**
 
@@ -139,12 +139,12 @@ Authentication, admin and user dashboards, Supabase-backed events (and related t
 
 | Issue | What was implemented |
 |-------|------------------------|
-| 20 | `vercel.json` SPA rewrites; `README.md` deploy + env instructions |
+| 20 | `vercel.json` SPA rewrites; [`../README.md`](../README.md) deploy + env instructions |
 | 21 | Per-route `Seo` + `react-helmet-async`; `public/sitemap.xml`; `robots.txt` sitemap line; `public/og-preview.jpg` |
 | 22 | Route-level code splitting (`lazy` + `Suspense`); lazy images where applicable |
 | 23 | Skip link + `#main-content`; 404 uses `Layout`; gallery keyboard space handling |
 | 24 | *(Manual QA)* — verify breakpoints on real devices after deploy |
-| 25 | `LAUNCH_CHECKLIST.md` — owner completes |
+| 25 | [`../LAUNCH_CHECKLIST.md`](../LAUNCH_CHECKLIST.md) — owner completes |
 | 26 | `AnalyticsScripts` + `trackEvent` for Plausible/GA env vars; CTA events on home + contact |
 
 ---
@@ -222,9 +222,9 @@ npm run dev
 Recent client requests include additional functionality beyond the current launch scope.  
 These features are acknowledged and planned, but will be implemented **only after Phase 3 (Launch Prep) is complete and approved**.
 
-**Operational checklist (discovery → launch slices):** see `ONBOARDING_PLAN.md` (living document; iterate there).
+**Operational checklist (discovery → launch slices):** see [`./ONBOARDING_PLAN.md`](./ONBOARDING_PLAN.md) (living document; iterate there).
 
-**Owner-aligned build order (post Phase 3):** documented in `docs/CLIENT_PRICING_AND_TIMELINE.md` and `PHASE_0_SCOPE.md`:
+**Owner-aligned build order (post Phase 3):** documented in [`../docs/CLIENT_PRICING_AND_TIMELINE.md`](../docs/CLIENT_PRICING_AND_TIMELINE.md) and [`./PHASE_0_SCOPE.md`](./PHASE_0_SCOPE.md):
 
 1. **Events + ticket payments** (Stripe)  
 2. **Cigar catalog + hold / reserve** → customer picks up, **pays in store**, **ID in store** *(no full online cigar checkout in v1 unless rescoped)*  

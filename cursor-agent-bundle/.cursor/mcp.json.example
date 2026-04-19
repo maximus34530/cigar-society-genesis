@@ -6,11 +6,13 @@
         "run",
         "-i",
         "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "--env-file",
+        ".env.local",
         "ghcr.io/github/github-mcp-server"
       ]
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=YOUR_SUPABASE_PROJECT_REF"
     }
   }
 }
-

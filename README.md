@@ -37,14 +37,9 @@ Copy `.env.example` to `.env.local` for local testing. In Vercel, add the same k
 
 ## Project docs
 
-- [`cursor-agent-bundle/GUIDES/login_signup_auth.md`](./cursor-agent-bundle/GUIDES/login_signup_auth.md) — Supabase auth, OAuth (Google/Apple), return-to-intent, MCP notes
-- `IMPLEMENTATION_PLAN.md` — Phases and scope
-- `Phase_2_implementation_plan.md` — Phase 2 epics, order, and hold areas
-- `GITHUB_ISSUES_GUIDE.md` — Issue workflow
-- `partner_handoff.md` — Partner / collaborator onboarding (Phase 2)
-- `GITHUB_ISSUES_BACKLOG.md` — Issue backlog
-- `SYSTEM_OVERVIEW.md` — Architecture summary
-- `LAUNCH_CHECKLIST.md` — Owner sign-off (Issue 25)
+Plans, branding, backlog, onboarding, and workflow live under **[`GUIDES/`](./GUIDES/)** (implementation plans, `BRANDING_STYLES.md`, `partner_handoff.md`, GitHub issues guide, auth/MCP guides, etc.).
+
+- [`LAUNCH_CHECKLIST.md`](./LAUNCH_CHECKLIST.md) — Owner sign-off (Issue 25); stays at repo root for visibility
 
 ## Analytics
 

@@ -10,7 +10,7 @@ Premium cigar lounge website for **Cigar Society, LLC** in Pharr, TX.
 Stack: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase · React Router v6
 
 ## GitHub Workflow (MANDATORY)
-- Always read `GITHUB_ISSUES_GUIDE.md` before making any code changes.
+- Always read `GUIDES/GITHUB_ISSUES_GUIDE.md` before making any code changes.
 - **Every task requires a GitHub Issue.** Create an issue automatically for the task unless the user explicitly opts out.
 - After work: **close the issue** when acceptance criteria are clearly met; **otherwise ask** the user whether to close or update the issue.
 - Branch naming: `feat/issue-ID-short-description` or `fix/issue-ID-short-description`
@@ -45,7 +45,7 @@ Stack: React 18 · Vite · TypeScript · Tailwind CSS · shadcn/ui · Supabase �
 - **Location**: Rio Grande Valley, Texas
 
 ## Supabase (Phase 2 — active)
-- **Phase 2 is active** — see `Phase_2_implementation_plan.md` and `IMPLEMENTATION_PLAN.md`.
+- **Phase 2 is active** — see `GUIDES/Phase_2_implementation_plan.md` and `GUIDES/IMPLEMENTATION_PLAN.md`.
 - Use Supabase for schema changes and migrations (MCP or dashboard workflow per team); do not scatter ad-hoc SQL in the repo.
 - All browser-safe Supabase client usage goes through `src/lib/supabase.ts`
 - Use TanStack Query for async server state once `@tanstack/react-query` is added for Phase 2 data fetching

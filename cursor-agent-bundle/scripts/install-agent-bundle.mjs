@@ -18,7 +18,10 @@ const targetPath = path.resolve(getArg("--target", process.cwd()));
 const force = process.argv.includes("--force");
 
 const filesToCopy = [
-  { from: path.join(bundleRoot, "GITHUB_ISSUES_GUIDE.md"), to: path.join(targetPath, "GITHUB_ISSUES_GUIDE.md") },
+  {
+    from: path.join(bundleRoot, "..", "GUIDES", "GITHUB_ISSUES_GUIDE_reusable.md"),
+    to: path.join(targetPath, "GITHUB_ISSUES_GUIDE.md"),
+  },
   {
     from: path.join(bundleRoot, ".env.local.example"),
     to: path.join(targetPath, ".env.local.example"),

@@ -2,7 +2,7 @@
 
 **Purpose:** Step-by-step process to move from the current marketing site to **admin**, **marketplace (cigars)**, **monthly membership**, **21+ handling**, and **events + ticket sales** — without implementation detail here; this file is the **living checklist** to revisit and update.
 
-**Related docs:** `IMPLEMENTATION_PLAN.md` (phased roadmap), `LAUNCH_CHECKLIST.md` (pre-launch owner review), `PHASE_0_SCOPE.md` (**work Phase 0 here** — align deal & scope before discovery), `docs/CLIENT_PRICING_AND_TIMELINE.md` (included / not included + packages + timeline for client conversations).
+**Related docs:** [`./IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md) (phased roadmap), [`../LAUNCH_CHECKLIST.md`](../LAUNCH_CHECKLIST.md) (pre-launch owner review), [`./PHASE_0_SCOPE.md`](./PHASE_0_SCOPE.md) (**work Phase 0 here** — align deal & scope before discovery), [`../docs/CLIENT_PRICING_AND_TIMELINE.md`](../docs/CLIENT_PRICING_AND_TIMELINE.md) (included / not included + packages + timeline for client conversations).
 
 **Last updated:** 2026-03-21
 

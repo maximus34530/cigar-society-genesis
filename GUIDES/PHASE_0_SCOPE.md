@@ -13,7 +13,7 @@
 | **Build order (1 → 2 → 3)** | **① Event tickets** (pay online) → **② Cigar holds** (request online, **pay + ID in the store**) → **③ Monthly membership** |
 | **When coding starts** | After the checkboxes in **§8** are ready (or $/dates marked TBD with a plan). |
 
-**Related files:** `docs/CLIENT_PRICING_AND_TIMELINE.md` (prices & packages) · `ONBOARDING_PLAN.md` (full process)
+**Related files:** [`../docs/CLIENT_PRICING_AND_TIMELINE.md`](../docs/CLIENT_PRICING_AND_TIMELINE.md) (prices & packages) · [`./ONBOARDING_PLAN.md`](./ONBOARDING_PLAN.md) (full process)
 
 ---
 

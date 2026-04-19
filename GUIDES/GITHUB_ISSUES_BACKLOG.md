@@ -2,7 +2,7 @@
 
 **Repo**: `cigar-society-genesis`  
 **Business**: `Cigar Society, LLC` (Pharr, TX)  
-**Source**: `IMPLEMENTATION_PLAN.md` + `Phase_2_implementation_plan.md` + `docs/CLIENT_PRICING_AND_TIMELINE.md` / `ONBOARDING_PLAN.md` where scope overlaps.
+**Source**: `IMPLEMENTATION_PLAN.md` + `Phase_2_implementation_plan.md` + [`../docs/CLIENT_PRICING_AND_TIMELINE.md`](../docs/CLIENT_PRICING_AND_TIMELINE.md) / `ONBOARDING_PLAN.md` where scope overlaps.
 
 ### Phase naming (avoid confusion)
 
@@ -16,7 +16,7 @@ When in doubt, **GitHub issue titles + `Phase_2_implementation_plan.md`** are th
 
 ## Label Conventions
 
-Use the standard labels from `GITHUB_ISSUES_GUIDE.md`:
+Use the standard labels from `./GITHUB_ISSUES_GUIDE.md`:
 - `enhancement`
 - `bug`
 - `documentation`
@@ -73,7 +73,7 @@ Discrete polish issues; detailed acceptance criteria live on GitHub. **Codebase:
 
 **Legacy milestone issues (original backlog)**: 14–19 — still valid as *reference*; **priorities have shifted** (admin + user dashboards, events, payments first; contact / membership / gallery DB work on hold unless reopened).
 
-**Workflow**: See `GITHUB_ISSUES_GUIDE.md` — create issues per task, **no commit/push without user approval**, never commit to `main` from agent work.
+**Workflow**: See `./GITHUB_ISSUES_GUIDE.md` — create issues per task, **no commit/push without user approval**, never commit to `main` from agent work.
 
 ## Phase 3 — Launch Prep
 
@@ -90,12 +90,12 @@ Issues: 20–26
 **Labels**: `documentation`, `urgent`  
 **Objective**: Ensure the project workflow is consistent and professional before major UI/content edits.
 **Acceptance Criteria**
-- [ ] GitHub labels exist and match the names in `GITHUB_ISSUES_GUIDE.md`
+- [ ] GitHub labels exist and match the names in `./GITHUB_ISSUES_GUIDE.md`
 - [ ] Milestones exist for Phase 1 / Phase 2 (Active) / Phase 3
 - [ ] Cursor rules file(s) are in place and reflect the repo workflow expectations
-- [ ] A default issue template/workflow is clearly documented (link to `GITHUB_ISSUES_GUIDE.md`)
+- [ ] A default issue template/workflow is clearly documented (link to `./GITHUB_ISSUES_GUIDE.md`)
 **Technical Notes**
-- **GitHub MCP:** Docker running; image `ghcr.io/github/github-mcp-server`. Put **`GITHUB_PERSONAL_ACCESS_TOKEN` in repo-root `.env.local`** (gitignored). Local `.cursor/mcp.json` should load secrets via **`docker … --env-file .env.local`** — do **not** paste the token into committed JSON. See `cursor-agent-bundle/MCP_SETUP.md`. Restart Cursor after MCP config changes.
+- **GitHub MCP:** Docker running; image `ghcr.io/github/github-mcp-server`. Put **`GITHUB_PERSONAL_ACCESS_TOKEN` in repo-root `.env.local`** (gitignored). Local `.cursor/mcp.json` should load secrets via **`docker … --env-file .env.local`** — do **not** paste the token into committed JSON. See [`./MCP_SETUP.md`](./MCP_SETUP.md). Restart Cursor after MCP config changes.
 - Issue operations via MCP should use labels/milestones consistent with this guide.
 
 ### Issue 2 — [Content] Update real business content (name, phone, hours, address)
@@ -315,14 +315,14 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `documentation`, `urgent`  
 **Objective**: Ensure the site can be deployed reliably.
-**Current status (repo):** `vercel.json` SPA rewrites + deploy/env documentation in `README.md`. **Remaining:** Vercel dashboard — link GitHub repo, set Production/Preview env vars, confirm production URL.
+**Current status (repo):** `vercel.json` SPA rewrites + deploy/env documentation in [`../README.md`](../README.md). **Remaining:** Vercel dashboard — link GitHub repo, set Production/Preview env vars, confirm production URL.
 **Acceptance Criteria**
 - [ ] Vercel project is created and connected to the GitHub repo
 - [ ] Build and preview succeed (`npm run build`)
 - [ ] Any required environment variables are documented (even if currently minimal)
 - [ ] Deployment produces a working URL
 **Technical Notes**
-- Phase 2 requires Supabase (and related) env vars in Vercel for preview/production when features ship; document in `README.md` / ops issues as you enable them.
+- Phase 2 requires Supabase (and related) env vars in Vercel for preview/production when features ship; document in [`../README.md`](../README.md) / ops issues as you enable them.
 
 ### Issue 21 — [Enhancement] SEO — meta tags, Open Graph, sitemap
 **Milestone**: Phase 3: Launch Prep  
@@ -378,7 +378,7 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `content`, `urgent`  
 **Objective**: Get approval and make final text/image adjustments before launch.
-**Current status (repo):** `LAUNCH_CHECKLIST.md` — owner-driven; not implemented in code.
+**Current status (repo):** [`../LAUNCH_CHECKLIST.md`](../LAUNCH_CHECKLIST.md) — owner-driven; not implemented in code.
 **Acceptance Criteria**
 - [ ] Owner reviews all pages: Home, About, Cigars, Events, Gallery, Contact
 - [ ] Contact details, hours, and addresses are confirmed
@@ -390,7 +390,7 @@ Issues: 20–26
 **Milestone**: Phase 3: Launch Prep  
 **Labels**: `enhancement`  
 **Objective**: Track user behavior and key actions.
-**Current status (repo):** `AnalyticsScripts` + `trackEvent` for Plausible/GA (`README.md` env vars); enable via Vercel env in production.
+**Current status (repo):** `AnalyticsScripts` + `trackEvent` for Plausible/GA ([`../README.md`](../README.md) env vars); enable via Vercel env in production.
 **Acceptance Criteria**
 - [ ] Page views are tracked
 - [ ] CTA clicks (directions/contact) are tracked

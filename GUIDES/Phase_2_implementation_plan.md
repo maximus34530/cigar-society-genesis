@@ -3,7 +3,7 @@
 **Project**: Cigar Society Genesis (`cigar-society-genesis`)  
 **Business**: Cigar Society, LLC — Pharr, TX  
 **Status**: **Phase 2 is active** (no longer back burner).  
-**Companion docs**: `GITHUB_ISSUES_GUIDE.md`, `IMPLEMENTATION_PLAN.md`, `GITHUB_ISSUES_BACKLOG.md`
+**Companion docs**: `./GITHUB_ISSUES_GUIDE.md`, `./IMPLEMENTATION_PLAN.md`, `./GITHUB_ISSUES_BACKLOG.md`
 
 ---
 
@@ -169,7 +169,7 @@ Smaller issues = easier review and safer deploys.
 
 - **`@tanstack/react-query`** is required by project rules for async data; add it when Epic D wiring begins (it is not required for pure UI epics if you use local state/mocks).
 - **Existing Supabase tables** (`events`, `bookings`) may need column additions—track in schema issues.
-- **Vercel env**: document new secrets (Stripe, Supabase service role for server only) in `README.md` or a dedicated ops issue—never commit values.
+- **Vercel env**: document new secrets (Stripe, Supabase service role for server only) in [`../README.md`](../README.md) or a dedicated ops issue—never commit values.
 
 ---
 
@@ -180,7 +180,7 @@ When closing Phase 2–related issues, prefer:
 - Production build passes; no new `console.log` in production paths.
 - Mobile + desktop sanity check on touched routes.
 - RLS/auth documented in the issue or linked doc for anything that touches data.
-- User explicitly approved **commit + sync** to the working branch (see `GITHUB_ISSUES_GUIDE.md`).
+- User explicitly approved **commit + sync** to the working branch (see `./GITHUB_ISSUES_GUIDE.md`).
 
 ---
 

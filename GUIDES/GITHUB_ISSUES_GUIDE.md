@@ -5,7 +5,7 @@
 **Business**: Cigar Society, LLC — Pharr, TX  
 **Objective**: Maintain a rigorous, transparent, and up-to-date history of all work, decisions, and progress across a two-person team (Cursor + Antigravity).
 
-**Phase 2**: Active — see `Phase_2_implementation_plan.md` and `IMPLEMENTATION_PLAN.md`.
+**Phase 2**: Active — see `./Phase_2_implementation_plan.md` and `./IMPLEMENTATION_PLAN.md`.
 
 ---
 
@@ -23,7 +23,7 @@ Agents should treat **GitHub as source of truth** for issue state. To refresh co
 **Practical guidance**
 
 - **Search before creating** — Many themes already have closed issues; link or reopen only when starting new work.
-- **Roadmap issues** `#25–#36` are **closed** in GitHub but describe **future** Phase 2–4 intent; current Phase 2 execution is driven by `Phase_2_implementation_plan.md` and **new issues** you create for each task.
+- **Roadmap issues** `#25–#36` are **closed** in GitHub but describe **future** Phase 2–4 intent; current Phase 2 execution is driven by `./Phase_2_implementation_plan.md` and **new issues** you create for each task.
 - **Duplicate issue numbers** are normal over time (e.g. repeated “[Design] Gallery carousel”); use **issue number + title** when referencing work.
 
 ---

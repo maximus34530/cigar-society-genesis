@@ -1,7 +1,7 @@
 # Cigar Society — Pricing & timeline (client draft)
 
 **For:** You + owner (+ partner). **Not** a public promise until you publish it.  
-**Updated:** 2026-03-21 · **Paired with:** `PHASE_0_SCOPE.md`
+**Updated:** 2026-03-21 · **Paired with:** [`PHASE_0_SCOPE.md`](../GUIDES/PHASE_0_SCOPE.md)
 
 ---
 
@@ -129,7 +129,7 @@ Add **~15–25%** buffer for feedback and Stripe setup.
 
 ## Next steps
 
-1. Owner reads this + `PHASE_0_SCOPE.md`.  
+1. Owner reads this + [`PHASE_0_SCOPE.md`](../GUIDES/PHASE_0_SCOPE.md).  
 2. Fill all **$[TBD]** and dates.  
 3. Sign Phase 0 → start discovery for **Option A**.
 

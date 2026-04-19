@@ -22,7 +22,7 @@ Default git branch for this work: **`Phase-2`**. Do **not** push routine work di
 4. **`GITHUB_ISSUES_BACKLOG.md`** — Historical issue IDs; cross-check GitHub for **open** work before duplicating.
 5. **`.cursor/rules/project.mdc`** — Cursor/agent rules (mirrors workflow + code standards).
 
-Optional: **`README.md`** (scripts, env), **`SYSTEM_OVERVIEW.md`** (target architecture), **`CLAUDE_HANDOFF.md`** (broader AI context).
+Optional: **[`README.md`](../README.md)** (scripts, env), **`SYSTEM_OVERVIEW.md`** (target architecture), **`CLAUDE_HANDOFF.md`** (broader AI context).
 
 ---
 

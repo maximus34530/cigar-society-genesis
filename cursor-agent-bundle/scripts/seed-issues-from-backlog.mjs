@@ -49,7 +49,7 @@ function extractBetween(block, startRegex, endRegex) {
 
 async function main() {
   const repoRoot = process.cwd();
-  const backlogPath = path.join(repoRoot, "GITHUB_ISSUES_BACKLOG.md");
+  const backlogPath = path.join(repoRoot, "GUIDES", "GITHUB_ISSUES_BACKLOG.md");
   const envPath = path.join(repoRoot, ".env.local");
 
   const dryRun = process.argv.includes("--dry-run");
@@ -108,7 +108,7 @@ async function main() {
 
   const issueHeaderRegex = /^###\s+Issue\s+(\d+)\s+—\s+(.+)$/gm;
   const issueMatches = [...backlogText.matchAll(issueHeaderRegex)];
-  if (!issueMatches.length) throw new Error("No issues found in GITHUB_ISSUES_BACKLOG.md");
+  if (!issueMatches.length) throw new Error("No issues found in GUIDES/GITHUB_ISSUES_BACKLOG.md");
 
   const issuesParsed = [];
   for (let i = 0; i < issueMatches.length; i++) {
