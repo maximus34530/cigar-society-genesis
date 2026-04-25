@@ -367,7 +367,7 @@ export default function AdminEvents() {
                 </Button>
               </DialogTrigger>
             ) : null}
-            <DialogContent>
+            <DialogContent className="w-[calc(100vw-1.25rem)] max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto overscroll-contain border-border/60 bg-background sm:w-full">
               <DialogHeader>
                 <DialogTitle className="font-heading">{title}</DialogTitle>
               </DialogHeader>
