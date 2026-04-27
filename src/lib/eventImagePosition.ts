@@ -33,12 +33,6 @@ export function isMissingEventsImageObjectPositionError(
   );
 }
 
-/** True when PostgREST reports the `events.starts_at` column is missing (migration not applied yet). */
-export function isMissingEventsStartsAtError(error: { message?: string } | null | undefined): boolean {
-  const msg = (error?.message ?? "").toLowerCase();
-  return msg.includes("starts_at") && (msg.includes("schema cache") || msg.includes("does not exist") || msg.includes("could not find"));
-}
-
 /** Parse stored CSS object-position "x% y%" into focal percentages. */
 export function parseEventImageFocal(css: string | null | undefined): { x: number; y: number } {
   if (!css?.trim()) return { x: 50, y: 50 };

@@ -20,7 +20,6 @@ import {
   HOME_FEATURED_EVENT_IMAGE_IMG,
   eventImageObjectStyle,
   isMissingEventsImageObjectPositionError,
-  isMissingEventsStartsAtError,
 } from "@/lib/eventImagePosition";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
@@ -159,7 +158,6 @@ type HomeEventPreview = {
   name: string;
   date: string;
   time: string;
-  starts_at?: string | null;
   capacity_total: number | null;
   description: string | null;
   image_url: string | null;
@@ -198,18 +196,15 @@ const Index = () => {
       setEventsLoading(true);
 
       try {
-        const cutoffIso = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
         const selectWithFocal =
-          "id,name,date,time,starts_at,capacity_total,description,image_url,image_path,image_object_position";
-        const selectLegacy = "id,name,date,time,starts_at,capacity_total,description,image_url,image_path";
+          "id,name,date,time,capacity_total,description,image_url,image_path,image_object_position";
+        const selectLegacy = "id,name,date,time,capacity_total,description,image_url,image_path";
 
         let { data, error } = await supabase
           .from("events")
           .select(selectWithFocal)
           .eq("is_active", true)
           .is("deleted_at", null)
-          .gte("starts_at", cutoffIso)
-          .order("starts_at", { ascending: true })
           .order("date", { ascending: true })
           .order("time", { ascending: true })
           .limit(3);
@@ -220,38 +215,9 @@ const Index = () => {
             .select(selectLegacy)
             .eq("is_active", true)
             .is("deleted_at", null)
-            .gte("starts_at", cutoffIso)
-            .order("starts_at", { ascending: true })
             .order("date", { ascending: true })
             .order("time", { ascending: true })
             .limit(3));
-        }
-
-        // Back-compat: if `starts_at` doesn't exist yet, fall back to legacy ordering.
-        if (error && isMissingEventsStartsAtError(error)) {
-          const selectWithFocalLegacy =
-            "id,name,date,time,capacity_total,description,image_url,image_path,image_object_position";
-          const selectLegacyLegacy = "id,name,date,time,capacity_total,description,image_url,image_path";
-
-          ({ data, error } = await supabase
-            .from("events")
-            .select(selectWithFocalLegacy)
-            .eq("is_active", true)
-            .is("deleted_at", null)
-            .order("date", { ascending: true })
-            .order("time", { ascending: true })
-            .limit(3));
-
-          if (error && isMissingEventsImageObjectPositionError(error)) {
-            ({ data, error } = await supabase
-              .from("events")
-              .select(selectLegacyLegacy)
-              .eq("is_active", true)
-              .is("deleted_at", null)
-              .order("date", { ascending: true })
-              .order("time", { ascending: true })
-              .limit(3));
-          }
         }
         if (cancelled) return;
         if (error) throw error;
