@@ -23,8 +23,9 @@ import {
   EVENTS_PAGE_CARD_IMAGE_IMG,
   eventImageObjectStyle,
   isMissingEventsImageObjectPositionError,
+  isMissingEventsStartsAtError,
 } from "@/lib/eventImagePosition";
-import { createCheckoutSessionUrl } from "@/lib/checkout";
+import { createCheckoutSession, type CheckoutPricing } from "@/lib/checkout";
 import {
   eventCheckoutTotalCents,
   eventServiceChargeCentsFromSubtotalCents,
@@ -53,12 +54,13 @@ type EventRow = {
   name: string;
   date: string;
   time: string;
+  starts_at?: string | null;
   price: number | null;
   capacity_total: number | null;
   description: string | null;
   image_url: string | null;
   image_path: string | null;
-  image_object_position: string | null;
+  image_object_position?: string | null;
 };
 
 type CheckoutStep = "tickets" | "details" | "confirm";
@@ -165,6 +167,7 @@ const Events = () => {
   const [activeEvent, setActiveEvent] = useState<EventRow | null>(null);
   const [step, setStep] = useState<CheckoutStep>("tickets");
   const [paying, setPaying] = useState(false);
+  const [serverPricing, setServerPricing] = useState<CheckoutPricing | null>(null);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const checkoutAuthIntentRef = useRef<"free" | "paid" | null>(null);
   const authModalConsumedRef = useRef(false);
@@ -186,12 +189,19 @@ const Events = () => {
 
   const eventCheckoutMoney = useMemo(() => {
     if (!activeEvent || isFree) return null;
+    if (serverPricing) {
+      return {
+        subC: serverPricing.ticket_subtotal_cents,
+        svcC: serverPricing.service_charge_cents,
+        totC: serverPricing.total_cents,
+      };
+    }
     const p = Number(activeEvent.price ?? 0);
     if (!Number.isFinite(p) || p <= 0) return null;
     const subC = eventTicketSubtotalCents(p, ticketCount);
     const svcC = eventServiceChargeCentsFromSubtotalCents(subC);
     return { subC, svcC, totC: subC + svcC };
-  }, [activeEvent, isFree, ticketCount]);
+  }, [activeEvent, isFree, serverPricing, ticketCount]);
 
   const stashCheckoutDraftForResume = useCallback(() => {
     if (!activeEvent) return;
@@ -227,6 +237,7 @@ const Events = () => {
         setPaying(true);
         let newBookingId: string | null = null;
         try {
+          setServerPricing(null);
           const payload = {
             user_id: uid,
             event_id: activeEvent.id,
@@ -242,8 +253,9 @@ const Events = () => {
           if (insertError || !inserted?.id) throw insertError ?? new Error("Failed to create booking");
           newBookingId = inserted.id as string;
 
-          const url = await createCheckoutSessionUrl(newBookingId);
-          window.location.href = url;
+          const { checkout_url, pricing } = await createCheckoutSession(newBookingId);
+          if (pricing) setServerPricing(pricing);
+          window.location.href = checkout_url;
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Could not start checkout";
           const capacityMiss =
@@ -479,32 +491,68 @@ const Events = () => {
       setError(null);
 
       try {
+        const cutoffIso = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
         const selectWithFocal =
-          "id,name,date,time,price,capacity_total,description,image_url,image_path,image_object_position";
-        const selectLegacy = "id,name,date,time,price,capacity_total,description,image_url,image_path";
+          "id,name,date,time,starts_at,price,capacity_total,description,image_url,image_path,image_object_position";
+        const selectLegacy = "id,name,date,time,starts_at,price,capacity_total,description,image_url,image_path";
 
-        let { data, error: err } = await supabase
+        let data: unknown = null;
+        let err: unknown = null;
+
+        ({ data, error: err } = await supabase
           .from("events")
           .select(selectWithFocal)
           .eq("is_active", true)
           .is("deleted_at", null)
+          .gte("starts_at", cutoffIso)
+          .order("starts_at", { ascending: true })
           .order("date", { ascending: true })
-          .order("time", { ascending: true });
+          .order("time", { ascending: true }));
 
-        if (err && isMissingEventsImageObjectPositionError(err)) {
+        if (err && isMissingEventsImageObjectPositionError(err as { message?: string })) {
           ({ data, error: err } = await supabase
             .from("events")
             .select(selectLegacy)
             .eq("is_active", true)
             .is("deleted_at", null)
+            .gte("starts_at", cutoffIso)
+            .order("starts_at", { ascending: true })
             .order("date", { ascending: true })
             .order("time", { ascending: true }));
         }
 
+        // Back-compat: if the migration that adds `starts_at` isn't applied yet,
+        // fall back to the legacy date/time ordering with no auto-expire filter.
+        if (err && isMissingEventsStartsAtError(err as { message?: string })) {
+          const selectWithFocalLegacy = "id,name,date,time,price,capacity_total,description,image_url,image_path,image_object_position";
+          const selectLegacyLegacy = "id,name,date,time,price,capacity_total,description,image_url,image_path";
+
+          ({ data, error: err } = await supabase
+            .from("events")
+            .select(selectWithFocalLegacy)
+            .eq("is_active", true)
+            .is("deleted_at", null)
+            .order("date", { ascending: true })
+            .order("time", { ascending: true }));
+
+          if (err && isMissingEventsImageObjectPositionError(err as { message?: string })) {
+            ({ data, error: err } = await supabase
+              .from("events")
+              .select(selectLegacyLegacy)
+              .eq("is_active", true)
+              .is("deleted_at", null)
+              .order("date", { ascending: true })
+              .order("time", { ascending: true }));
+          }
+        }
+
         if (err) throw err;
-        const rows = ((data as (EventRow | Omit<EventRow, "image_object_position">)[] | null) ?? []).map((r) =>
-          "image_object_position" in r ? r : { ...r, image_object_position: null as string | null },
-        ) as EventRow[];
+        const rows = ((data as (Partial<EventRow> & { image_object_position?: string | null })[] | null) ?? []).map((r) => ({
+          ...r,
+          starts_at: "starts_at" in r ? (r as { starts_at?: string | null }).starts_at ?? null : null,
+          image_object_position:
+            "image_object_position" in r ? (r as { image_object_position?: string | null }).image_object_position ?? null : null,
+        })) as EventRow[];
         if (!cancelled) setEvents(rows);
 
         const ids = rows.map((r) => r.id);
@@ -625,7 +673,7 @@ const Events = () => {
   );
 
   return (
-  <Layout>
+    <Layout>
       <Seo
         title="Events — Live Music & Nights at the Lounge"
         description="See what’s happening at Cigar Society in Pharr, TX — live music, comedy nights, and more in the Rio Grande Valley."
@@ -660,7 +708,7 @@ const Events = () => {
 
       <section className="section-warm-radial section-padding border-y border-border/40 bg-muted/80">
         <FadeUp>
-          <div className="container mx-auto">
+      <div className="container mx-auto">
           <SectionHeading
             title="Live events calendar"
             subtitle="See what’s on at the lounge. For last-minute updates, follow us on Instagram."
@@ -778,7 +826,7 @@ const Events = () => {
                             : "bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90 border-transparent",
                         )}
                       >
-                        <span>{soldOut ? "Sold out" : "Get Tickets For VIP Tables"}</span>
+                        <span>{soldOut ? "Sold out" : "Get tickets"}</span>
                         {!soldOut ? <ArrowRight className="h-4 w-4 shrink-0 text-primary-foreground" aria-hidden /> : null}
                       </div>
                     </CardContent>
