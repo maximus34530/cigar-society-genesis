@@ -39,7 +39,14 @@ const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 ease-out",
         scrolled || open
-          ? "bg-background/90 backdrop-blur-md border-b border-border/40 shadow-nav"
+          ? cn(
+              "border-b border-border/40 shadow-nav",
+              // Avoid backdrop-blur while the mobile menu is open: it commonly forces
+              // a compositing path that makes <video> beneath the fixed nav flash black.
+              open
+                ? "bg-background"
+                : "bg-background/90 backdrop-blur-md",
+            )
           : "bg-transparent border-b border-transparent",
       )}
     >
