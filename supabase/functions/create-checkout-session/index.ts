@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { handleOptions, json } from "./_shared/cors.ts";
-import { eventServiceChargeCentsFromSubtotalCents, eventTicketSubtotalCents } from "./_shared/eventPricing.ts";
+import { EVENT_TICKET_SERVICE_CHARGE_RATE, eventServiceChargeCentsFromSubtotalCents, eventTicketSubtotalCents } from "./_shared/eventPricing.ts";
 
 /** Stripe allows up to 500 characters per metadata value. */
 function stripeMetadataValue(value: string, maxLen = 450): string {
@@ -102,6 +102,7 @@ Deno.serve(async (req) => {
   const qty = Math.max(1, Math.trunc(Number(booking.tickets ?? 1)));
   const subtotalCents = eventTicketSubtotalCents(unitCents, qty);
   const serviceCents = eventServiceChargeCentsFromSubtotalCents(subtotalCents);
+  const totalCents = subtotalCents + serviceCents;
 
   const sessionMetadata: Record<string, string> = {
     booking_id: booking.id,
@@ -171,6 +172,10 @@ Deno.serve(async (req) => {
     .update({
       status: "pending_payment",
       stripe_checkout_session_id: session.id,
+      ticket_subtotal_cents: subtotalCents,
+      service_charge_cents: serviceCents,
+      total_cents: totalCents,
+      service_charge_rate: EVENT_TICKET_SERVICE_CHARGE_RATE,
     })
     .eq("id", booking.id);
 
@@ -178,5 +183,13 @@ Deno.serve(async (req) => {
     return json({ error: upErr.message }, { status: 500 });
   }
 
-  return json({ checkout_url: session.url });
+  return json({
+    checkout_url: session.url,
+    pricing: {
+      ticket_subtotal_cents: subtotalCents,
+      service_charge_cents: serviceCents,
+      total_cents: totalCents,
+      service_charge_rate: EVENT_TICKET_SERVICE_CHARGE_RATE,
+    },
+  });
 });
