@@ -70,36 +70,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/cigars" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Cigars
-                </Link>
-              </li>
-              <li>
-                <Link to="/events" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Events
-                </Link>
-              </li>
-              <li>
                 <Link to="/gallery" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Gallery
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Contact
-                </Link>
-              </li>
-            </ul>
-            <h4 className="font-heading text-sm text-foreground/90 mt-8 mb-3 uppercase tracking-wider">Legal</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Terms & Conditions
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Privacy Policy
                 </Link>
               </li>
             </ul>

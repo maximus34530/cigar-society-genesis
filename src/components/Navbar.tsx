@@ -2,25 +2,18 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { ProfileMenu } from "@/components/ProfileMenu";
-import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Home", path: "/" },
   { label: "About", path: "/about" },
-  { label: "Cigars", path: "/cigars" },
-  { label: "Events", path: "/events" },
-  { label: "Membership", path: "/membership" },
   { label: "Gallery", path: "/gallery" },
-  { label: "Contact", path: "/contact" },
 ];
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
 
   useEffect(() => {
     setOpen(false);
@@ -69,26 +62,6 @@ const Navbar = () => {
         </div>
 
         <div className="flex min-w-0 items-center justify-end gap-2">
-          <div className="hidden items-center gap-3 lg:flex">
-            {user ? (
-              <ProfileMenu />
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-sm font-body tracking-widest uppercase text-foreground/70 transition-colors hover:text-primary"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="text-sm font-body tracking-widest uppercase text-primary transition-colors hover:text-primary/90"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
           <button
             type="button"
             onClick={() => setOpen(!open)}
@@ -124,39 +97,6 @@ const Navbar = () => {
                 </Link>
               </li>
             ))}
-            <li className="mt-3 px-6">
-              <div className="h-px bg-border/70" />
-            </li>
-            {user ? (
-              <li className="px-3 pt-4">
-                <ProfileMenu className="w-full justify-start px-3" />
-              </li>
-            ) : (
-              <>
-                <li>
-                  <Link
-                    to="/login"
-                    onClick={() => setOpen(false)}
-                    className={`flex min-h-[44px] items-center px-6 py-3 text-sm tracking-widest uppercase transition-colors touch-manipulation hover:text-primary hover:bg-muted ${
-                      location.pathname === "/login" ? "text-primary" : "text-foreground/70"
-                    }`}
-                  >
-                    Log In
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/signup"
-                    onClick={() => setOpen(false)}
-                    className={`flex min-h-[44px] items-center px-6 py-3 text-sm tracking-widest uppercase transition-colors touch-manipulation hover:text-primary hover:bg-muted ${
-                      location.pathname === "/signup" ? "text-primary" : "text-foreground/70"
-                    }`}
-                  >
-                    Sign Up
-                  </Link>
-                </li>
-              </>
-            )}
           </ul>
         </div>
       )}

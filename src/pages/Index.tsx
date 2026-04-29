@@ -4,27 +4,16 @@ import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import SectionHeading from "@/components/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FadeUp } from "@/components/FadeUp";
-import { PublicEventCapacityBadges } from "@/components/PublicEventCapacityBadges";
 import { GoldAccentShimmer } from "@/components/GoldAccentShimmer";
 import { ScrollParallaxLayer } from "@/components/ScrollParallaxLayer";
-import { supabase } from "@/lib/supabase";
-import { CalendarDays, ChevronRight, MapPin, Star, Ticket } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import liveEventsImg from "@/assets/gallery/events/641257260_17876872920513223_8406291060331286732_n.jpg";
 import spiritsBarImg from "@/assets/spirits-bar.png";
 import communityHospitalityImg from "@/assets/community-hospitality.png";
-import {
-  HOME_FEATURED_EVENT_IMAGE_FRAME,
-  HOME_FEATURED_EVENT_IMAGE_IMG,
-  eventImageObjectStyle,
-  isMissingEventsImageObjectPositionError,
-} from "@/lib/eventImagePosition";
 import { business } from "@/lib/business";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
-import { useEffect, useMemo, useState } from "react";
 
 type LoungeHighlight = {
   title: string;
@@ -153,137 +142,10 @@ const experienceChild: Variants = {
 
 const headlineEase = [0.16, 1, 0.3, 1] as const;
 
-type HomeEventPreview = {
-  id: string;
-  name: string;
-  date: string;
-  time: string;
-  capacity_total: number | null;
-  description: string | null;
-  image_url: string | null;
-  image_path: string | null;
-  image_object_position: string | null;
-};
-
-function soldForEvent(soldByEvent: Record<string, number>, eventId: string) {
-  return soldByEvent[eventId] ?? 0;
-}
-
-function spotsRemaining(event: HomeEventPreview, sold: number): number | null {
-  if (event.capacity_total == null) return null;
-  const cap = Number(event.capacity_total);
-  if (!Number.isFinite(cap) || cap <= 0) return null;
-  return Math.max(0, cap - sold);
-}
-
-function isSoldOut(event: HomeEventPreview, sold: number): boolean {
-  const r = spotsRemaining(event, sold);
-  return r !== null && r <= 0;
-}
-
 const Index = () => {
   const heroVideoPath = business.homeV2VideoPaths[0] ?? "";
   const reduceMotion = useReducedMotion();
   const brandWords = business.shortName.split(/\s+/).filter(Boolean);
-  const [events, setEvents] = useState<HomeEventPreview[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
-  const [soldByEvent, setSoldByEvent] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadHomeEvents = async () => {
-      setEventsLoading(true);
-
-      try {
-        const selectWithFocal =
-          "id,name,date,time,capacity_total,description,image_url,image_path,image_object_position";
-        const selectLegacy = "id,name,date,time,capacity_total,description,image_url,image_path";
-
-        let { data, error } = await supabase
-          .from("events")
-          .select(selectWithFocal)
-          .eq("is_active", true)
-          .is("deleted_at", null)
-          .order("date", { ascending: true })
-          .order("time", { ascending: true })
-          .limit(3);
-        if (cancelled) return;
-        if (error && isMissingEventsImageObjectPositionError(error)) {
-          ({ data, error } = await supabase
-            .from("events")
-            .select(selectLegacy)
-            .eq("is_active", true)
-            .is("deleted_at", null)
-            .order("date", { ascending: true })
-            .order("time", { ascending: true })
-            .limit(3));
-        }
-        if (cancelled) return;
-        if (error) throw error;
-        const rows = (
-          (data as (HomeEventPreview | Omit<HomeEventPreview, "image_object_position">)[] | null) ?? []
-        ).map((r) => ("image_object_position" in r ? r : { ...r, image_object_position: null as string | null }));
-        const sliced = rows.slice(0, 3) as HomeEventPreview[];
-        if (!cancelled) setEvents(sliced);
-
-        const ids = sliced.map((r) => r.id);
-        if (ids.length === 0) return;
-        try {
-          const { data: soldRows, error: rpcErr } = await supabase.rpc("event_tickets_sold_batch", {
-            p_event_ids: ids,
-          });
-          if (rpcErr) throw rpcErr;
-          const map: Record<string, number> = {};
-          for (const row of (soldRows as { event_id: string; tickets_sold: number }[] | null) ?? []) {
-            map[row.event_id] = row.tickets_sold;
-          }
-          if (!cancelled) setSoldByEvent(map);
-        } catch {
-          if (!cancelled) setSoldByEvent({});
-        }
-      } catch {
-        if (!cancelled) {
-          setEvents([]);
-          setSoldByEvent({});
-        }
-      } finally {
-        if (!cancelled) setEventsLoading(false);
-      }
-    };
-
-    void loadHomeEvents();
-
-    let refetchDebounce: ReturnType<typeof setTimeout> | undefined;
-
-    const scheduleRefetch = () => {
-      window.clearTimeout(refetchDebounce);
-      refetchDebounce = window.setTimeout(() => {
-        if (!cancelled) void loadHomeEvents();
-      }, 400);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState !== "visible") return;
-      scheduleRefetch();
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-
-    const onWindowFocus = () => scheduleRefetch();
-    window.addEventListener("focus", onWindowFocus);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(refetchDebounce);
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("focus", onWindowFocus);
-    };
-  }, []);
-
-  const eventsEmpty = useMemo(() => !eventsLoading && events.length === 0, [eventsLoading, events.length]);
-  const featured = events[0] ?? null;
-  const secondary = events.slice(1, 3);
-  const homeHeroBuyTicketsTo = featured ? `/events#event-card-${featured.id}` : "/events";
 
   return (
     <Layout>
@@ -345,18 +207,10 @@ const Index = () => {
               </a>
             </Button>
             <Button asChild variant="outline" size="lg" className={heroSecondaryCta}>
-              <Link
-                to={homeHeroBuyTicketsTo}
-                onClick={() =>
-                  trackEvent("Buy Tickets", {
-                    location: "home-hero",
-                    ...(featured ? { event_id: featured.id } : {}),
-                  })
-                }
-              >
-                <Ticket className="size-4 opacity-90" aria-hidden />
-                Buy Tickets
-              </Link>
+              <a href="#find-us">
+                <MapPin className="size-4 opacity-90" aria-hidden />
+                Find Us
+              </a>
             </Button>
           </div>
         </div>
@@ -451,209 +305,6 @@ const Index = () => {
         </FadeUp>
       </section>
 
-      <section className="section-warm-radial section-padding border-y border-border/40 bg-muted/80">
-        <FadeUp>
-          <div className="container mx-auto">
-            <SectionHeading
-              title="Live events at the lounge"
-              subtitle="Live music, comedy nights, and special events in the Rio Grande Valley."
-              className="!mb-10 md:!mb-12"
-            />
-
-            {eventsLoading ? (
-              <p className="font-body text-sm text-muted-foreground">Loading events…</p>
-            ) : eventsEmpty ? (
-              <div className="rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-10 text-center">
-                <p className="font-heading text-lg font-semibold tracking-wide text-muted-foreground/90 md:text-xl">
-                  No upcoming events posted yet
-                </p>
-                <p className="mt-3 font-body text-sm leading-relaxed text-muted-foreground/70">
-                  Check back soon, or follow us on Instagram for announcements.
-                </p>
-                <div className="mt-6">
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                  >
-                    <a href={business.instagramUrl} target="_blank" rel="noopener noreferrer">
-                      Follow for updates
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-border/50 bg-card/30 p-4 sm:p-6">
-                <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                  <Card className="overflow-hidden rounded-2xl border-border/60 bg-card/40 shadow-card">
-                    {(() => {
-                      const imageSrc =
-                        featured?.image_path || featured?.image_url
-                          ? featured?.image_path
-                            ? supabase.storage.from("event-images").getPublicUrl(featured.image_path).data.publicUrl
-                            : featured?.image_url ?? undefined
-                          : liveEventsImg;
-                      const focalKey = featured?.image_object_position ?? "default";
-                      return (
-                        <div className={cn(HOME_FEATURED_EVENT_IMAGE_FRAME, "rounded-t-2xl")}>
-                          <img
-                            key={`${featured?.id ?? "hero"}-${focalKey}`}
-                            src={imageSrc}
-                            alt=""
-                            className={HOME_FEATURED_EVENT_IMAGE_IMG}
-                            style={eventImageObjectStyle(featured?.image_object_position ?? null)}
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div
-                            aria-hidden
-                            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"
-                          />
-                        </div>
-                      );
-                    })()}
-                    <CardHeader className="space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge className="bg-primary/15 text-primary border border-primary/25 font-body text-[10px] uppercase tracking-wide">
-                          Next up
-                        </Badge>
-                        <Badge variant="outline" className="border-border/70 font-body text-[10px] uppercase tracking-wide">
-                          21+
-                        </Badge>
-                        {featured ? (
-                          <PublicEventCapacityBadges
-                            remaining={spotsRemaining(featured, soldForEvent(soldByEvent, featured.id))}
-                            soldOut={isSoldOut(featured, soldForEvent(soldByEvent, featured.id))}
-                          />
-                        ) : null}
-                      </div>
-                      <CardTitle className="font-heading text-2xl">{featured?.name ?? "Upcoming event"}</CardTitle>
-                      <div className="grid gap-1 font-body text-sm text-muted-foreground">
-                        <p className="inline-flex items-center gap-2">
-                          <CalendarDays className="h-4 w-4 text-foreground/70" aria-hidden />
-                          {featured ? `${featured.date} • ${featured.time}` : "Dates announced soon"}
-                        </p>
-                        <p className="inline-flex items-start gap-2">
-                          <MapPin className="mt-[2px] h-4 w-4 text-foreground/70" aria-hidden />
-                          {business.address}
-                        </p>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="font-body text-sm leading-relaxed text-muted-foreground line-clamp-4">
-                        {featured?.description?.trim()
-                          ? featured.description
-                          : "Great nights, great cigars, and a relaxed lounge built for conversation."}
-                      </p>
-
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="font-body text-xs text-muted-foreground/80">
-                          All ticket sales are final and non-refundable.{" "}
-                          <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/90">
-                            Event ticket terms
-                          </Link>
-                        </p>
-                        <Button
-                          asChild
-                          className="bg-gold-gradient text-primary-foreground shadow-gold hover:opacity-90"
-                          onClick={() => trackEvent("Home Events Featured Get Tickets", { event_id: featured?.id ?? "unknown" })}
-                        >
-                          <Link to={featured ? `/events#event-card-${featured.id}` : "/events"}>
-                            Get tickets <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <div className="space-y-3">
-                    <p className="font-heading text-sm text-foreground/80">Also coming up</p>
-                    {secondary.map((e) => {
-                      const sold = soldForEvent(soldByEvent, e.id);
-                      const remaining = spotsRemaining(e, sold);
-                      const soldOut = isSoldOut(e, sold);
-                      const subtleLink = `/events#event-card-${e.id}`;
-                      const desc = (e.description ?? "").trim();
-                      const descLower = desc.toLowerCase();
-                      const safeDesc = !desc ? "Details coming soon." : descLower === "free event" ? "Details coming soon." : desc;
-
-                      return (
-                        <Card key={e.id} className="border-border/60 bg-card/20">
-                          <CardHeader className="space-y-2">
-                            <CardTitle className="font-heading text-base">{e.name}</CardTitle>
-                            <p className="font-body text-xs text-muted-foreground">
-                              {e.date} • {e.time}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Badge variant="outline" className="border-border/70 font-body text-[10px] uppercase tracking-wide">
-                                21+
-                              </Badge>
-                              <PublicEventCapacityBadges remaining={remaining} soldOut={soldOut} />
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-0">
-                            <p className="font-body text-sm leading-relaxed text-muted-foreground line-clamp-3">{safeDesc}</p>
-                            <div className="mt-3">
-                              <Button
-                                asChild
-                                variant="link"
-                                className="h-auto p-0 font-body text-xs uppercase tracking-wider text-primary underline underline-offset-4 hover:text-primary/90"
-                                onClick={() => trackEvent("Home Events Upcoming CTA", { event_id: e.id })}
-                              >
-                                <Link to={subtleLink}>View details →</Link>
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-
-                    <Button asChild variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                      <Link to="/events" onClick={() => trackEvent("Home Events View All", { variant: "footer" })}>
-                        View full calendar <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </FadeUp>
-      </section>
-
-      <section className="section-padding border-y border-border/40 bg-muted/80">
-        <FadeUp>
-          <div className="container mx-auto">
-            <SectionHeading
-              title="Cigar marketplace"
-              subtitle={`Coming soon — browse and shop highlighted picks from our humidor online. Until then, explore our in-store menu or stop by and call for today's lineup.`}
-            />
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {[0, 1, 2].map((slot) => (
-                <div
-                  key={slot}
-                  className="flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-10 text-center ring-1 ring-border/20 md:min-h-[260px]"
-                  aria-hidden={slot !== 0}
-                >
-                  <p className="font-heading text-lg font-semibold tracking-wide text-muted-foreground/90 md:text-xl">
-                    Coming soon
-                  </p>
-                  <p className="mt-3 max-w-[14rem] font-body text-sm leading-relaxed text-muted-foreground/70">
-                    In the meantime, explore our in-lounge selection
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-12 text-center">
-              <Button asChild variant="luxury" className="font-body text-sm uppercase tracking-wider">
-                <Link to="/cigars" onClick={() => trackEvent("Marketplace CTA", { location: "home-marketplace-soon" })}>
-                  Browse our cigar menu
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </FadeUp>
-      </section>
 
       <section className="section-padding overflow-hidden">
         <FadeUp>
@@ -697,89 +348,6 @@ const Index = () => {
             ))}
           </div>
         </div>
-      </section>
-
-      <section id="faq" className="section-padding scroll-mt-24 border-t border-border/40 bg-muted/40">
-        <FadeUp>
-          <div className="container mx-auto max-w-3xl">
-            <SectionHeading
-              title="Common questions"
-              subtitle="Quick answers before you visit. For anything else, call us or stop by during business hours."
-            />
-            <div className="space-y-10 text-left">
-              <div>
-                <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">What are your hours?</h3>
-                <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  We&apos;re open {business.hoursText}. Holiday hours can vary—check our Instagram for the latest.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">Is there an age requirement?</h3>
-                <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  Yes. Cigar Society is <span className="text-foreground/90">21+ to enter</span>, consistent with our
-                  lounge policies. Please bring a valid government-issued ID.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">Do you allow BYOB?</h3>
-                <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  We serve bourbon, beer, and mixed drinks at the bar. Outside bottles and BYOB rules can change with
-                  events and staffing—just ask our team when you arrive and we&apos;ll share the current policy.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">Do you host private events?</h3>
-                <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  We&apos;re happy to talk through private events, celebrations, and group visits. Reach us at{" "}
-                  <a href={`tel:${business.phoneE164}`} className="text-primary underline-offset-4 hover:underline">
-                    {business.phoneDisplay}
-                  </a>{" "}
-                  or visit during business hours so we can help with availability and details.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-heading mb-3 text-xl font-semibold text-foreground">
-                  Where are you located, and is there parking?
-                </h3>
-                <p className="font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  You&apos;ll find us at {business.address} in the Rio Grande Valley. Street and nearby lot parking is
-                  typically available around our block; for the most up-to-date map and walking directions, use{" "}
-                  <a
-                    href={business.mapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline-offset-4 hover:underline"
-                    onClick={() => trackEvent("Directions", { location: "home-faq", target: "google-maps" })}
-                  >
-                    Google Maps
-                  </a>{" "}
-                  or{" "}
-                  <a
-                    href={business.appleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline-offset-4 hover:underline"
-                    onClick={() => trackEvent("Directions", { location: "home-faq", target: "apple-maps" })}
-                  >
-                    Apple Maps
-                  </a>
-                  . You can also jump to our{" "}
-                  <a href="#find-us" className="text-primary underline-offset-4 hover:underline">
-                    Find Us
-                  </a>{" "}
-                  section on this page.
-                </p>
-              </div>
-            </div>
-            <p className="mt-12 text-center font-body text-sm text-muted-foreground">
-              More ways to reach us:{" "}
-              <Link to="/contact" className="text-primary underline-offset-4 hover:underline">
-                Contact
-              </Link>
-              .
-            </p>
-          </div>
-        </FadeUp>
       </section>
 
       <section id="find-us" className="section-padding scroll-mt-24 bg-muted">

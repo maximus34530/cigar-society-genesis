@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
@@ -9,9 +8,6 @@ import humidorImg from "@/assets/humidor.jpg";
 import tobacconistCertificateImg from "@/assets/tobacconist_certificate_enhanced.png";
 import { business } from "@/lib/business";
 import { trackEvent } from "@/lib/analytics";
-
-const linkClass =
-  "font-medium text-primary underline decoration-primary/50 underline-offset-4 transition-colors duration-[600ms] ease-out hover:text-primary/90";
 
 const About = () => {
   return (
@@ -63,15 +59,8 @@ const About = () => {
                   nights, game nights, car meets, etc.
                 </p>
                 <p className="leading-relaxed text-muted-foreground font-body">
-                  Not sure where to start?{" "}
-                  <Link to="/cigars" className={linkClass}>
-                    Browse our cigar selection
-                  </Link>{" "}
-                  and get expert pairing recommendations — the right smoke for your drink, your mood, and your moment.{" "}
-                  <Link to="/events" className={linkClass}>
-                    Check out our upcoming events
-                  </Link>{" "}
-                  so you never miss out on the fun. Look forward to seeing you soon.
+                  Not sure where to start? Ask our team for pairing recommendations to find the right smoke for your
+                  drink, your mood, and your moment. Look forward to seeing you soon.
                 </p>
                 <p className="leading-relaxed text-muted-foreground font-body">
                   We&apos;re at {business.address} — or just click below for directions.
